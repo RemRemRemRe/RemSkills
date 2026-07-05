@@ -52,17 +52,27 @@ Key formatting settings extracted:
 - Uniform initialization in NSDMIs: True
 - Namespace indentation: Inner
 
-## Build configuration (from RemCommon.Build.cs / RemSharedModuleRules)
+## Build configuration (from `Rem::BuildRule::RemSharedModuleRules`)
+
+All shared build flags are centralized in `Rem::BuildRule::RemSharedModuleRules::Apply`
+(defined in `RemCommon.Build.cs`). Every module calls this single method:
 
 ```csharp
-CppStandard = CppStandardVersion.EngineDefault;
-IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
-DefaultBuildSettings = BuildSettingsVersion.Latest;
-ShadowVariableWarningLevel = WarningLevel.Error;
-UnsafeTypeCastWarningLevel = WarningLevel.Warning;
-NonInlinedGenCppWarningLevel = WarningLevel.Warning;
-bUseUnity = false;
-bAllowUETypesInNamespaces = true;
+using Rem.BuildRule;
+// ...
+RemSharedModuleRules.Apply(this);
+```
+
+What `Apply` configures:
+```csharp
+target.CppStandard = CppStandardVersion.EngineDefault;
+target.IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+target.DefaultBuildSettings = BuildSettingsVersion.Latest;
+target.CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Error;
+target.CppCompileWarningSettings.UnsafeTypeCastWarningLevel = WarningLevel.Warning;
+target.CppCompileWarningSettings.NonInlinedGenCppWarningLevel = WarningLevel.Warning;
+target.bUseUnity = false;
+target.bAllowUETypesInNamespaces = true;
 ```
 
 ## Design decisions & rationale
@@ -96,10 +106,19 @@ but implicit double→float conversion has overhead. Match the destination type.
 Epic has officially deprecated `TEnableIf`, `TIsSame`, etc. in favor of `<type_traits>`.
 `std::atomic` is the officially-preferred atomic per Epic documentation.
 
-### Why UE types for containers, `TFunctionRef`, `FString`
+### Why UE types for containers, `TFunctionRef`
 
 These are required for UPROPERTY reflection, engine interaction, and GAS/latent
 action compatibility. No STL alternative works with the reflection system.
+
+### Why `FUtf8String` over `FString`
+
+`FUtf8String` (UTF-8) is the primary string type for all new code. `FString` (wide,
+`TCHAR`) is legacy. Both work as UPROPERTY. Reasons:
+- UTF-8 is more compact (1 byte per ASCII char vs 2), reducing memory and cache pressure
+- `Rem::Format` delegates to `fmt::format_to` which natively targets UTF-8 builders
+- The `fmt` library's `fmt::formatter` specialization bridges all UE types to UTF-8 via `Rem::ToString`
+- Engine APIs that still require `FString` are converted to `FUtf8String` immediately after the call
 
 ### Why `if constexpr` chains over SFINAE
 
@@ -165,12 +184,40 @@ compiler pads to the next alignment boundary anyway. Only use bitfields when
 multiple flags are packed together into the same byte and actually reduce the
 struct size.
 
-### Why RemEnsure vs RemCheck distinction
+### Why RemEnsureCondition / RemEnsureVariable (assertion macros)
 
-`RemEnsure` macros are for invariants that must survive into shipping builds
-(corrupt player data, critical gameplay failures). `RemCheck` macros are for
-dev-time validation that may eventually be stripped from final packages. The
-separation forces a conscious decision about which category each check falls into.
+Two orthogonal concerns are separated: what to validate (condition vs variable)
+and how to assert (ensure vs check vs crash). The macros use `REM_MULTI_MACRO`
+to accept 1/2/3 arguments:
+
+```
+RemEnsureCondition(ensureAlways, bInitialized, return;)   // 3 args: macro + condition + handling
+RemEnsureCondition(bInitialized)                           // 1 arg:  condition only (defaults to ensureAlways)
+RemEnsureVariable(MoverComp, return;)                      // 2 args: variable + handling (uses Rem::IsValid)
+RemEnsureVariable(check, MoverComp, return;)               // 3 args: macro + variable + handling
+```
+
+- The first optional arg selects the assertion macro (`ensure`, `ensureAlways`, `check`, `verify`)
+- The last optional arg is the invalid-handling statement (typically `return;`)
+- `RemEnsureVariable` validates via `Rem::IsValid(Pointer)`; `RemEnsureCondition` takes a raw bool expression
+- `RemCheck*` is currently an alias for `RemEnsure*` (gated by `DISABLE_CHECK_MACRO`)
+- `REM_LET_IT_CRASH` strips handling statements so failures are fatal
+
+### Why `Rem::Format` with `fmt::format_to` instead of `FString::Format` / `FString::Printf`
+
+`fmt` is a high-performance, widely-used C++ formatting library. Reasons:
+- Compile-time format string validation (catches argument count/type mismatches)
+- Zero-allocation `fmt::format_to` into `TStringBuilderBase<CharType>`
+- `{}` placeholder syntax (no numbers needed — `fmt` infers argument order)
+- Generic `fmt::formatter` specialization bridges all `CStringable` types through `Rem::ToString`
+- Future-proof: `fmt` is the basis for C++20 `std::format`
+
+### Why `Category = "Rem"` / `"Rem|..."` exclusively
+
+All UPROPERTY/UFUNCTION categories use the `"Rem"` root, optionally with a
+sub-category via `"Rem|SubName"`. Bare categories like `"Component"` are not
+allowed — they scatter editor entries across the Details panel. The root
+ensures all project types group together under one expandable section.
 
 ### Include order rationale
 
@@ -194,3 +241,7 @@ When regenerating this skill:
 4. Verify CppStandard version in engine (could change with new UE versions)
 5. Check if debugger support for structured bindings has improved (re-evaluate)
 6. Review if new C++23 features should be adopted
+7. Verify `RemSharedModuleRules.Apply` still covers all required build flags
+8. Check if `FUtf8String` / `FAnsiString` usage patterns changed (currently: UTF-8 primary, ANSI unused)
+9. Review `fmt` library version and any API changes in format string conventions
+10. Verify assertion macro signatures in `RemAssertionMacros.h` still match the 1/2/3-arg overload pattern

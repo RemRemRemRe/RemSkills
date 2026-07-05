@@ -31,26 +31,20 @@ systematically after writing code, before committing.
 
 ## 1. Build & Compiler Settings
 
-Every module's `Build.cs` must include:
+Every module's `Build.cs` calls `Rem::BuildRule::RemSharedModuleRules::Apply(this)`
+which sets all shared project-level compiler flags:
 
 ```csharp
 // Copyright RemRemRemRe. {Year}. All Rights Reserved.
 
 using UnrealBuildTool;
+using Rem.BuildRule;
 
 public class MyModule : ModuleRules
 {
     public MyModule(ReadOnlyTargetRules target) : base(target)
     {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        CppStandard = CppStandardVersion.EngineDefault;
-        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
-        DefaultBuildSettings = BuildSettingsVersion.Latest;
-        ShadowVariableWarningLevel = WarningLevel.Error;
-        UnsafeTypeCastWarningLevel = WarningLevel.Warning;
-        NonInlinedGenCppWarningLevel = WarningLevel.Warning;
-        bUseUnity = false;
-        bAllowUETypesInNamespaces = true;
+        RemSharedModuleRules.Apply(this);
 
         PublicDependencyModuleNames.AddRange([
             "Core",
@@ -61,13 +55,14 @@ public class MyModule : ModuleRules
 }
 ```
 
-Key points:
+What `RemSharedModuleRules.Apply` configures:
 - `CppStandardVersion.EngineDefault` — never override the C++ version
 - `ShadowVariableWarningLevel = WarningLevel.Error` — shader variable bugs are real
 - `bUseUnity = false` — every `.cpp` compiles independently; IWYU is enforced
 - `bAllowUETypesInNamespaces = true` — enables UE types inside custom namespaces
-- `IncludeOrderVersion.Latest` — uses the latest engine include dependency rules
-- No precompiled header shortcuts — every file includes what it uses
+- `IncludeOrderVersion.Latest` — latest engine include dependency rules
+- `UnsafeTypeCastWarningLevel = WarningLevel.Warning`
+- `NonInlinedGenCppWarningLevel = WarningLevel.Warning`
 
 ---
 
@@ -285,7 +280,7 @@ public:
     float Speed{};
 
 protected:
-    UPROPERTY(VisibleAnywhere, Category = "Component")
+    UPROPERTY(VisibleAnywhere, Category = "Rem|Component")
     TObjectPtr<UObject> Owner{};
 
 private:
@@ -774,18 +769,18 @@ UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rem",
 TArray<FRemObjectWrapper> Objects;
 
 // Instanced struct collection — ExcludeBaseStruct
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component",
+UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rem|Component",
           meta = (ExcludeBaseStruct))
 TArray<TInstancedStruct<FRemComponentBase>> Components;
 
 // Boolean — only use bitfield when it actually saves memory under alignment
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Component")
+UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
 bool bInitialized{false};
 
 // Bitfield only when packing gains real space (multiple flags adjacent):
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Component")
+UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
 uint8 bFlagA : 1{false};
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Component")
+UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
 uint8 bFlagB : 1{false};
 
 // Numeric with constraints

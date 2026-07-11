@@ -8,7 +8,6 @@ description: Pre-commit C++ code review checklist. Use this skill explicitly —
   This skill is NOT intended for code generation — Rider/IDE tooling handles
   formatting and inspection automatically during writing.
 metadata:
-  engine-version: "5.7"
   category: meta
   cpp-standard: EngineDefault
   trigger: manual

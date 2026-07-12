@@ -1,5 +1,5 @@
 ---
-name: create-new-module
+name: rem-create-new-module
 description: >
   Create a new runtime module or plugin by copying the RemMyBlank template
   and performing keyword substitution. Covers two scenarios: (a) adding a

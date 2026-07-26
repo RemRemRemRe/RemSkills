@@ -6,6 +6,7 @@ description: >
   module to an existing plugin, and (b) creating a brand-new standalone plugin.
   Use when the user asks to "create a new module" or "create a new plugin"
   using the project's RemMyBlank boilerplate.
+  Last verified: 2026-07.
 metadata:
   category: meta
   trigger: manual
@@ -41,20 +42,21 @@ layout differs.
 
 1. **Copy the template module source directory**
 
-   Use `bash` to recursively copy `Source/RemMyBlank` to the target plugin:
+   **Linux/macOS/Git Bash:**
 
    ```
    cp -r {RemMyBlankPath}/Source/RemMyBlank {TargetPluginPath}/Source/{NewModule}
    ```
 
-   On Windows, PowerShell equivalent:
-   ```
+   **PowerShell (Windows):**
+
+   ```powershell
    Copy-Item -Recurse -LiteralPath "{RemMyBlankPath}/Source/RemMyBlank" -Destination "{TargetPluginPath}/Source/{NewModule}"
    ```
 
 2. **Rename files containing `RemMyBlank` in their name**
 
-   Use `bash` with `find` + `mv` (works on Linux/macOS/Git Bash on Windows):
+   **Linux/macOS/Git Bash:**
 
    ```bash
    cd {TargetPluginPath}/Source/{NewModule}
@@ -63,11 +65,20 @@ layout differs.
    done
    ```
 
+   **PowerShell (Windows):**
+
+   ```powershell
+   Get-ChildItem -Path "{TargetPluginPath}/Source/{NewModule}" -File -Recurse -Filter "*RemMyBlank*" | ForEach-Object {
+     $NewName = $_.Name -replace 'RemMyBlank', '{NewModule}'
+     Rename-Item -LiteralPath $_.FullName -NewName $NewName
+   }
+   ```
+
    Or use the `glob` tool to list files, then `bash mv` for each.
 
 3. **Replace `RemMyBlank` and `REMMYBLANK` in all file contents**
 
-   Use `bash` with `sed`:
+   **Linux/macOS/Git Bash:**
 
    ```bash
    cd {TargetPluginPath}/Source/{NewModule}
@@ -78,6 +89,16 @@ layout differs.
    ```
 
    On macOS, `sed -i ''` instead of `sed -i`.
+
+   **PowerShell (Windows):**
+
+   ```powershell
+   Get-ChildItem -Path "{TargetPluginPath}/Source/{NewModule}" -File -Recurse | ForEach-Object {
+     $Content = Get-Content -LiteralPath $_.FullName -Raw
+     $Content = $Content -replace 'RemMyBlank', '{NewModule}' -replace 'REMMYBLANK', '{NEWMODULE}'
+     Set-Content -LiteralPath $_.FullName -Value $Content -NoNewline
+   }
+   ```
 
    If `sed` is unavailable, use the `edit` tool with `replaceAll: true` on each
    file found by `glob`.
@@ -115,8 +136,14 @@ Same as Scenario A, plus:
 
 1. **Copy the entire RemMyBlank plugin directory**
 
+   **Linux/macOS/Git Bash:**
    ```
    cp -r {RemMyBlankPath} {TargetPluginDir}/{NewPlugin}
+   ```
+
+   **PowerShell (Windows):**
+   ```powershell
+   Copy-Item -Recurse -LiteralPath "{RemMyBlankPath}" -Destination "{TargetPluginDir}/{NewPlugin}"
    ```
 
 2. **Rename `RemMyBlank.uplugin` to `{NewPlugin}.uplugin`**

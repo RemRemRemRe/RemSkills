@@ -1,12 +1,14 @@
 ---
 name: rem-cpp-best-practices
-description: Pre-commit C++ code review checklist. Use this skill explicitly — load it
+description: >
+  Pre-commit C++ code review checklist. Use this skill explicitly — load it
   when reviewing completed code before committing, to verify conformance with project
   conventions (build config, include order, naming, formatting, const correctness,
   auto usage, if-constexpr dispatch, C++20 concepts, UPROPERTY/UFUNCTION specifiers,
   macro patterns, STL vs UE types, API export, SOLID zero-overhead, logging assertions).
   This skill is NOT intended for code generation — Rider/IDE tooling handles
   formatting and inspection automatically during writing.
+  Last verified: 2026-07.
 metadata:
   category: meta
   cpp-standard: EngineDefault
@@ -162,10 +164,10 @@ inline int32 FMyType::SomeHelper() const
 |--------|------|---------|
 | `U` | UObject subclass (non-Actor) | `URemActorComponent` |
 | `A` | AActor subclass | `ARemCharacter` |
-| `F` | Plain struct or non-UObject class | `FRemComponentBase`, `FRemComponentContainer` |
-| `E` | Enum / enum class | `ERemComparisonOperator` |
+| `F` | Plain struct or non-UObject class | `FRemFooBase`, `FRemBarContainer` |
+| `E` | Enum / enum class | `ERemFooOperator` |
 | `I` | Abstract interface class | `IRemCommonModule`, `IRemScriptStructInterface` |
-| `T` | Class template | `TRemLerpCurve` |
+| `T` | Class template | `TRemFooCurve` |
 | `C` | Concept (C++20) | `CInstanceOf`, `CUObject`, `CStringable` |
 | `b` | Boolean variable / bitfield | `bInitialized`, `bIsDead` |
 
@@ -463,11 +465,11 @@ const auto Start = Range.GetLowerBoundValue();              // FInt32 is clear
 Use trailing return type for template-heavy functions:
 
 ```cpp
-template <std::derived_from<FRemComponentBase> T>
+template <std::derived_from<FRemFooBase> T>
 auto FindComponent() -> T*;
 
 // Or auto with trailing:
-template <std::derived_from<FRemComponentBase> T>
+template <std::derived_from<FRemFooBase> T>
 decltype(auto) GetDefaultRef();
 ```
 
@@ -660,7 +662,7 @@ if (const auto* Player = Cast<APlayerController>(Controller))
 Wrap raw pointers when null is logically impossible:
 
 ```cpp
-Rem::TNotNull<FRemComponentContainer*> OwnerInstance;
+Rem::TNotNull<FRemBarContainer*> OwnerInstance;
 
 // Dereference transparently:
 OwnerInstance->Initialize();
@@ -772,8 +774,6 @@ struct always_false : std::false_type
 };
 ```
 
-};
-
 ---
 
 ## 8b. Ranges & Functional Pipelines
@@ -802,10 +802,10 @@ logic into a template in a `.inl` file alongside the header:
 
 ```cpp
 // MyFile.inl — template helper, included by the .cpp only:
-template <ERemTimerType TimerType>
-FInstancedStruct MakeTimerHelper(const FRemTimerConfig& Config, float Delay, int32 Loops)
+template <ERemFooType TimerType>
+FInstancedStruct MakeTimerHelper(const FRemFooConfig& Config, float Delay, int32 Loops)
 {
-    if constexpr (TimerType == ERemTimerType::DelayInTime)
+    if constexpr (TimerType == ERemFooType::DelayInTime)
     {
         return MakeDelayInTime(Config, Delay, Loops);
     }
@@ -884,7 +884,7 @@ decltype(auto) GetDefaultRef()
 }
 
 // With std::derived_from:
-template <std::derived_from<FRemComponentBase> T>
+template <std::derived_from<FRemFooBase> T>
 auto FindComponent();
 
 // In if constexpr guard:
@@ -906,12 +906,12 @@ TObjectPtr<UObject> Object{};
 // Array of wrappers — TitleProperty for display
 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rem",
           meta = (AddFilterUI = true, TitleProperty = Object))
-TArray<FRemObjectWrapper> Objects;
+TArray<FRemFooWrapper> Objects;
 
 // Instanced struct collection — ExcludeBaseStruct
 UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rem|Component",
           meta = (ExcludeBaseStruct))
-TArray<TInstancedStruct<FRemComponentBase>> Components;
+TArray<TInstancedStruct<FRemFooBase>> Components;
 
 // Boolean — only use bitfield when it actually saves memory under alignment
 UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
@@ -1017,7 +1017,7 @@ REM_DEFINE_TEMPLATE_GETTER_RETURN_VALUE(Concept, NamePredicate, NameSuffix, Retu
 Usage example:
 ```cpp
 USTRUCT()
-struct FRemFloatWrapper
+struct FRemFooWrapper
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, Category = "Rem")

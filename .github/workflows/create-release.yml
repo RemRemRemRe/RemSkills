@@ -1,0 +1,13 @@
+name: Create Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  call-shared-workflow:
+    uses: RemRemRemRe/.github/.github/workflows/create-release-notes.yml@main
+    secrets: inherit

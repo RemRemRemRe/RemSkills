@@ -219,6 +219,41 @@ line — avoid multi-paragraph checklist entries.
 
 ---
 
+## 8.5 Externalize Config & Anonymize Project Data
+
+A skill is **generic knowledge + generic workflow** — it must never carry
+machine paths, project names, or project-specific decisions. Keep project
+data outside the skill and anonymize what the skill references.
+
+### Three layers
+
+| Layer | Content | Where it lives |
+|-------|---------|----------------|
+| Skill itself | Generic workflow, decision trees, conventions | `SKILL.md` |
+| Generic knowledge | Engine/API differences, error patterns | `references/`, `tools/` templates |
+| External config | Per-plugin config + per-plugin adaptation knowledge | outside the skill, e.g. `<config-dir>/<Plugin>/` |
+
+### Rules
+
+1. **Skill directory stays clean** — no machine paths, no project names, no
+   per-plugin decisions inside `SKILL.md`, `references/`, or `tools/`.
+2. **Per-plugin data lives outside the skill** — each external plugin gets
+   its own config directory (e.g. `<config-dir>/<Plugin>/local.json` +
+   `adaptation-notes.md`). The skill's tools take the config via a required
+   parameter (`--config`) and **error out when it is missing or mismatched**.
+3. **Machine-specific paths never enter the skill** — engine roots, plugin
+   source paths, dependency source paths stay in external local configs.
+   Templates in the skill use placeholders only.
+4. **Anonymize code examples** — examples use meaningless placeholders
+   (`FFoo`, `Foo::Math::Modulo`, `FooNotNull.h`). Public/open-source project
+   names may appear only as source citations (see §6); anything not public
+   must be anonymized or moved to the external adaptation notes.
+5. **First-use instructions live in the skill** — a "first-time setup"
+   section (in `tools/README.md` or `SKILL.md`) explains how to create the
+   external configs and what happens when they are missing.
+
+---
+
 ## 9. When to Create a Skill vs. Inline Instructions
 
 | Situation | Choice |
@@ -256,6 +291,8 @@ Before publishing a new or updated skill:
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
 - [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`, not `/home/<user>/Projects/MyPlugin` or `MyCompanyPlugin`)
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)
+- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized to per-plugin configs (e.g. `<config-dir>/<Plugin>/local.json`) referenced via a required `--config`-style parameter
+- [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files
 - [ ] Reference content formatted as tables where appropriate

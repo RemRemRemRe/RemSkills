@@ -41,7 +41,7 @@ metadata:
 | Field | Convention |
 |-------|-----------|
 | `name` | Lowercase kebab-case, matching the folder name |
-| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it |
+| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it. Must use generic placeholders — no project-specific names, local paths, or machine-dependent values (see §3a). |
 | `category` | Always `meta` for RemSkills |
 | `trigger` | Always `manual` — skills are loaded explicitly, never auto-triggered |
 
@@ -83,6 +83,31 @@ when the codebase evolves. Meaningful placeholder names (e.g., `FMyEventObject`)
 still carry domain hints that confuse readers and create false expectations
 about structure. Completely abstract names (`FFoo`, `FBar`) force the example
 to stand on its own structural merit.
+
+### 3a. Use Generic Placeholder Paths and Names
+
+The generic placeholder rule extends beyond C++ types to **all identifiers** that
+could tie the skill to a specific project or machine:
+
+| Category | Do this | Not this |
+|----------|---------|----------|
+| File paths | `<plugin-source-dir>/Source/...` | `/home/<user>/Projects/MyPlugin/Source/...` |
+| Engine paths | `<engine-install-path>/UE_5.7` | `/opt/UE/5.7/Engine/...` |
+| Output paths | `<output-dir>/Win64/5.7/...` | `/builds/Win64/5.7/...` |
+| Plugin names | `<PluginName>`, `<MyPlugin>` | `MyCompanyPlugin` |
+| Dependency names | `<DepA>`, `<DepB>` | `MyDependencyA` |
+| Module names | `<DepModule>` | `MyCompanyExtensionModule` |
+| Git remotes | `<upstream-remote>` | `origin`, `upstream` (unless standard) |
+
+**Why:** Paths like `/home/<user>/Projects/MyPlugin/...` are meaningless to anyone who doesn't
+share the author's exact directory layout. They also change over time as projects
+are reorganized. Generic placeholders (`<plugin-source-dir>`) communicate intent
+without locking the skill to a specific machine.
+
+**Exception**: `engines.json` and similar config files that are **actual working
+files** shipped alongside the skill may contain real paths — they're configuration,
+not documentation. The SKILL.md content that references them should still use
+placeholders (e.g., `engines.json` is at `<skill-dir>/tools/engines.json`).
 
 Exception: if the skill's entire purpose is to document a specific type's
 public API, use the real type name — the skill is the reference for that
@@ -138,7 +163,7 @@ When a convention comes from an external authority or a specific file, cite it
 so future readers can **verify it is still current**:
 
 - Engine header paths (e.g., `Engine/Source/Runtime/Core/Public/...`)
-- Project files (e.g., `Plugins/RemCommon/Source/...`)
+- Project files (e.g., `Plugins/<DepA>/Source/...`)
 - External references (Epic docs, CppCoreGuidelines, etc.)
 - Use relative paths from the project root where possible
 
@@ -226,9 +251,10 @@ time for a skill.
 Before publishing a new or updated skill:
 
 - [ ] Frontmatter present with `name`, `description`, `metadata`
-- [ ] `description` covers both what the skill covers AND when to use it
+- [ ] `description` covers both what the skill covers AND when to use it — and uses only generic placeholders (no project names, no local paths)
 - [ ] One `SKILL.md` per folder; folder name matches `name` in kebab-case
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
+- [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`, not `/home/<user>/Projects/MyPlugin` or `MyCompanyPlugin`)
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files

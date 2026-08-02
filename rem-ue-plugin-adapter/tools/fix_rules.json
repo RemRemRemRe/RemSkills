@@ -1,0 +1,144 @@
+{
+    "_comment": "Auto-fix rules for UE cross-version compilation errors.",
+    "_instructions": "Each rule matches an error pattern and defines how to fix it.",
+    "_fix_types": {
+        "include_add": "Add a #include line after the last include in the file",
+        "include_replace": "Replace one include path with another",
+        "regex_replace": "Simple regex find-and-replace in the error file",
+        "module_add": "Add a module dependency in Build.cs",
+        "ifdef_wrap": "Wrap the error line in #if ENGINE_MAJOR_VERSION >= X / #else / #endif"
+    },
+
+    "rules": [
+        {
+            "id": "fmath_modulo_fmod_5.4",
+            "enabled": true,
+            "description": "FMath::Modulo added in 5.4, use FMath::FMod before 5.4",
+            "match": {
+                "error_code": "C2039",
+                "symbol": "Modulo",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "FMath::Modulo\\b",
+                "replacement": "FMath::FMod",
+                "note": "todo: upgrade to ifdef_wrap when context-aware"
+            }
+        },
+
+        {
+            "id": "make_array_view_5.4",
+            "enabled": true,
+            "description": "MakeArrayView / MakeConstArrayView missing pre-5.4",
+            "match": {
+                "error_code": "C3861|C2039",
+                "symbol": "MakeArrayView|MakeConstArrayView",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "MakeArrayView\\(",
+                "replacement": "TArrayView(",
+                "note": "Simple case only - TArrayView constructor. Complex cases need manual review."
+            }
+        },
+
+        {
+            "id": "get_member_name_string_view_checked_5.4",
+            "enabled": true,
+            "description": "GET_MEMBER_NAME_STRING_VIEW_CHECKED added in 5.4",
+            "match": {
+                "error_code": "C3861",
+                "symbol": "GET_MEMBER_NAME_STRING_VIEW_CHECKED",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "GET_MEMBER_NAME_STRING_VIEW_CHECKED\\(",
+                "replacement": "GET_MEMBER_NAME_CHECKED("
+            }
+        },
+
+        {
+            "id": "struct_view_explicit_5.3",
+            "enabled": true,
+            "description": "FStructView constructor must be explicit in 5.3",
+            "match": {
+                "error_code": "C2440|C2668",
+                "message_pattern": "(?i).*struct.*view.*(constructor|conversion|explicit).*",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "FStructView\\s*\\w+\\s*=\\s*(FInstancedStruct\\{)",
+                "replacement": "FStructView __AUTO_FIXED__ = FInstancedStruct{FInstancedStruct::Make<decltype(\\1)>()",
+                "note": "Manual review recommended. Pattern-based fix may need adjustment."
+            }
+        },
+
+        {
+            "id": "intvector2_zerovalue_5.3",
+            "enabled": true,
+            "description": "FIntVector2::ZeroValue not in 5.3, use FIntVector2(0,0)",
+            "match": {
+                "error_code": "C2039",
+                "symbol": "ZeroValue",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "FIntVector2::ZeroValue",
+                "replacement": "FIntVector2(0, 0)"
+            }
+        },
+
+        {
+            "id": "pending_disable_5.3",
+            "enabled": true,
+            "description": "IsPendingDisable not available in 5.3",
+            "match": {
+                "error_code": "C2039",
+                "symbol": "IsPendingDisable",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "IsPendingDisable\\(",
+                "replacement": "IsPendingKillOrUnreachable("
+            }
+        },
+
+        {
+            "id": "owned_gameplay_tags_return_5.3",
+            "enabled": true,
+            "description": "GetOwnedGameplayTags with return value not in 5.3",
+            "match": {
+                "error_code": "C2664|C2660|C2039",
+                "symbol": "GetOwnedGameplayTags",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "regex_replace",
+                "pattern": "GetOwnedGameplayTags\\(([^)]+)\\)",
+                "replacement": "GetOwnedGameplayTags(/* FGameplayTagContainer &OutTags = \\1 — manual review */)",
+                "note": "Manual review required — API signature change." 
+            }
+        },
+
+        {
+            "id": "include_structutils_5.3",
+            "enabled": true,
+            "description": "StructUtils includes changed between versions",
+            "match": {
+                "error_code": "C1083",
+                "message_pattern": "(?i).*(StructUtils|InstancedStruct|FInstancedStruct).*",
+                "file_pattern": ".*"
+            },
+            "fix": {
+                "type": "include_add",
+                "include": "StructUtils/InstancedStruct.h"
+            }
+        }
+    ]
+}

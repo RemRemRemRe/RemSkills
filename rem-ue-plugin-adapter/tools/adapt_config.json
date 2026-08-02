@@ -1,0 +1,29 @@
+{
+    "_comment": "Per-plugin adaptation configuration. Lives in the build repo root.",
+    "_instructions": "Copy to your build repo root and customize. Dependency SOURCE PATHS come from the machine-local config (engines.local.json → dependencies), NOT here. This file lists which dependencies to embed and the cherry-pick ranges.",
+
+    "cherry_pick_ranges": {
+        "_comment_range": "For each engine version (high→low), specify the git commit range to cherry-pick from the old adaptation branch.",
+        "_comment_format": "Range format: '<start_commit>..<end_commit>' where start is the upstream sync point and end is the next version boundary.",
+        "_comment_example": "If old branch has: [upstream-sync] → [set 5.7] → [fixes] → [set 5.6] → ..., then:",
+        "_comment_example_5.8": "5.8 range is: upstream-sync..set-5.7 (base adaptations common to all)",
+        "_comment_example_5.7": "5.7 range is: set-5.7..set-5.6 (5.7-specific adaptations)",
+
+        "5.8": "",
+        "5.7": "",
+        "5.6": "",
+        "5.5": "",
+        "5.4": "",
+        "5.3": ""
+    },
+
+    "dependencies": [
+        {
+            "name": "<DepA>",
+            "_comment": "Name must match a key in engines.local.json → dependencies. Its source path is looked up there."
+        },
+        {
+            "name": "<DepB>"
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "_comment": "SHARED TEMPLATE — do not put personal paths here. Create your own machine-specific config (e.g., D:/engines.local.json) and pass it to tools via --config. This file documents the config schema with placeholder values.",
+    "_instructions": "Copy this structure to your local config file and replace every <placeholder> with your machine's real paths. Tools read the config passed via --config; they never auto-discover this template.",
+
+    "engines": {
+        "_comment_engine": "Map of engine version → installation. 'root' is the directory CONTAINING the Engine/ subfolder. 'type' is 'source' (built from source) or 'binary' (Epic official build). Add/remove versions freely — only the versions you list are buildable.",
+        "5.3": { "root": "<binary-engine-path>/UE_5.3", "type": "binary" },
+        "5.4": { "root": "<binary-engine-path>/UE_5.4", "type": "binary" },
+        "5.5": { "root": "<binary-engine-path>/UE_5.5", "type": "binary" },
+        "5.6": { "root": "<binary-engine-path>/UE_5.6", "type": "binary" },
+        "5.7": { "root": "<binary-engine-path>/UE_5.7", "type": "binary" },
+        "5.8": { "root": "<source-engine-path>", "type": "source" }
+    },
+
+    "defaults": {
+        "_comment_defaults": "Default paths used by build tools when the matching --flag is not given.",
+        "plugin_path": "<plugin-source-dir>",
+        "_comment_plugin_path": "Directory CONTAINING <PluginName>/<PluginName>.uplugin. Can be the plugin's parent dir or the build repo.",
+        "output_path": "<output-dir>",
+        "_comment_output_path": "Root of the build output tree; binaries land in {output}/{platform}/{engine_version}/{plugin_name}/.",
+        "platform": "Win64"
+    },
+
+    "dependencies": {
+        "_comment_dependencies": "Map of embedded dependency name → its source directory. The AI reads this to know where to copy dependency code from when embedding (see SKILL.md §4).",
+        "<DepA>": "<path-to-DepA-source>",
+        "<DepB>": "<path-to-DepB-source>"
+    },
+
+    "upstream": {
+        "_comment_upstream": "The plugin's pure upstream source repo, as configured in the build repo's git remotes.",
+        "remote": "<upstream-remote-name>",
+        "branch": "<upstream-branch>"
+    },
+
+    "build_repo": "<path-to-build-repo>",
+
+    "plugin_version": "",
+    "_comment_plugin_version": "One-shot version bump for this adaptation run, written into the .uplugin VersionName at the first (highest) version boundary commit. Leave empty normally; set it (e.g. \"4.1.0\") before adapting, clear it again after the full adaptation completes. Format: full semantic version (major.minor.patch). Major is explicit, minor+1 for new-engine adaptation, patch+1 for bugfix adaptation.",
+
+    "logs": {
+        "_comment_logs": "Where build/operation logs are written for human review. Build logs: {dir}/build/{plugin}_{version}_{timestamp}.log. Operation log (append): {dir}/operation/{plugin}_{version}.log.",
+        "dir": "<log-dir>"
+    }
+}

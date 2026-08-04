@@ -544,6 +544,37 @@ Check the top-level entries are only `Config`, `Source`,
 `LICENSE-ALS-Refactored`, `{PluginName}.uplugin`, and that no
 `Binaries`/`Intermediate` paths appear anywhere in the listing.
 
+### 8.5 Quick patching without rebuild (export → modify → import)
+
+For **small, surgical fixes** to files already inside the archives (e.g. adding
+`PlatformAllowList` to `.uplugin` modules, fixing a single source file) when a
+full rebuild is NOT required — e.g. the fix is metadata-only, or the target
+platform's binaries are unaffected. Requires user authorization like Step 5
+itself.
+
+**Rule: always work from the file INSIDE the archive, never overwrite with the
+working-tree copy.** Each archive holds the source snapshot of its version's
+adaptation endpoint, which may differ from the current working tree (later
+version-boundary changes). Overwriting with working-tree files silently mixes
+versions into the archive.
+
+```bash
+# 1. Export the file(s) from the archive (keep the archive-relative path)
+<7z> x -p"<PASSWORD>" -o<tmp-dir> {archive}.7z <archive-relative-path>
+
+# 2. Modify <tmp-dir>/<path> (preserve formatting/line endings where possible)
+
+# 3. Re-import: run 7z from INSIDE <tmp-dir> so the path matches the archive
+cd <tmp-dir>
+<7z> a -t7z -mhe=on -p"<PASSWORD>" {archive}.7z <archive-relative-path>
+```
+
+- Always re-pass `-p` and `-mhe=on` — the archive keeps its header encryption
+- Run the `a` command from the directory that mirrors the archive layout, so
+  the added path replaces the existing entry instead of adding a new one
+- Verify afterwards: re-export the patched file and diff it, confirm the JSON
+  is still valid (for `.uplugin`), and confirm passwordless `7z l` still fails
+
 ---
 
 ## 9. Git Conventions

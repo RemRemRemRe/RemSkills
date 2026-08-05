@@ -1,5 +1,5 @@
 ---
-name: ue-sequencer-custom-channel-section
+name: rem-sequencer-custom-channel-section
 description: >
   Create custom FMovieSceneChannel and UMovieSceneSection for the Unreal Sequencer editor,
   with per-key struct editing via FSequencerKeyStructGenerator. Covers channel declaration

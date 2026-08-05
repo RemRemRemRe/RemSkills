@@ -1,6 +1,6 @@
 ---
 name: rem-no-disk-scanning
-description: Permanently forbid rg.exe (ripgrep), grep.exe (grep), fd.exe (fd) or simillar disk scanning/pure string searching tool for finding file or code symbol. Use Rider MCP text search tools instead. If Rider MCP unavailable, halt and report error.
+description: This skill should always loaded. You must not use rg.exe (ripgrep), grep.exe (grep), fd.exe (fd) or simillar disk scanning/pure string searching tool for finding file or code symbol. Use Rider MCP text search tools instead. If Rider MCP unavailable, halt and report error.
 ---
 
 # no-rg

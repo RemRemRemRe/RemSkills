@@ -371,7 +371,7 @@ auto& Ref = GetComponent();               // mutable reference
 const auto& ConstRef = GetComponents();   // const reference
 
 auto Value = Compute();                   // bare = value type, a COPY happened
-auto Counter{0};                          // value type
+auto Count = ComputeCount();               // value type
 constexpr auto Threshold = 0.0001f;       // compile-time value
 ```
 
@@ -411,6 +411,22 @@ Items.Sort([](const FMyStruct& A, const FMyStruct& B) { return A.Value < B.Value
 **`auto` return type deduction in public API** — the caller cannot see the
 return type without reading the implementation. Use explicit return types
 for public functions.
+
+**Integer literals deduce `int`** — `auto Index = 0` deduces `int`, not the
+project-standard `int32`. Loop counters and integer locals therefore use the
+explicit `int32` — this is the "a type that `auto` would incorrectly deduce"
+exception, not an auto-hostile case:
+
+```cpp
+for (int32 Index = 0; Index < 5; ++Index)  // NOT auto Index = 0 (deduces int)
+int32 Count{};                              // NOT auto Count = 0
+```
+
+Float literals are fine: `auto Value = 0.5f` deduces `float`, which is the
+project type. Note: no runtime difference exists on UE platforms (`int32` IS
+`int` there) — the rule is a type contract: it locks the type against
+`auto` deduction drift (`0u` → unsigned, `0LL` → int64) and matches the
+`int32` UE APIs (`TArray::Num()`, index access) without conversions.
 
 **Wrapped-pointer returns (`TNotNull`, `TObjectPtr`, ...)** — `auto*` cannot
 deduce from a wrapper class; the compiler errors (C3535) instead of converting:
@@ -1237,7 +1253,7 @@ Before committing any C++ file:
 - [ ] `nullptr` — never `NULL` or `0`
 - [ ] `static_cast<T>()` for explicit type conversions — no C-style or functional-style casts
 - [ ] `override` on every virtual function override
-- [ ] `const` on all locals that are not mutated
+- [ ] `const` on all locals that are not mutated (wrapper locals too: `const auto` keeps `operator->` mutation of the pointed-to object legal)
 - [ ] No `const` on value-type parameters in declarations (optional in implementation)
 - [ ] `Rem::` namespace for free utility functions
 - [ ] `REM_API` export macro on public API types/functions; internals left unexported
@@ -1249,6 +1265,7 @@ Before committing any C++ file:
 - [ ] No debug `REM_LOG_*` or `UE_LOGF` left in
 - [ ] Variable/lambda parameter names are full words (no abbreviations, no single letters — `A`/`B` OK only in Sort lambdas)
 - [ ] Lambda parameters in generic contexts (transrangers::transform, Sort) use explicit types, not `auto`
+- [ ] Integer locals/loop counters use explicit `int32` (`auto X = 0` would deduce `int`)
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - [ ] Control-flow macros avoided — repetitive `if/else` written explicitly; code deduplication done via templates in `.inl`
 - [ ] No structured bindings (`auto [a, b]` — use explicit `Pair.Key` / `Pair.Value`)

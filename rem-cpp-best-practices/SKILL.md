@@ -1,20 +1,3 @@
----
-name: rem-cpp-best-practices
-description: >
-  Pre-commit C++ code review checklist. Use this skill explicitly — load it
-  when reviewing completed code before committing, to verify conformance with project
-  conventions (build config, include order, naming, formatting, const correctness,
-  auto usage, if-constexpr dispatch, C++20 concepts, UPROPERTY/UFUNCTION specifiers,
-  macro patterns, STL vs UE types, API export, SOLID zero-overhead, logging assertions).
-  This skill is NOT intended for code generation — Rider/IDE tooling handles
-  formatting and inspection automatically during writing.
-  Last verified: 2026-07.
-metadata:
-  category: meta
-  cpp-standard: EngineDefault
-  trigger: manual
----
-
 # Rem C++ Best Practices
 
 This skill is a **review tool**, not a code-generation guide. Use it as a
@@ -27,6 +10,19 @@ silent; Landelare recommendations where they conflict with Epic and RemCommon ag
 
 Each section below describes a category of checks. Apply the checklist (Section 17)
 systematically after writing code, before committing.
+
+## Reference files
+
+The rules below are the contract. Detailed signature tables, boilerplate, and
+extended examples live in `references/` — load them when writing that kind of code:
+
+| File | When to load |
+|------|--------------|
+| `references/type-mapping.md` | Choosing STL vs UE types; writing UPROPERTY/UFUNCTION specifiers; UObject pointer types |
+| `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros |
+| `references/naming-formatting.md` | Extended naming/formatting examples and the `ThisClass` alias pattern |
+| `references/tests.md` | Writing spec tests, test USTRUCT headers, or build/run commands for the test module |
+| `references/origin-requirements.md` | Original requirements behind these rules |
 
 ---
 
@@ -253,26 +249,11 @@ class FMyHelper : public FBase
 they appear immediately after `GENERATED_BODY()`, before `UPROPERTY` data
 members and before any function declarations.
 
+Extended examples: `references/naming-formatting.md`.
+
 ---
 
 ## 4. Formatting
-
-### Braces & indentation
-
-```cpp
-struct FExample
-{
-    GENERATED_BODY()
-
-    void DoThing()
-    {
-        if (Condition)
-        {
-            Statement();
-        }
-    }
-};
-```
 
 - **Allman braces** — opening brace on its own line for every construct (functions, classes, if, for, while, namespace)
 - **Spaces** for indentation, 4-character width
@@ -283,26 +264,10 @@ struct FExample
 ### Comment formats — `/** */` for declarations, `//` for implementations
 
 - **`/**` Doxygen-style comments** — on public declarations in headers (types, functions, variables).
-  IDE shows these on hover; Doxygen/doc generators parse them:
-  ```cpp
-  /**
-   * Functor wrapper for UE's Cast<T> template.
-   *
-   * Pass to transrangers::transform as a callable without overload ambiguity.
-   */
-  template <typename To>
-  struct TCast { ... };
-  ```
-
+  IDE shows these on hover; Doxygen/doc generators parse them.
 - **`//` line comments** — in `.cpp` implementations, inline inside function bodies,
-  and for brief one-line notes:
-  ```cpp
-  // ── Cast helpers ──
-  const auto ChannelData = Section->Channel.GetData();  // lifetime: owned by Section
-  ```
-
+  and for brief one-line notes.
 - **`///` triple-slash** — not used. Prefer `/** */` for declarations.
-
 - **No namespace closing comments** — `} // namespace Rem` is unnecessary; modern IDEs
   show the enclosing scope on hover / breadcrumb. Close with bare `}`.
 
@@ -344,18 +309,6 @@ Functions with the same visibility are grouped together after the data members
 of that visibility. Repeat `public:`/`protected:`/`private:` as needed to express
 the grouping.
 
-### Namespace indentation
-
-Namespace contents are indented (Inner style):
-
-```cpp
-namespace Rem
-{
-template <class T>
-concept CSomeConcept = requires(T Object) { Object.Foo(); };
-}
-```
-
 ### Rule of Five / Rule of Zero
 
 Explicitly declare or delete all five:
@@ -388,8 +341,14 @@ For USTRUCT/UCLASS, section order: GENERATED_BODY → public → protected → p
 ### Code alignment
 
 Alignment is handled entirely by the Rider `.DotSettings` — see the solution-level
-code style file. Manual alignment (column-aligning parameters or declarations) is
-disabled; each enum member stays on its own line.
+code style file. The project enables `INT_ALIGN_EQ`, `INT_ALIGN_COMMENTS`,
+`INT_ALIGN_DECLARATION_NAMES`, and `INT_ALIGN_DESIGNATED_INITIALIZERS` — so
+assignment groups, trailing comments, and designated initializers ARE aligned.
+Format with Rider and keep what it produces; never hand-align beyond that.
+Each enum member stays on its own line.
+
+Namespace contents are NOT indented (`NAMESPACE_INDENTATION = None` in the
+project `.DotSettings`); see `references/naming-formatting.md` for the sample.
 
 ---
 
@@ -661,20 +620,7 @@ for (const auto& Component : Components)
 | Soft reference (UPROPERTY) | `TSoftObjectPtr<UObject>` |
 | Soft class reference (UPROPERTY) | `TSoftClassPtr<UObject>` |
 
-```cpp
-// Correct:
-UPROPERTY(EditAnywhere, Category = "Rem")
-TObjectPtr<UObject> Owner{};
-
-void SetOwner(UObject* NewOwner);
-
-// Also correct — raw pointer for non-UPROPERTY locals/params:
-auto* World = GEngine->GetWorld();
-if (const auto* Player = Cast<APlayerController>(Controller))
-{
-    // ...
-}
-```
+Full examples incl. `const` UObject pointers: `references/type-mapping.md`.
 
 ### `TNotNull` for non-null semantics
 
@@ -723,13 +669,6 @@ triggers `UE::Core::Private::ReportNotNullPtr()` (fatal in non-shipping builds).
 ### Never `NULL` or `0`
 
 Only `nullptr` for null pointer constants. `NULL` is an integer in C++.
-
-### `const` UObject pointer
-
-```cpp
-TObjectPtr<const UObject> ConstObj{};  // UPROPERTY
-const UObject* ConstPtr = ...;         // non-UPROPERTY
-```
 
 ### Type casting — `static_cast` only
 
@@ -933,82 +872,20 @@ if constexpr (CHasGetWorld<T>) { ... }
 
 ## 10. UPROPERTY & UFUNCTION Specifiers
 
-### UPROPERTY patterns
-
-```cpp
-// Object reference — always AddFilterUI
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rem",
-          meta = (AddFilterUI = true))
-TObjectPtr<UObject> Object{};
-
-// Array of wrappers — TitleProperty for display
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rem",
-          meta = (AddFilterUI = true, TitleProperty = Object))
-TArray<FRemFooWrapper> Objects;
-
-// Instanced struct collection — ExcludeBaseStruct
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rem|Component",
-          meta = (ExcludeBaseStruct))
-TArray<TInstancedStruct<FRemFooBase>> Components;
-
-// Boolean — only use bitfield when it actually saves memory under alignment
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
-bool bInitialized{false};
-
-// Bitfield only when packing gains real space (multiple flags adjacent):
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
-uint8 bFlagA : 1{false};
-UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rem|Component")
-uint8 bFlagB : 1{false};
-
-// Numeric with constraints
-UPROPERTY(EditAnywhere, Category = "Rem", meta = (ClampMin = "0", Units = "s"))
-float Value{};
-
-// Editor-only data
-#if WITH_EDITORONLY_DATA
-UPROPERTY(EditAnywhere, Category = "Rem")
-FGameplayTag OptionalCategory;
-#endif
-
-// Const object reference
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rem",
-          meta = (AddFilterUI = true))
-TObjectPtr<const UObject> ConstObject{};
-```
-
-### Category convention
-
-Always `"Rem"` or `"Rem|SubCategory"`:
-
-```cpp
-Category = "Rem"
-Category = "Rem|Object"
-Category = "Rem|Component"
-```
-
-### UFUNCTION patterns
-
-```cpp
-UFUNCTION(BlueprintPure, Category = "Rem|Object",
-          meta = (DeterminesOutputType = "ObjectClass"))
-static UObject* GetObject(const TSoftObjectPtr<UObject>& SoftObjectPtr,
-                          UClass* ObjectClass);
-
-UFUNCTION(BlueprintCallable, Category = "Rem",
-          Meta = (DevelopmentOnly, CompactNodeTitle = "Do Nothing"))
-static void DoNothing();
-```
-
 ### Key rules
 
-- Always set a `Category` on every reflected member
+- Always set a `Category` on every reflected member — `"Rem"` or `"Rem|SubCategory"`
 - Put `meta = (...)` last in the specifier list
 - `UINTERFACE(MinimalAPI)` for pure interface classes
 - `USTRUCT(BlueprintType)` for structs exposed to Blueprint
 - `UCLASS(Blueprintable)` for classes that can be Blueprint-subclassed
 - `GENERATED_BODY()` as first member of every reflected type
 - Module `*_API` macro on every exported class: `class REMCOMMON_API UMyClass`
+- Object references get `meta = (AddFilterUI = true)`; wrapper arrays get
+  `TitleProperty`; instanced struct collections get `meta = (ExcludeBaseStruct)`
+- Bitfields (`uint8 bFlag : 1`) only when packing gains real space under alignment
+
+Full UPROPERTY/UFUNCTION patterns: `references/type-mapping.md`.
 
 ---
 
@@ -1033,173 +910,25 @@ If a code block is repetitive, extract it into a **function** or **template**.
 Templates go in `.inl` files alongside the header. Only reach for a macro when
 `REM_DEFINE_*` is the established project convention and there is no C++ equivalent.
 
-### Getter macros (preferred over manual getters)
-
-```cpp
-// Full getter — returns reference, const + non-const:
-REM_DEFINE_GETTERS_RETURN_REFERENCE(/*NamePredicate*/, /*NameSuffix*/, ReturnExpression)
-
-// Value getter — returns by value, const only:
-REM_DEFINE_GETTERS_RETURN_VALUE(/*NamePredicate*/, /*NameSuffix*/, ReturnExpression)
-
-// Simple reference getter (predicate == suffix):
-REM_DEFINE_GETTERS_RETURN_REFERENCE_SIMPLE(Name)
-
-// Const-only reference getter:
-REM_DEFINE_CONST_ONLY_GETTERS_RETURN_REFERENCE(NamePredicate, ReturnExpression)
-
-// Template variant:
-REM_DEFINE_TEMPLATE_GETTER_RETURN_VALUE(Concept, NamePredicate, NameSuffix, ReturnExpression)
-```
-
-Usage example:
-```cpp
-USTRUCT()
-struct FRemFooWrapper
-{
-    GENERATED_BODY()
-    UPROPERTY(EditAnywhere, Category = "Rem")
-    float Number{};
-
-    REM_DEFINE_GETTERS_RETURN_REFERENCE(/*no predicate*/, /*no suffix*/, Number)
-};
-// Generates: GetNumber() const and GetNumber() (non-const), both return auto&&
-```
-
-### Rule of Five
-
-```cpp
-REM_DEFINE_THE_RULE_OF_FIVE(Type)  // declares all 5 as = default
-```
-
-### Script struct interface
-
-```cpp
-REM_DEFINE_GET_SCRIPT_STRUCT_INTERFACE  // generates GetScriptStruct() override
-```
-
-### Functor from function
-
-```cpp
-REM_FUNCTION_TO_FUNCTOR_SIMPLE(IsValid)  // creates Rem::Fn::IsValid
-```
-
-### Deleted-copy marker on USTRUCT required by engine
-
-```cpp
-template <>
-struct TStructOpsTypeTraits<FMyStruct> : TStructOpsTypeTraitsBase2<FMyStruct>
-{
-    enum { WithCopy = false };
-};
-```
+Getter macro signatures, Rule of Five, `REM_DEFINE_GET_SCRIPT_STRUCT_INTERFACE`,
+`REM_FUNCTION_TO_FUNCTOR_SIMPLE`, and the `TStructOpsTypeTraits` deleted-copy
+marker: `references/macros-logging.md`.
 
 ---
 
 ## 12. STL vs UE Types — When to Use Which
 
-### Always prefer STL
+### Rules of thumb
 
-| STL Type | Instead of UE Type | Reason |
-|----------|--------------------|--------|
-| `std::atomic<T>` | `TAtomic<T>` | Officially preferred by Epic |
-| `<type_traits>` (`std::is_*`, `std::remove_cvref_t`, etc.) | `TIsSame`, `TEnableIf`, etc. | Epic has deprecated their equivalents |
-| `std::numeric_limits<T>` | UE numeric limits | STL receives more testing |
-| `using Alias = Type;` | `typedef Type Alias;` | Modern syntax, supports template aliases |
+- **Prefer STL** for: atomics (`std::atomic<T>`), `<type_traits>`, `std::numeric_limits<T>`, `using` aliases
+- **Prefer UE** for: `TArray`, `TMap`, `TSet`, `FString` (legacy) / `FUtf8String` (default), `FName`, `FText`, `TFunctionRef`
+- **Never use**: `NULL`/`0` pointers, `typedef`, C-style varargs, `GENERATED_UCLASS_BODY`/`GENERATED_USTRUCT_BODY`, raw `new`/`delete` (use `FMemory::Malloc`/`Free`)
+- `TArray::Add` for existing values; `TArray::Emplace` for in-place construction or explicit ctors
+- `FUtf8String` is the primary string type; `FString` only when the engine API demands it
+- No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
 
-### Always prefer UE types
-
-| UE Type | Instead of STL | Reason |
-|---------|----------------|--------|
-| `TArray<T>` | `std::vector<T>` | Required for UPROPERTY; UE allocators |
-| `TMap<K,V>`, `TSet<T>` | `std::map`, `std::unordered_map`, `std::set` | Required for UPROPERTY |
-| `FString` | `std::string` | Engine legacy wide-string; `FUtf8String` works as UPROPERTY and should be used instead |
-| `FName`, `FText` | — | No STL equivalent |
-| `TFunctionRef<F>` | `std::function<F>` | UE native; GAS/latent action compatibility |
-
-### Judgment calls
-
-| Situation | Choice |
-|-----------|--------|
-| `TTuple<Ts...>` vs `std::tuple<Ts...>` | Either; `std::tuple` has more features, `TTuple` has `FArchive` support |
-| `TVariant<Ts...>` vs `std::variant<Ts...>` | Either; same tradeoff as tuple |
-| `<algorithm>` vs `Algo::` | Prefer `<algorithm>` for performance (`std::sort` > `Algo::Sort`); use `Algo` when iterators don't suffice |
-| `TUniquePtr<T>` vs `std::unique_ptr<T>` | Either; `TUniquePtr` had UE4 bugs (fixed in UE5) |
-| `TSharedPtr` / `TSharedRef` | Keep UE; thread-safe by default; make non-thread-safe for game thread only |
-| `Forward<T>` vs `std::forward<T>` | Equivalent; `std::forward` uses `static_cast` (cleaner) |
-| `MoveTemp` vs `std::move` | `MoveTemp` (`MoveTempIfPossible` = `std::move`); `MoveTemp` `static_assert`s moveability |
-
-### Never use
-
-- `NULL` or `0` for pointers — always `nullptr`
-- `typedef` — always `using`
-- C-style varargs `...` — use variadic templates
-- Legacy `GENERATED_UCLASS_BODY` / `GENERATED_USTRUCT_BODY` — always `GENERATED_BODY()`
-- Raw `new` / `delete` for struct allocations — use `FMemory::Malloc` / `FMemory::Free`
-
-### `TArray::Add` vs `TArray::Emplace`
-
-`Add` delegates to `Emplace` internally:
-
-```cpp
-SizeType Add(ElementType&& Item) { return Emplace(MoveTempIfPossible(Item)); }
-SizeType Add(const ElementType& Item) { return Emplace(Item); }
-```
-
-No performance difference. The distinction is semantic:
-
-| Context | Use |
-|---|---|
-| Adding an **existing value** (copy or move) | `Add(Value)` / `Add(MoveTemp(Value))` |
-| Constructing **in-place** from constructor args | `Emplace(Arg1, Arg2)` |
-| Constructing via **explicit** constructor (e.g. `TInstancedStruct` from `TConstStructView`) | `Emplace(View)` — `Add` cannot use explicit ctors |
-
-Default to `Add` when you have a value; `Emplace` when you have constructor args
-or the target type's constructor is explicit.
-
-### String type priority
-
-`FUtf8String` is the **primary** string type for all new code. `FString` (a.k.a.
-`FWideString`) is legacy — use only when the engine API demands it. `FAnsiString`
-is not used in this project.
-
-| String type | When to use |
-|-------------|-------------|
-| `FUtf8String` | Default for all return values, parameters, and storage |
-| `FUtf8StringView` | Pass-by-value; read-only slices without allocation |
-| `TUtf8StringBuilder<N>` | Build strings incrementally (N=256 for typical messages) |
-| `TStringBuilderBase<UTF8CHAR>&` | Output parameter for builder-based `ToString(Builder, Value)` |
-| `FString` / `FWideString` | Legacy — only when the UE API requires it; convert to `FUtf8String` ASAP |
-| `FStringView` | Legacy — only when the UE API requires it |
-| `FAnsiString` | Not used — prefer `FUtf8String` for ANSI-range content |
-
-All string-building flows go through `Rem::Format` which wraps `fmt::format_to`
-directly into a `TStringBuilderBase<CharType>`. Format strings use `{}`
-placeholders (no numbers needed — `fmt` infers argument order).
-
-```cpp
-// Return FUtf8String by default:
-[[nodiscard]] FUtf8String ToString() const;
-
-// Builder-based output (zero allocation):
-void ToString(TStringBuilderBase<UTF8CHAR>& Builder) const;
-
-// Formatting with {} placeholders:
-Rem::Format("Value: {}, Delta: {}", Value, DeltaTime);
-```
-
-### No structured bindings
-
-Do not use structured bindings (`auto [a, b] = ...`). Debugger support
-(VS / Rider) remains incomplete — variables show as unviewable.
-
-### Float literals stay typed
-
-```cpp
-float Value = 1.0f;    // NOT 1.0 (would be double)
-double Value = 1.0;    // NOT 1.0f (would be float)
-int32 Value = 1;       // fine
-```
+Complete tables (judgment calls, string priority, Add vs Emplace):
+`references/type-mapping.md`.
 
 ---
 
@@ -1253,160 +982,21 @@ void Store(T&& Value)
 
 ## 14. Logging & Assertions
 
-### 14a. Assertion macros — `RemEnsureCondition` / `RemEnsureVariable`
+### Macro choice
 
-Two primary families, separated by what they validate:
+- `RemEnsureCondition` / `RemEnsureVariable` — runtime-possible states, always
+  active; use `RemEnsureVariable` for pointer/object checks (`Rem::IsValid`)
+- `RemCheckCondition` / `RemCheckVariable` — developer-error guards, stripped
+  when `DISABLE_CHECK_MACRO` is defined
+- `REM_LOG_ROLE` / `REM_LOG_FUNCTION` / `REM_LOG_ROLE_FUNCTION` (+ `_COND`/`_CVAR`
+  variants, `REM_SCOPED_LOG`) — log with `{}` placeholders, explicit category,
+  no default category
+- `REM_ENSURE` / `REM_ENSURE_ALWAYS` (+ `_MESSAGE`) — thin wrappers around
+  engine `ensure*` with ALS-style lightweight mode
+- `RemEnsure*`/`RemCheck*` do not take messages — pair with a `REM_LOG_*` call
 
-| Macro | Validates | Equivalent to |
-|-------|-----------|---------------|
-| `RemEnsureCondition(...)` | An arbitrary boolean expression | `if (!LIKELY(Condition)) { ensureAlways(...); Handling; }` |
-| `RemEnsureVariable(...)` | A pointer/object via `Rem::IsValid()` | `RemEnsureCondition(..., Rem::IsValid(Pointer), ...)` |
-
-Both accept 1, 2, or 3 arguments via `REM_MULTI_MACRO` overload resolution.
-The first optional argument is the **assertion macro** to fire on failure
-(defaults to `ensureAlways`). The last optional argument is the **invalid
-handling statement** — arbitrary statements executed when the condition is
-false (typically `return;`, `return {};`, or a brace-enclosed block).
-
-**Signatures and usage:**
-
-```cpp
-// 1 arg: condition only — fires ensureAlways, no handling
-RemEnsureCondition(bInitialized);
-
-// 2 args: condition + handling statement (defaults to ensureAlways)
-RemEnsureCondition(MoverComp != nullptr, return;);
-
-// 3 args: custom assertion macro + condition + handling
-RemEnsureCondition(ensure, MoverComp != nullptr, return;);
-
-// Same overloads for variable validation (uses Rem::IsValid internally):
-RemEnsureVariable(MoverComp);                         // ensureAlways, no handling
-RemEnsureVariable(MoverComp, return;);                 // ensureAlways + handling
-RemEnsureVariable(check, MoverComp, return;);          // check() + handling
-```
-
-The assertion macro itself (`ensure`, `ensureAlways`, `check`, `verify`, etc.)
-handles messaging — `RemEnsure*` macros do **not** accept log category,
-verbosity, or message parameters. Use a `REM_LOG_*` call alongside when a
-message is needed:
-
-```cpp
-RemEnsureVariable(MoverComp, return;);
-REM_LOG_ROLE_FUNCTION(GetOwner(), LogRemMover, Warning, "Component not found");
-```
-
-The invalid handling statement is wrapped by `REM_INVALID_HANDLING_STATEMENT`
-which strips it when `REM_LET_IT_CRASH` is defined — use this for final builds
-that should crash instead of silently returning.
-
-**Branch prediction:** `RemEnsureCondition` internally uses `LIKELY` /
-`UNLIKELY` — the failure path is cold and the check has near-zero overhead
-on the hot path. `RemEnsureVariable` delegates to `RemEnsureCondition`.
-
-### 14b. `RemCheckCondition` / `RemCheckVariable`
-
-Currently **aliases** for `RemEnsure*` when `DISABLE_CHECK_MACRO` is `false`
-(the default). They share identical signatures and behavior.
-
-The intended semantic distinction:
-- `RemCheck*` — developer-error checks, intended to be stripped in shipping
-  (gated by `DISABLE_CHECK_MACRO` in the future)
-- `RemEnsure*` — runtime-possible states, always active
-
-| Setting | Effect |
-|---------|--------|
-| `DISABLE_CHECK_MACRO = false` (default) | `RemCheck*` is identical to `RemEnsure*` |
-| `DISABLE_CHECK_MACRO = true` | `RemCheck*` compiles to nothing |
-
-**Usage:**
-
-```cpp
-RemCheckCondition(bInitialized);
-RemCheckVariable(Pointer, return;);
-RemCheckVariable(check, CriticalPtr, return;);
-```
-
-### 14c. Config macros
-
-| Macro | Effect |
-|-------|--------|
-| `REM_LET_IT_CRASH` | Strips all invalid handling statements — failures become fatal |
-| `REM_DISABLE_ASSERTION` | Disables the assertion self-test (`REM_ASSER_CONDITION_EVALUATED`) |
-| `DISABLE_CHECK_MACRO` | Strips `RemCheck*` macros entirely |
-| `NO_LOGGING` | Strips all `REM_LOG_*` macros (see 14d) |
-| `REM_NO_ASSERTION` | Readability placeholder — no diagnostic, no handling |
-| `REM_NO_HANDLING` | Readability placeholder — diagnostic only, no handling |
-| `REM_NO_ASSERTION_OR_HANDLING(Condition)` | Readability: assert only, no handling, explicit condition |
-
-### 14d. Log macros — `REM_LOG_ROLE` / `REM_LOG_FUNCTION` / `REM_LOG_ROLE_FUNCTION`
-
-Three base families, distinguished by what decorator is prepended/appended to
-the log message:
-
-| Macro | Decorator |
-|-------|-----------|
-| `REM_LOG_ROLE(Object, Category, Verbosity, Format, ...)` | Net role name (Server/Client/etc.) prepended |
-| `REM_LOG_FUNCTION(Category, Verbosity, Format, ...)` | `__FUNCTION__:line` appended |
-| `REM_LOG_ROLE_FUNCTION(Object, Category, Verbosity, Format, ...)` | Both: role prepended, function appended |
-
-Each family has two additional variants:
-
-| Suffix | First extra parameter | Behavior |
-|--------|-----------------------|----------|
-| `_COND` | `Condition` | Logs only when condition is true (branch annotated `UNLIKELY`) |
-| `_CVAR` | `ConsoleVariableName` | Logs only when the named CVar is true; `REM_ENSURE`s that the CVar exists |
-
-Plus one scope-based macro:
-
-| Macro | Behavior |
-|-------|----------|
-| `REM_SCOPED_LOG(Object, Category, Verbosity, LogStart, LogEnd)` | Logs `LogStart` on scope entry, `LogEnd` on scope exit (via `ON_SCOPE_EXIT`) |
-
-When `NO_LOGGING` is defined, all `REM_LOG_*` macros compile to nothing.
-
-**Format string:** Uses `{}` placeholder syntax (no numbers — `fmt` infers argument
-order). `Rem::Format` delegates to `fmt::format_to` which writes into a
-`TUtf8StringBuilder<256>`. Output goes through `UE_LOGF` with the `%hs` narrow-string
-format specifier. Always specify the category explicitly — there is no default.
-
-**Usage:**
-
-```cpp
-REM_LOG_ROLE(GetOwner(), LogRemMover, Warning,
-    "Value: {}, Delta: {}", Value, DeltaTime);
-
-REM_LOG_FUNCTION(LogRemMover, Verbose,
-    "Tick at {}", GetWorld()->GetTimeSeconds());
-
-REM_LOG_ROLE_FUNCTION(GetOwner(), LogRemMover, Error,
-    "Fatal state in {}", GetNameSafe(this));
-
-// Conditional — logs only when bVerbose is true:
-REM_LOG_FUNCTION_COND(bVerbose, LogRemMover, Verbose,
-    "Extra detail: {}", Detail);
-
-// CVar-gated — logs only when "Rem.Mover.Debug" console variable is true:
-REM_LOG_FUNCTION_CVAR(TEXT("Rem.Mover.Debug"), LogRemMover, Warning,
-    "Debug info: {}", Info);
-```
-
-### 14e. Raw ensure wrappers — `REM_ENSURE` / `REM_ENSURE_ALWAYS`
-
-Thin wrappers around Unreal's built-in assertion macros that switch between
-lightweight and standard implementations based on build configuration:
-
-| Macro | Wraps | Lightweight mode |
-|-------|-------|-----------------|
-| `REM_ENSURE(Expr)` | `ensure(Expr)` | ALS-style (no callstack) |
-| `REM_ENSURE_ALWAYS(Expr)` | `ensureAlways(Expr)` | ALS-style (no callstack) |
-| `REM_ENSURE_MESSAGE(Expr, Fmt, ...)` | `ensureMsgf(Expr, Fmt, ...)` | ALS-style |
-| `REM_ENSURE_ALWAYS_MESSAGE(Expr, Fmt, ...)` | `ensureAlwaysMsgf(Expr, Fmt, ...)` | ALS-style |
-
-Lightweight mode is active when `REM_WITH_DEVELOPMENT_ONLY_CODE` is true (i.e. in
-editor/development builds). In non-development builds, these fall back to the
-standard Unreal `ensure*` macros which include callstack capture and report
-submission.
+All signatures, config macros (`REM_LET_IT_CRASH`, `NO_LOGGING`, ...), and usage
+examples: `references/macros-logging.md`.
 
 ### 14f. Variable scoped minimization
 
@@ -1473,21 +1063,6 @@ std::invoke([&]
 `std::invoke` immediately executes the lambda. `return` inside the lambda exits
 the lambda, not the enclosing function — use it to bail out on failed
 preconditions. Capture `[&]` for full access to the enclosing scope.
-
-### 14h. Custom log categories
-
-```cpp
-// Header:
-DECLARE_LOG_CATEGORY_EXTERN(LogRem, Log, All);
-
-// Source:
-DEFINE_LOG_CATEGORY(LogRem);
-```
-
-Then:
-```cpp
-UE_LOGF(LogRem, Warning, TEXT("Value: %d"), SomeValue);
-```
 
 ### 14i. Assertion principles
 
@@ -1592,64 +1167,22 @@ sibling to the module under test:
 | Module impl | Minimal `IMPLEMENT_MODULE(FDefaultModuleImpl, <ModuleName>Test)`; a module without `IMPLEMENT_MODULE` loads but fails to initialize ("could not be initialized successfully") |
 | Dependencies | The runtime module under test + Core/CoreUObject/Engine; `RemSharedModuleRules.Apply(this)` |
 
-### Spec structure
+### BDD spec style
 
-```cpp
-// Foo.spec.cpp
-#include "Test/FooTestStructs.h"
-
-#include "Misc/AutomationTest.h"
-#include "Foo.h"
-
-#if WITH_DEV_AUTOMATION_TESTS
-
-DEFINE_SPEC(FFooTest, "Rem.<Module>.Foo",
-    EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter);
-
-void FFooTest::Define()
-{
-    Describe(TEXT("Emplace"), [this]
-    {
-        It(TEXT("in-place constructs and reads back"), [this]
-        {
-            TestTrue(TEXT("..."), Condition);
-            TestEqual(TEXT("..."), Actual, Expected);
-        });
-    });
-}
-
-#endif // WITH_DEV_AUTOMATION_TESTS
-```
+All tests are written in BDD style: `DEFINE_SPEC` + `Describe`/`It` blocks with
+behavior-describing `It` names ("should ..."). This is the project convention for
+every test suite — it groups related scenarios under a shared context, reads as
+behavior instead of implementation, and failure output shows the full
+Describe/It hierarchy for fast localization. `IMPLEMENT_SIMPLE_AUTOMATION_TEST`
+is reserved for one-off smoke checks only.
 
 ### Test USTRUCTs live in a namespace
 
 Test-only USTRUCTs are declared inside `Rem::<Module>::Private` (requires
 `bAllowUETypesInNamespaces = true`, set by `RemSharedModuleRules::Apply`); they
-must not pollute the global scope:
-
-```cpp
-#pragma once
-
-#include "CoreMinimal.h"
-
-// generated.h MUST be included BEFORE the type declarations: GENERATED_BODY()
-// expands to a macro defined here; a trailing include leaves it undefined (C4430).
-// UHT emits a matching forward declaration inside the namespace, so the include
-// stays outside it.
-#include "FooTestStructs.generated.h"
-
-namespace Rem::Foo::Private
-{
-USTRUCT()
-struct FTestFoo
-{
-    GENERATED_BODY()
-
-    UPROPERTY()
-    int32 Value{};
-};
-}
-```
+must not pollute the global scope. `generated.h` must be included BEFORE the
+type declarations (a trailing include leaves `GENERATED_BODY()` undefined —
+C4430); UHT emits the matching forward declaration inside the namespace.
 
 UHT restrictions (verified on UE 5.8):
 
@@ -1675,31 +1208,12 @@ of the test module.
 Build and test commands must use the configuration the project actually develops
 with — never default to a Development editor build. This project's development
 configuration is **DebugGame Editor**; check `<project>/Source/*.Target.cs` or
-team convention when in doubt.
+team convention when in doubt. Editor binaries encode their configuration in
+the file name (`UnrealEditor-Cmd.exe` = Development, `UnrealEditor-Win64-DebugGame-Cmd.exe`
+= DebugGame) — always run the binary that matches the configuration you built.
 
-```
-<engine>/Build/BatchFiles/Build.bat <ProjectName>Editor Win64 DebugGame -Project=<project>.uproject -WaitMutex
-```
-
-Editor binaries encode their configuration in the file name — always run the
-binary that matches the configuration you built:
-
-| Configuration | Binary |
-|---------------|--------|
-| Development | `UnrealEditor-Cmd.exe` (no suffix) |
-| Debug | `UnrealEditor-Win64-Debug-Cmd.exe` |
-| DebugGame | `UnrealEditor-Win64-DebugGame-Cmd.exe` |
-
-### Running tests headless
-
-```
-<engine>/Binaries/Win64/UnrealEditor-Win64-DebugGame-Cmd.exe <project>.uproject -unattended -nopause -nullrhi
-    -ExecCmds="Automation RunTests Rem.<Module>.<Foo>; Quit" -TestExit="Automation Test Queue Empty" -log
-```
-
-Check `Saved/Logs/<Project>.log` for `Test Completed. Result={Success}` lines.
-Third-party editor plugins that crash under `-nullrhi` may need
-`-DisablePlugins=<Name>`.
+Spec templates, test struct header templates, module boilerplate, and full
+build/run commands: `references/tests.md`.
 
 ---
 
@@ -1741,6 +1255,7 @@ Before committing any C++ file:
 - [ ] Comments: `/** */` Doxygen on header declarations; `//` in `.cpp` implementations; no `///`
 - [ ] No `} // namespace Xxx` closing comments — bare `}`
 - [ ] Tests live in a dedicated `<ModuleName>Test` module (`"Type": "UncookedOnly"`), never in the runtime module
+- [ ] Test cases use BDD spec style (`DEFINE_SPEC` + `Describe`/`It`, "should ..." names)
 - [ ] Test USTRUCTs in `Rem::<Module>::Private` namespace; `generated.h` included before the type declarations
 - [ ] No `USTRUCT`/`UPROPERTY` inside `#if WITH_DEV_AUTOMATION_TESTS` blocks
 - [ ] Header-only templates are instantiated by tests (no latent compile errors)
@@ -1765,3 +1280,7 @@ skill-writing conventions used across all RemSkills.
 - Rider Code Style: solution-level `.sln.DotSettings` and user-level `.uprojectdirs.DotSettings`
 - Rider Inspections: exported `.DotSettings` inspection profile
 - Original requirements: [references/origin-requirements.md](references/origin-requirements.md)
+- Type mapping & reflection specifiers: [references/type-mapping.md](references/type-mapping.md)
+- Macro & logging signatures: [references/macros-logging.md](references/macros-logging.md)
+- Naming & formatting details: [references/naming-formatting.md](references/naming-formatting.md)
+- Test module templates & commands: [references/tests.md](references/tests.md)

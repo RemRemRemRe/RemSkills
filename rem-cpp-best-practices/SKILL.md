@@ -1,3 +1,12 @@
+---
+name: rem-cpp-best-practices
+description: Review checklist for Rem project C++ code — build/compiler settings, file & include structure, naming, formatting, auto/type deduction, const correctness, pointers, if constexpr, ranges, concepts, UPROPERTY specifiers, macros, STL vs UE types, SOLID, logging/assertions, module/plugin conventions, test modules (spec style, DebugGame build), and the pre-commit checklist. Use when reviewing completed code before committing, or when writing new Rem module/test code that must match RemCommon conventions.
+metadata:
+  category: meta
+  cpp-standard: EngineDefault
+  trigger: manual
+---
+
 # Rem C++ Best Practices
 
 This skill is a **review tool**, not a code-generation guide. Use it as a

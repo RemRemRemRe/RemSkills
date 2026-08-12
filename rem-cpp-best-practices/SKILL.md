@@ -133,6 +133,13 @@ UE_INLINE_GENERATED_CPP_BY_NAME(MyClass)
 | Empty line separators | Separate groups with empty lines for readability |
 | `.inl` for templates | Heavy template implementations go in `FileName.inl` alongside the header. The `.h` stays minimal; callers `#include` the `.inl` directly when they need the template. Do NOT auto-include `.inl` from `.h` — it forces heavier transitive dependencies on every consumer of the `.h`. |
 
+Dependency minimization is a HARD constraint: a `.h` never includes `.inl`.
+Consumer-facing extension APIs that need `.inl` content live in their own
+`FileName.inl` (e.g. `RemScopedStructContainer.inl` holds the container
+`FindStructView` overloads); consumers include it explicitly. Shared primitives
+used by several `.inl` files go in a dedicated lightweight `.inl`
+(`RemStructViewStatics.inl`) — `.h` files still do not include it.
+
 ### Declaration / definition separation
 
 Keep headers minimal to reduce reading noise. Inline function

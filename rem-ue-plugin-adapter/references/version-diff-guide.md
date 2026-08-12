@@ -72,6 +72,8 @@ Fix: revert + re-fix — use the older equivalent noted in the table
 | Build | `ModuleRules.Version` property | not present | Use `target.Target.Version.MajorVersion` |
 | Logging | `FMinimalViewInfo::bUseFirstPersonParameters` / `FirstPersonFOV` / `FirstPersonScale` | not present (5.6+) | Comment out the first-person assignment block |
 | fmt | `FMT_APPLY_VARIADIC` macro `(void)unused{0,(expr,0)...}` | fails to parse on MSVC 14.38 | Replace with C++17 fold `(static_cast<void>(expr), ...)` |
+| fmt | `C4459` shadow warnings inside fmt headers | promoted to error when `ShadowVariableWarningLevel=Error` on **any** 5.3–5.8 engine compiled with MSVC 14.38 (Fab/build-farm uses the preferred 14.38 toolchain; local verification may silently use a newer non-preferred compiler and miss it) | Keep `ShadowVariableWarningLevel = Warning` on ALL versions — do not gate by engine version |
+| Build | C# 12 collection expressions `AddRange([ ... ])` in `*.Build.cs` | not supported by UE 5.5 and older UBT C# compilers (CS1026/CS0443/CS1002); 5.6+ accept them | Always write `AddRange(new[] { ... })` in Build.cs — lowest common denominator, commit as a base-area change |
 | fmt | `C4459` shadow warnings inside fmt headers | shadow-warning-as-error promotes to error | Lower `ShadowVariableWarningLevel` to Warning on 5.4, or wrap fmt include |
 | fmt | `THIRD_PARTY_INCLUDES_START/END` around fmt include | caused C2143 on 5.4 | Do NOT wrap fmt with THIRD_PARTY_INCLUDES; rely on shadow level instead |
 | Test | `*.spec.cpp` automation tests using types missing on 5.4 (TSharedStruct etc.) | fail to compile | Disable with `#if 0 && WITH_DEV_AUTOMATION_TESTS` (tests are not shipping code) |

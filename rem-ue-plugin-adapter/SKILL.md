@@ -513,22 +513,34 @@ Hand the password to the user for safekeeping; never commit it.
 
 ### 8.3 Create one archive per engine version
 
+**Format preference: `.7z` ONLY** — no zip. The reason: 7z supports
+**header encryption (`-mhe=on`)** — the file/directory listing is encrypted,
+so nothing is visible before decryption. zip cannot hide file names at all
+(Fab confirmed `.7z` is accepted; encrypted archives are fine).
+
 For each target version `X.Y` (e.g. `5.3`, `5.8`), run from the plugin's
 **output** directory (not the source repo):
 
 ```bash
 cd {output_path}/{platform}/{version}/{PluginName}
-<7z> a -t7z -mhe=on -p"<PASSWORD>" "{output_path}/{platform}/{PluginName}{X}{Y}.{VersionName}.7z" \
+<7z> a -t7z -mhe=on -p"<PASSWORD>" "{output_path}/{platform}/{PluginName}{X}{Y}.{ArchiveVersion}.7z" \
     Config Source LICENSE-ALS-Refactored {PluginName}.uplugin
 ```
 
 - `-mhe=on` — encrypts the archive header: file/dir names are **not visible
-  before decryption**. Only `7z` format supports this; `zip` does NOT — always
-  pass `-t7z`
+  before decryption** (7z-only feature; zip cannot hide names)
 - Add **only** `Config`, `Source`, `LICENSE-ALS-Refactored`, `{PluginName}.uplugin`
-  — never `Binaries`/`Intermediate`
-- Archive naming: `{PluginName}{Major}{Minor}.{VersionName}.7z`
-  (version digits concatenated) → e.g. `FooPlugin58.4.1.0.7z` (plugin `FooPlugin`, version 5.8, VersionName 4.1.0)
+  — never `Binaries`/`Intermediate` (source-only packages are accepted)
+- **Archive naming (by design)**: `{PluginName}{Major}{Minor}.{ArchiveVersion}.7z` —
+  the filename version (`ArchiveVersion`) is an **internal round counter for the
+author only** (4.1.0 → 4.1.1 → 4.1.2 … per packaging round). It is intentionally
+  decoupled from the `.uplugin` `VersionName` (the user-facing plugin version,
+  bumped only on release boundaries) — a new package round does NOT change the
+  version users see. Example: `FooPlugin58.4.1.2.7z` for round 3 of FooPlugin 5.8
+  whose `VersionName` is still 4.1.1. Sync them only when there is a real
+  reason — **feature changes** shipped to users (new/changed functionality):
+  bump `VersionName` then (new release). Pure fixes and packaging-only rounds
+  keep `VersionName` unchanged — the filename round counter tracks those
 
 ### 8.4 Verify
 
@@ -572,8 +584,33 @@ cd <tmp-dir>
 - Always re-pass `-p` and `-mhe=on` — the archive keeps its header encryption
 - Run the `a` command from the directory that mirrors the archive layout, so
   the added path replaces the existing entry instead of adding a new one
+- **`7z a` NEVER removes entries that no longer exist in the source** — if the
+  fix REMOVES files (e.g. deleting a ThirdParty subdir), `a` keeps the stale
+  entries. Delete the old archive first and rebuild from scratch:
+  `rm {archive}.7z && <7z> a -t7z -mhe=on -p"<PASSWORD>" {archive}.7z <items...>`
 - Verify afterwards: re-export the patched file and diff it, confirm the JSON
-  is still valid (for `.uplugin`), and confirm passwordless `7z l` still fails
+  is still valid (for `.uplugin`), confirm passwordless `7z l` still fails, and
+  grep the listing to confirm removed paths are actually gone
+
+### 8.6 Fab (marketplace) submission requirements
+
+Fab review enforces a few package-level rules. Check them before uploading
+(they are NOT caught by compiling):
+
+| Requirement | Detail |
+|-------------|--------|
+| Archive format | **`.7z` only** — accepted by Fab after clarification; header-encrypted (`-mhe=on`) with a strong password. No zip needed |
+| `PlatformAllowList` / `PlatformDenyList` | EVERY module in the `.uplugin` must carry one, matching `SupportedTargetPlatforms` (Fab errors: "No platform properties found") |
+| ThirdParty content | Embedded third-party libs must keep ONLY their `include/` — src/test/doc/support/CI files get rejected (real case: `Source/ThirdParty/fmt/`) |
+| No executables/installers | `.exe/.iso/.dmg` etc. are rejected (obvious, but check ThirdParty trees) |
+| Binaries in the archive | Not required — source-only archives are accepted (Binaries stay in the build output dir, not in the package) |
+| Version bump | Increment `VersionName` for every resubmission round (e.g. 4.1.0 → 4.1.1); commit it early (right after the first version boundary) so every endpoint contains it |
+
+Build-farm note: Fab builds with the engine's **preferred MSVC toolchain**
+(e.g. 14.38 for 5.5), which may differ from the toolchain local verification
+used (e.g. 14.51). Verify with the preferred toolchain or keep compiler-
+sensitive settings (shadow warnings, C# syntax) at their lowest common
+denominator to avoid farm-only failures.
 
 ---
 
@@ -756,6 +793,17 @@ Use it to quickly identify error locations and match against known patterns.
   (marketplace) copy, apply it to the source plugin repo and push to its
   origin (repo URL recorded in the plugin's adaptation notes), so the next
   upstream sync includes it. Commit locally first; push timing is the user's call.
+- **Upstream sync decisions** — classify every adaptation change before
+  syncing back:
+  | Category | Examples | Sync? |
+  |----------|----------|-------|
+  | Generic compile/logic fixes (engine-version-independent) | `return {}` → explicit-type construct (Clang) | ✅ yes |
+  | Compiler-compat fixes the upstream toolchain does not need | `FMT_APPLY_VARIADIC` fold rewrite (MSVC 14.38 issue; upstream builds with newer MSVC) | ❌ no — unless upstream actually hits the same toolchain |
+  | Marketplace/Fab-only requirements | fmt trimmed to `include/`, `PlatformAllowList`, shadow-warning downgrade | ❌ no |
+  | Version-specific compatibility (backports) | FUtf8String/TNotNull/StructViewCompat backports, `IsPendingDisable` exposure, `Modulo` wrapper | ❌ no (single-version upstream has no use) |
+  | Shared build-rule/version-branching logic | `RemSharedModuleRules` engine-version branches | ❌ no |
+  Ask the user for the upstream toolchain/scope before syncing compiler-related
+  fixes; when in doubt, record the decision in the plugin's adaptation notes.
 
 ---
 

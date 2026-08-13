@@ -590,7 +590,10 @@ communicates intent to readers.
 
 ### `constexpr` everywhere possible
 
-Compute at compile time when feasible:
+Compute at compile time when feasible. Use the `constexpr` family of
+keywords (`constexpr` / `consteval` / `constinit`) as aggressively as the
+current standard allows — the project builds with
+`CppStandardVersion.EngineDefault` (C++20):
 
 ```cpp
 constexpr float EvaluateExactDamper(const float DeltaTime, const float HalfLife)
@@ -604,6 +607,23 @@ constexpr FStringView BoolText(const bool bVal)
     return bVal ? TEXTVIEW("True") : TEXTVIEW("False");
 }
 ```
+
+Variables of literal types (USTRUCTs with only scalar members, enums,
+pointers, strong aliases) that are initialized with constant expressions
+must be `constexpr`, not merely `const`:
+
+```cpp
+constexpr FRemAlphaBlend Blend{};          // USTRUCT with scalar members
+```
+
+Types that allocate (TArray, FString, containers with heap state) are NOT
+literal — keep those `const`. When in doubt, `constexpr` + a build will tell.
+
+> **Rider note:** `get_file_problems` only surfaces ERROR/WARNING severities;
+> hint-level suggestions such as "Variable can be made constexpr" are NOT
+> returned by the MCP tools. Reviewers must check `const` → `constexpr`
+> opportunities manually (verified 2026-08).
+
 
 ### `const` on locals
 
@@ -1289,6 +1309,8 @@ Before committing any C++ file:
 - [ ] `static_cast<T>()` for explicit type conversions — no C-style or functional-style casts
 - [ ] `override` on every virtual function override
 - [ ] `const` on all locals that are not mutated (wrapper locals too: `const auto` keeps `operator->` mutation of the pointed-to object legal)
+- [ ] Literal-type locals/statics initialized with constant expressions use the `constexpr` family (`constexpr`/`consteval`/`constinit`); container/allocating types stay `const`
+- [ ] `constexpr`-opportunity hints checked manually (Rider MCP does NOT return HINT severities)
 - [ ] No `const` on value-type parameters in declarations (optional in implementation)
 - [ ] `Rem::` namespace for free utility functions
 - [ ] `REM_API` export macro on public API types/functions; internals left unexported

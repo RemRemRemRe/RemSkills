@@ -182,6 +182,27 @@ so future readers can **verify it is still current**:
 Bad: "Convention says to always use `TObjectPtr`"
 Good: "`TObjectPtr<T>` for all `UPROPERTY` UObject members (required since UE 5.1; see `UObject/Pointer.h`)"
 
+**Public content needs no generalization.** Engine APIs, open-source
+libraries, and Epic conventions are public knowledge — keep their real names
+(and do not re-document what their own docs already cover; cite them
+instead). This applies to **any** open-source library or project: if its
+source is publicly available somewhere, its real names are fine.
+Generalization applies **only** to content that is not public anywhere.
+
+For the Rem ecosystem specifically, <https://github.com/RemRemRemRe> is the
+local reference: if a Rem plugin or skill is visible in the public
+repositories of that GitHub organization, it is public and keeps its real
+names. That link is a lookup aid for Rem-family content, **not** the general
+criterion — any open-source reference anywhere may keep real names.
+
+| Content | Rule |
+|---|---|
+| Engine APIs (`TObjectPtr`, `FInstancedStruct`, `Cast<T>`) | Real names, cite the header |
+| Open-source libraries (`transrangers`, `fmt`, `strong_alias`) — from any source | Real names, cite their docs; don't duplicate their documentation |
+| Epic coding conventions | Real names, cite the source |
+| Rem ecosystem content visible at <https://github.com/RemRemRemRe> | Real names (local reference for the Rem family) |
+| Content that is not public anywhere | Generalize (`<CommonPlugin>`, `<SharedBuildRules>`, `Foo::`); state the concrete names only in conversation |
+
 ---
 
 ## 7. Prefer Tables for Reference Content
@@ -317,6 +338,7 @@ Before publishing a new or updated skill:
 - [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
+- [ ] Public content (engine APIs, any open-source library) keeps real names and is cited, not re-documented; only content that is not public anywhere is generalized (Rem family: check <https://github.com/RemRemRemRe>)
 - [ ] Reference content formatted as tables where appropriate
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)
 - [ ] No stale or deprecated content — outdated sections removed, not flagged

@@ -323,6 +323,20 @@ time for a skill.
 
 ---
 
+## 11. Conflicts and Overlap Between Skills
+
+A collection grows; skills will overlap. Handle it explicitly instead of
+letting each skill restate the same rules:
+
+| Situation | Rule |
+|---|---|
+| Two skills cover the same ground | Single ownership: keep the rule in ONE skill; the other cross-references it ("see `<other-skill>` §N") |
+| A general skill and a specialized skill disagree on a domain point | The specialized skill wins for its domain; the general skill links to it instead of restating |
+| A skill is loaded alongside others and rules seem contradictory | The skill that names the concrete domain (module, system, workflow) overrides the generic rule |
+
+Copying a rule into two skills is the failure mode to avoid — the copies
+silently drift apart and each review finds a different version.
+
 ## Checklist
 
 Before publishing a new or updated skill:
@@ -340,5 +354,6 @@ Before publishing a new or updated skill:
 - [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
 - [ ] Public content (engine APIs, any open-source library) keeps real names and is cited, not re-documented; only content that is not public anywhere is generalized (Rem family: check <https://github.com/RemRemRemRe>)
 - [ ] Reference content formatted as tables where appropriate
+- [ ] Overlapping rules have single ownership — cross-referenced, not copied
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)
 - [ ] No stale or deprecated content — outdated sections removed, not flagged

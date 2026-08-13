@@ -70,6 +70,25 @@ What `RemSharedModuleRules.Apply` configures:
 - `UnsafeTypeCastWarningLevel = WarningLevel.Warning`
 - `NonInlinedGenCppWarningLevel = WarningLevel.Warning`
 
+### Empty shell modules
+
+Some engine plugins are now empty shells whose real headers moved into the
+engine's own modules. **Do not list shell modules in `Build.cs` dependencies** —
+their types resolve through the module that absorbed them (verified 2026-08):
+
+- **StructUtils** — merged into `CoreUObject` in the current engine version
+  (`CoreUObject/Public/StructUtils/` hosts `InstancedStruct.h`, `StructView.h`,
+  `PropertyBag.h`, `InstancedStructContainer.h`, ...). The StructUtils plugin
+  module only contains `StructUtilsModule.h`. Listing `"StructUtils"` produces
+  the UBT warning `Plugin 'X' does not list plugin 'StructUtils' as a
+  dependency`; the correct fix is to **remove the dependency**, not to add the
+  plugin listing. Include `StructUtils/...` headers with only `CoreUObject`
+  in the dependency list.
+
+Rule of thumb: when a dependency only triggers "does not list plugin ..."
+warnings for a module whose headers you can see inside another module you
+already depend on, drop the dependency instead of listing the plugin.
+
 ---
 
 ## 2. File & Include Structure

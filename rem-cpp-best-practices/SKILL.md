@@ -1238,6 +1238,23 @@ sibling to the module under test:
 | Module impl | Minimal `IMPLEMENT_MODULE(FDefaultModuleImpl, <ModuleName>Test)`; a module without `IMPLEMENT_MODULE` loads but fails to initialize ("could not be initialized successfully") |
 | Dependencies | The runtime module under test + Core/CoreUObject/Engine; `RemSharedModuleRules.Apply(this)` |
 
+### Dependency direction (one-way, root to leaves)
+
+Test module dependencies follow the runtime layering — dependencies flow from
+the root/base toward the leaves, never upward:
+
+- **Base layer** (`RemCommon`, third-party wrappers like `fmt` / `strong_alias`)
+  sit at the root. A base plugin's test module must NOT depend on plugins that
+  build on top of it (e.g. `RemCommonTest` must not depend on `RemRanges`,
+  `RemStrongAliasTest` must not depend on `RemCommon`).
+- **Test-to-test dependencies** are allowed (all `UncookedOnly`), but keep the
+  same direction: a leaf plugin's test may reuse a base plugin's test fixtures,
+  never the reverse.
+- **Third-party libraries stay out of the BDD suites** — they ship their own
+  tests. BDD specs test the Rem wrapper/integration, not the library itself.
+- **Empty shell modules** (see §1 — e.g. `StructUtils` merged into CoreUObject)
+  are not listed as dependencies at all.
+
 ### BDD spec style
 
 All tests are written in BDD style: `DEFINE_SPEC` + `Describe`/`It` blocks with
@@ -1329,6 +1346,8 @@ Before committing any C++ file:
 - [ ] Comments: `/** */` Doxygen on header declarations; `//` in `.cpp` implementations; no `///`
 - [ ] No `} // namespace Xxx` closing comments — bare `}`
 - [ ] Tests live in a dedicated `<ModuleName>Test` module (`"Type": "UncookedOnly"`), never in the runtime module
+- [ ] Test module dependencies follow one-way direction (root → leaves); no base plugin's test depends on a leaf plugin; third-party libs stay out of BDD
+- [ ] No empty shell modules (e.g. `StructUtils`) in `Build.cs` — their headers resolve through CoreUObject
 - [ ] Test cases use BDD spec style (`DEFINE_SPEC` + `Describe`/`It`, "should ..." names)
 - [ ] Test USTRUCTs in `Rem::<Module>::Private` namespace; `generated.h` included before the type declarations
 - [ ] No `USTRUCT`/`UPROPERTY` inside `#if WITH_DEV_AUTOMATION_TESTS` blocks

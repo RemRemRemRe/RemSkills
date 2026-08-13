@@ -30,7 +30,7 @@ extended examples live in `references/` — load them when writing that kind of 
 | `references/type-mapping.md` | Choosing STL vs UE types; writing UPROPERTY/UFUNCTION specifiers; UObject pointer types |
 | `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros |
 | `references/naming-formatting.md` | Extended naming/formatting examples and the `ThisClass` alias pattern |
-| `references/tests.md` | Writing spec tests, test USTRUCT headers, or build/run commands for the test module |
+| `references/tests.md` | Writing spec tests, test USTRUCT headers, or build/run commands for the test module; assertion pitfalls, reflection round-trip pitfalls, shared helper gotchas, dependency hygiene |
 | `references/origin-requirements.md` | Original requirements behind these rules |
 
 ---

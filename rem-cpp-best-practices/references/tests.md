@@ -178,3 +178,92 @@ Headless run:
 Check `Saved/Logs/<Project>.log` for `Test Completed. Result={Success}` lines.
 Third-party editor plugins that crash under `-nullrhi` may need
 `-DisablePlugins=<Name>`.
+
+### Headless run gotchas (verified 2026-08)
+
+- The automation filter is **not** a wildcard: `Rem.*` is a literal substring
+  match and matches nothing. Use `StartsWith:Rem` (prefix) —
+  `Automation RunTests StartsWith:Rem; Quit` runs the whole suite. `+`
+  separates OR-filters: `Rem.Foo+Rem.Bar`.
+- The runner counts **Describe nodes as test entries too** —
+  `Found 725 automation tests` = 687 `It` cases + 38 `Describe` nodes.
+- Negative tests must NOT trigger assertion log events: `RemCheck*`,
+  `REM_VIRTUAL_WARN` defaults, and `ensure` failures emit Error log events that
+  the automation framework attaches to the current test and marks it failed —
+  even when the early-return behavior is what the test wants to verify. Only
+  test paths that do not trip those macros.
+- Editor plugins can crash the render thread under `-nullrhi` (observed with a
+  custom node graph plugin) — use `-DisablePlugins=<Name>`; expect EXIT 3 with
+  `EXCEPTION_ACCESS_VIOLATION` in the log otherwise.
+- Run the binary matching the built configuration; mismatches silently load
+  stale modules.
+
+## 5. Assertion pitfalls (verified 2026-08)
+
+| Pattern | Problem | Fix |
+|---|---|---|
+| `TestEqual(TEXT("..."), FloatA, FloatB)` with `auto`/macro-typed floats | Overload ambiguity (C2666) when one side is a macro constant like `UE_KINDA_SMALL_NUMBER` (a double literal) | Use the tolerance overload, or `TestTrue(FMath::IsNearlyEqual(A, B, Tol))`, or `static_cast` both sides |
+| `TestEqual(TEXT("..."), PtrA, PtrB)` | No pointer overload; template deduction fails on `const`-mismatched pointers | `TestTrue(PtrA == PtrB)` / `TestNull` / `TestNotNull` |
+| `TestEqual` on `enum class` | No enum overload | `static_cast<int32>(...)` both sides |
+| `TestEqual` on `TSubclassOf` / `TObjectPtr` wrappers | No overload | `TestTrue(A == B)` (wrapper `==` exists) |
+| `TestTrue(TEXT("..."), true)` | Placeholder assertion — reviewer should flag it | Never write one; assert a real condition |
+
+## 6. Reflection round-trip pitfall: byte-copy aliasing (verified 2026-08)
+
+`UScriptStruct::CopyScriptStruct` is a **byte copy** for USTRUCTs without
+`STRUCT_CopyNative` ops — it does not call member copy constructors. A
+round-trip test that copies a struct containing owning members (`FString`,
+`TArray`, `FInstancedStruct`) aliases their heap buffers and double-frees on
+destruction — heap corruption that surfaces far away from the test.
+
+Rules:
+
+- Round-trip payloads must be **POD-safe** (scalars, plain pointers, nested
+  POD structs). Document the contract in the payload's comment.
+- `FRemInstancedStructContainer` / engine containers copy through
+  `CopyScriptStruct` — owning members there are fine because the container
+  owns the storage; the pitfall is specifically **stack structs copied in
+  tests**.
+- Same pitfall applies to `FMemory::Memcpy`-style "deep copy" helpers — verify
+  what "copy" means before round-tripping.
+
+## 7. Shared helpers and fixtures (verified 2026-08)
+
+- `MakeNotNull` explicit template argument is the **pointed type**, not the
+  pointer type: `MakeNotNull(SomePtr)` or `MakeNotNull<UThing>(Ptr)` —
+  `MakeNotNull<UThing*>(Ptr)` is `UThing**`.
+- `TNotNull` has no `Get()`; compare via `operator==` or `static_cast` through
+  the implicit pointer conversion.
+- `UObject` and `UActorComponent` are abstract in current engine versions:
+  `NewObject<UObject>()` logs an abstract-class warning that fails the test
+  via its log event. Use concrete classes (`AActor` in a test world,
+  `UInputComponent`, ...).
+- `ACharacter::Mesh` is private — the private-member accessor macro reaches it:
+  `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(...)` then `Accessor::Access(*Character)`.
+- Test worlds (`FRemTestWorld`-style) must flush render-thread pending
+  cleanups (`FlushRenderingCommands()`) before garbage collection in the
+  destructor, or long suites crash in `FPendingCleanupObjects::~`.
+- Objects holding struct views of **stack payloads** must clear the view
+  before the payload dies (e.g. reset before the test ends) — otherwise a
+  later GC destroys the dangling view and corrupts the heap.
+- `strong_alias` macros (`STRONG_ALIAS`, `STRONG_ALIAS_EXPLICIT_CONVERSION`)
+  require a **trailing semicolon** under MSVC: `STRONG_ALIAS(...);` — without
+  it the next declaration fails to parse (C2236).
+- `TGenerator` (UE5Coro) starts eagerly to the first `co_yield`
+  (`initial_suspend = suspend_never`): iterate with range-for / `CreateIterator`;
+  `while (Generator.Resume()) { use(Current()); }` silently skips the first
+  value.
+
+## 8. Dependency hygiene (verified 2026-08)
+
+- Test modules follow the runtime layering one-way: a base plugin's test
+  module must not depend on leaf plugins (or their test modules).
+- Third-party libraries stay out of the BDD suites — they ship their own
+  tests; the BDD specs test the Rem wrapper/integration only.
+- Empty shell engine modules are not listed at all: `StructUtils` merged into
+  CoreUObject (`CoreUObject/Public/StructUtils/` hosts the headers); listing
+  `"StructUtils"` produces "Plugin does not list plugin" warnings and the fix
+  is to **remove** the dependency, not to add the plugin listing.
+- When a dependency only triggers "does not list plugin ..." warnings and its
+  headers are visible inside a module already depended on — drop it.
+

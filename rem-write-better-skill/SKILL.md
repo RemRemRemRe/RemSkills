@@ -291,6 +291,15 @@ time for a skill.
 - **Use generic placeholder types** (see Section 3) so examples don't rot
   when a specific class is renamed
 
+**When to update a skill** (concrete triggers — not "whenever it feels stale"):
+
+| Trigger | Action |
+|---|---|
+| A project convention changed (build flags, naming, module layout) | Update the rule AND its checklist item |
+| The same pitfall/instruction got pasted or re-explained 3+ times across sessions | Promote it into the skill (same bar as §9 for creation) |
+| Engine version bump changed an API the skill documents | Re-verify cited headers/paths; update the dated facts |
+| A rule caused confusion or was ignored twice | Rewrite it or delete it — ignored rules are dead weight |
+
 ---
 
 ## Checklist
@@ -307,7 +316,7 @@ Before publishing a new or updated skill:
 - [ ] No machine paths, project names, or per-project decisions inside the skill — externalized to per-plugin configs (e.g. `<config-dir>/<Plugin>/local.json`) referenced via a required `--config`-style parameter
 - [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
-- [ ] Sources cited for conventions that come from external authorities or specific files
+- [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
 - [ ] Reference content formatted as tables where appropriate
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)
 - [ ] No stale or deprecated content — outdated sections removed, not flagged

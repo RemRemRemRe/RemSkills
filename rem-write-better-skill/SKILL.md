@@ -63,6 +63,18 @@ RemSkills/
 - Put references, images, example data in subfolders under the skill folder
 - No `README.md` — `SKILL.md` serves that role
 
+**Keep the main file lean.** The agent loads `SKILL.md` into its context on
+every trigger — it is an index and decision surface, not a handbook:
+
+| Content | Home |
+|---|---|
+| Rules, decision tables, checklists, short self-contained examples | `SKILL.md` |
+| Long code listings, boilerplate templates, engine API tables, pitfall catalogues | `references/` |
+
+A rule of thumb: if a section is only consulted while doing the work (not
+while deciding how to work), it belongs in `references/`. If the main file
+grows past what a reader can scan in one pass, split it.
+
 ---
 
 ## 3. Use Generic Placeholder Types
@@ -288,6 +300,7 @@ Before publishing a new or updated skill:
 - [ ] Frontmatter present with `name`, `description`, `metadata`
 - [ ] `description` covers both what the skill covers AND when to use it — and uses only generic placeholders (no project names, no local paths)
 - [ ] One `SKILL.md` per folder; folder name matches `name` in kebab-case
+- [ ] Main `SKILL.md` is lean: rules/decision tables/checklist only; long listings and pitfall catalogues live in `references/`
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
 - [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`, not `/home/<user>/Projects/MyPlugin` or `MyCompanyPlugin`)
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)

@@ -1001,6 +1001,22 @@ marker: `references/macros-logging.md`.
 Complete tables (judgment calls, string priority, Add vs Emplace):
 `references/type-mapping.md`.
 
+### Struct views — type-only vs instance
+
+`FConstStructView::Make(T{})` binds to a temporary that dies at the end of the
+full expression, so the returned view is dangling. To express "the type, not an
+instance", construct the view with a null memory pointer:
+
+```cpp
+return FConstStructView{ T::StaticStruct() };   // type-only (null memory)
+// not FConstStructView::Make(T{})              // dangling
+```
+
+`FInstancedStructContainer::InsertAt/Append` default-constructs each new item
+(`InitializeStruct`) and copies from the source view only when its memory is
+non-null. A type-only view yields a properly default-constructed instance; a
+dangling view overwrites it with garbage.
+
 ---
 
 ## 13. SOLID & Zero-Overhead Abstraction

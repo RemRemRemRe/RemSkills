@@ -4,7 +4,8 @@ description: >
   Guidelines for writing maintainable, clean skills (custom instructions for AI coding
   agents). Covers frontmatter format, file structure, placeholder types, self-contained
   examples, exception handling, citations, table formatting, and checklist validation.
-  Use when creating a new skill or updating an existing one.
+  Use when creating a new skill or updating an existing one. Publication/generalization
+  rules live in `rem-public-skill-generalization`.
 metadata:
   category: meta
   trigger: manual
@@ -41,7 +42,7 @@ metadata:
 | Field | Convention |
 |-------|-----------|
 | `name` | Lowercase kebab-case, matching the folder name |
-| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it. Must use generic placeholders — no project-specific names, local paths, or machine-dependent values (see §3a). |
+| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it. Must use generic placeholders — no project-specific names, local paths, or machine-dependent values (see §3 and `rem-public-skill-generalization`). |
 | `category` | Always `meta` for RemSkills |
 | `trigger` | Always `manual` — skills are loaded explicitly, never auto-triggered |
 
@@ -96,34 +97,11 @@ still carry domain hints that confuse readers and create false expectations
 about structure. Completely abstract names (`FFoo`, `FBar`) force the example
 to stand on its own structural merit.
 
-### 3a. Use Generic Placeholder Paths and Names
+### 3a. Generic Placeholder Paths and Names
 
-The generic placeholder rule extends beyond C++ types to **all identifiers** that
-could tie the skill to a specific project or machine:
-
-| Category | Do this | Not this |
-|----------|---------|----------|
-| File paths | `<plugin-source-dir>/Source/...` | `/home/<user>/Projects/MyPlugin/Source/...` |
-| Engine paths | `<engine-install-path>/UE_5.7` | `/opt/UE/5.7/Engine/...` |
-| Output paths | `<output-dir>/Win64/5.7/...` | `/builds/Win64/5.7/...` |
-| Plugin names | `<PluginName>`, `<MyPlugin>` | `MyCompanyPlugin` |
-| Dependency names | `<DepA>`, `<DepB>` | `MyDependencyA` |
-| Module names | `<DepModule>` | `MyCompanyExtensionModule` |
-| Git remotes | `<upstream-remote>` | `origin`, `upstream` (unless standard) |
-
-**Why:** Paths like `/home/<user>/Projects/MyPlugin/...` are meaningless to anyone who doesn't
-share the author's exact directory layout. They also change over time as projects
-are reorganized. Generic placeholders (`<plugin-source-dir>`) communicate intent
-without locking the skill to a specific machine.
-
-**Exception**: `engines.json` and similar config files that are **actual working
-files** shipped alongside the skill may contain real paths — they're configuration,
-not documentation. The SKILL.md content that references them should still use
-placeholders (e.g., `engines.json` is at `<skill-dir>/tools/engines.json`).
-
-Exception: if the skill's entire purpose is to document a specific type's
-public API, use the real type name — the skill is the reference for that
-specific API.
+Generic placeholder paths/names, the public-content rules, and the
+public/private skill split are owned by `rem-public-skill-generalization`
+(§3 scope, §4 methods). This section no longer restates them — see that skill.
 
 ---
 
@@ -182,26 +160,9 @@ so future readers can **verify it is still current**:
 Bad: "Convention says to always use `TObjectPtr`"
 Good: "`TObjectPtr<T>` for all `UPROPERTY` UObject members (required since UE 5.1; see `UObject/Pointer.h`)"
 
-**Public content needs no generalization.** Engine APIs, open-source
-libraries, and Epic conventions are public knowledge — keep their real names
-(and do not re-document what their own docs already cover; cite them
-instead). This applies to **any** open-source library or project: if its
-source is publicly available somewhere, its real names are fine.
-Generalization applies **only** to content that is not public anywhere.
-
-For the Rem ecosystem specifically, <https://github.com/RemRemRemRe> is the
-local reference: if a Rem plugin or skill is visible in the public
-repositories of that GitHub organization, it is public and keeps its real
-names. That link is a lookup aid for Rem-family content, **not** the general
-criterion — any open-source reference anywhere may keep real names.
-
-| Content | Rule |
-|---|---|
-| Engine APIs (`TObjectPtr`, `FInstancedStruct`, `Cast<T>`) | Real names, cite the header |
-| Open-source libraries (`transrangers`, `fmt`, `strong_alias`) — from any source | Real names, cite their docs; don't duplicate their documentation |
-| Epic coding conventions | Real names, cite the source |
-| Rem ecosystem content visible at <https://github.com/RemRemRemRe> | Real names (local reference for the Rem family) |
-| Content that is not public anywhere | Generalize (`<CommonPlugin>`, `<SharedBuildRules>`, `Foo::`); state the concrete names only in conversation |
+**Public content vs. generalization** — which content keeps real names and
+what must be generalized (and how) is owned by `rem-public-skill-generalization`
+(§3 scope, §4 methods). This section no longer restates those rules.
 
 ---
 
@@ -254,36 +215,10 @@ line — avoid multi-paragraph checklist entries.
 
 ## 8.5 Externalize Config & Anonymize Project Data
 
-A skill is **generic knowledge + generic workflow** — it must never carry
-machine paths, project names, or project-specific decisions. Keep project
-data outside the skill and anonymize what the skill references.
-
-### Three layers
-
-| Layer | Content | Where it lives |
-|-------|---------|----------------|
-| Skill itself | Generic workflow, decision trees, conventions | `SKILL.md` |
-| Generic knowledge | Engine/API differences, error patterns | `references/`, `tools/` templates |
-| External config | Per-plugin config + per-plugin adaptation knowledge | outside the skill, e.g. `<config-dir>/<Plugin>/` |
-
-### Rules
-
-1. **Skill directory stays clean** — no machine paths, no project names, no
-   per-plugin decisions inside `SKILL.md`, `references/`, or `tools/`.
-2. **Per-plugin data lives outside the skill** — each external plugin gets
-   its own config directory (e.g. `<config-dir>/<Plugin>/local.json` +
-   `adaptation-notes.md`). The skill's tools take the config via a required
-   parameter (`--config`) and **error out when it is missing or mismatched**.
-3. **Machine-specific paths never enter the skill** — engine roots, plugin
-   source paths, dependency source paths stay in external local configs.
-   Templates in the skill use placeholders only.
-4. **Anonymize code examples** — examples use meaningless placeholders
-   (`FFoo`, `Foo::Math::Modulo`, `FooNotNull.h`). Public/open-source project
-   names may appear only as source citations (see §6); anything not public
-   must be anonymized or moved to the external adaptation notes.
-5. **First-use instructions live in the skill** — a "first-time setup"
-   section (in `tools/README.md` or `SKILL.md`) explains how to create the
-   external configs and what happens when they are missing.
+Externalizing project config and anonymizing project data is owned by
+`rem-public-skill-generalization` (§4 methods: external per-plugin configs,
+private companion skills in `RemSkillsPrivate`, link-based reference docs).
+This section no longer restates the rules.
 
 ---
 
@@ -348,11 +283,11 @@ Before publishing a new or updated skill:
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
 - [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`, not `/home/<user>/Projects/MyPlugin` or `MyCompanyPlugin`)
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)
-- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized to per-plugin configs (e.g. `<config-dir>/<Plugin>/local.json`) referenced via a required `--config`-style parameter
+- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized per `rem-public-skill-generalization` (per-plugin configs, private companion skills in `RemSkillsPrivate`)
 - [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
-- [ ] Public content (engine APIs, any open-source library) keeps real names and is cited, not re-documented; only content that is not public anywhere is generalized (Rem family: check <https://github.com/RemRemRemRe>)
+- [ ] Public-content / generalization rules per `rem-public-skill-generalization` — real names only for verified-public content (cited); everything else generalized or moved to a private `RemSkillsPrivate` skill
 - [ ] Reference content formatted as tables where appropriate
 - [ ] Overlapping rules have single ownership — cross-referenced, not copied
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)

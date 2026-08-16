@@ -382,6 +382,14 @@ assignment groups, trailing comments, and designated initializers ARE aligned.
 Format with Rider and keep what it produces; never hand-align beyond that.
 Each enum member stays on its own line.
 
+**Reformat caveat — long UPROPERTY `meta` strings (verified 2026-08):** the
+Rider reformatter can line-wrap a long `meta = (EditCondition = "...")` string
+literal **mid-string**, producing an unterminated string that UHT rejects with
+`Unterminated character constant` (C++ string literals cannot span lines).
+After `reformat_file`, re-check every long string literal in `UPROPERTY`
+`meta` / `EditCondition` and restore any that were split (they must stay on
+one physical line, or be proper adjacent-literal concatenation).
+
 Namespace contents are NOT indented (`NAMESPACE_INDENTATION = None` in the
 project `.DotSettings`); see `references/naming-formatting.md` for the sample.
 
@@ -1017,6 +1025,26 @@ return FConstStructView{ T::StaticStruct() };   // type-only (null memory)
 non-null. A type-only view yields a properly default-constructed instance; a
 dangling view overwrites it with garbage.
 
+### Instanced struct two-arg initialization (verified 2026-08)
+
+`TInstancedStruct` has **no non-template two-argument `InitializeAs`**. The
+template `InitializeAs<T>(TArgs&&...)` forwards its arguments to `T`'s
+constructor (compile error C2661 "no overloaded function takes N arguments"
+when given a script struct + memory pointer). The two-arg initializer that
+copies from an existing struct instance is named differently:
+
+```cpp
+// AVOID — the template treats the args as T's constructor arguments (C2661):
+Foo.InitializeAs(ScriptStruct, Memory);
+
+// PREFER — the non-template copy-initializer:
+Foo.InitializeAsScriptStruct(ScriptStruct, Memory);
+```
+
+See `CoreUObject/Public/StructUtils/InstancedStruct.h` (`TInstancedStruct`
+provides `InitializeAsScriptStruct`; the template `InitializeAs<T>` is for
+emplace-construction).
+
 ---
 
 ## 13. SOLID & Zero-Overhead Abstraction
@@ -1374,6 +1402,8 @@ Before committing any C++ file:
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - [ ] Control-flow macros avoided — repetitive `if/else` written explicitly; code deduplication done via templates in `.inl`
 - [ ] No structured bindings (`auto [a, b]` — use explicit `Pair.Key` / `Pair.Value`)
+- [ ] `TInstancedStruct` two-arg copy-initialization uses `InitializeAsScriptStruct(Struct, Memory)` — never the template `InitializeAs<T>` with (struct, memory) args (C2661)
+- [ ] After a Rider `reformat`, long UPROPERTY `meta`/`EditCondition` string literals are still intact (reformat can split them mid-string → UHT "Unterminated character constant")
 - [ ] Comments: `/** */` Doxygen on header declarations; `//` in `.cpp` implementations; no `///`
 - [ ] No `} // namespace Xxx` closing comments — bare `}`
 - [ ] Tests live in a dedicated `<ModuleName>Test` module (`"Type": "UncookedOnly"`), never in the runtime module

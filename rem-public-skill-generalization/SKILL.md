@@ -104,10 +104,11 @@ uses the real type name.
 - **Private companion skills** (workflow facts) — same name + `-local` in
   `RemSkillsPrivate`, PRIVATE header, mirrors the public skill's structure with
   the real values filled in (e.g. `rem-commit-workflow-local`).
-- **Link-based reference docs** — when a skill must reference a live project
-  config (e.g. the commit-convention JSON), **link it instead of copying** so it
-  can never drift: symlink (`os.symlink` / `mklink`) or hard link (`mklink /H`).
-  Document the creation command in the skill; never commit a stale copy.
+- **Reference docs for live configs** — commit a **path-free snapshot copy**
+  of a live project config (e.g. the commit-convention JSON); never a symlink
+  (a link's target path leaks the machine layout) and no link/skip-worktree
+  tricks. Refresh by copying the source file over the copy and committing;
+  document that procedure in the skill.
 - **Conversation-only disclosure** — concrete names may be stated in chat when
   needed; they never enter public files.
 - **Citing public sources** — keep real names + cite; do not re-document what
@@ -125,7 +126,7 @@ The checklist is the contract — run it before pushing any skill:
 - [ ] Project-specific facts live in a `RemSkillsPrivate` skill with a PRIVATE header (committed locally, never pushed)
 - [ ] Tool-parameterized skills require an external config (`--config`), erroring when missing
 - [ ] Real-name content verified public (org/repo lookup) and cited
-- [ ] Live config references are links (symlink/hard link), not copies
+- [ ] Reference docs for live configs are path-free snapshot copies — no symlinks, no skip-worktree tricks
 
 ## Cross-references
 

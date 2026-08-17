@@ -63,7 +63,10 @@ this is the collection's rule, owned here.
 ## Workflow
 
 1. **Inspect** — `git log <remote>/<branch>..HEAD`: list the un-pushed commits,
-   their messages, and what each actually changed.
+   their messages, and what each actually changed. If the branch has no upstream
+   set, compare against the remote-tracking ref directly (`git log
+   origin/main..HEAD` — the tracking ref exists even when `@{u}` is unset); a
+   zero-count range means there is nothing to rewrite.
 2. **Plan** — group the changes by final logical change (one per commit); decide
    per commit: keep / reword / squash / drop / reorder. Map every file a
    follow-up/hygiene commit touches to the earlier commit that **owns** it (a
@@ -71,7 +74,10 @@ this is the collection's rule, owned here.
    cleanup commit). Apply the **net-zero principle**: if a follow-up removes
    something an earlier commit added (e.g. a dependency added then dropped),
    skip introducing it in the first place — the final history shows only the
-   net state.
+   net state. A follow-up that touches **production code** (not just
+   test/hygiene files) is a production change — keep it as its own
+   `Fixed:`/`Improvement:` commit even when it sits inside a test-work stack
+   (e.g. a misspelled include fixed in a source file).
 3. **Execute** — `git rebase -i <base>` (or `--autosquash` with `fixup!`
    commits); resolve conflicts like any rebase. For complex surgery (splitting
    a commit, merging two, redistributing a cleanup commit's files across many
@@ -80,10 +86,17 @@ this is the collection's rule, owned here.
    cherry-pick -n <source>`, prune or supply a file's exact state with `git
    checkout <commit> -- <path>` (also the clean way to resolve a hunk
    conflict: take a known-good version), then commit with the final message.
+   Rebuild on a **disposable branch** from the base: the original branch stays
+   untouched until the tree-identity check passes, so any failed attempt is
+   recovered by simply deleting the branch. Reuse the same rebuild recipe
+   across the repos of a batch; when scripting it, do not use `:` as a field
+   delimiter — commit messages contain colons (`Type: desc`).
 4. **Verify** — first prove content is unchanged: `git diff <original-tip>
    <rewritten-branch>` must be empty (only grouping changed). Then run the
    project's build + tests once on the final state (see `rem-commit-workflow`).
-   Intermediate commits need not compile; the final state must.
+   Intermediate commits need not compile; the final state must. For a
+   multi-repo batch: per-repo tree identity plus one integration test run
+   covers the whole batch — the project's test suite exercises every module.
 
 ## Boundaries
 

@@ -53,9 +53,9 @@ Rules:
 ## What the Tree Contains
 
 ```markdown
-## <Module>  (N 个用例)
+## <Module>  (N cases)
 
-### <SpecName>  (n 个用例)  `<relative/path/to/spec.cpp>`
+### <SpecName>  (n cases)  `<relative/path/to/spec.cpp>`
 
 - <Describe branch>
   - <It case name>  `<relative/path:line>`

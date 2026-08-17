@@ -54,6 +54,7 @@ feed automated changelog / release-note generation (see `rem-commit-workflow`
 | Interactive reshape: reword / reorder / squash / drop / split | `git rebase -i <base>` |
 | Edit a commit mid-stack (split, partial rework) | `git rebase -i <base>` → mark `edit` → `git reset HEAD^` → re-commit the parts |
 | Rebuild the stack from a point | `git reset --soft <base>` → re-commit one logical change at a time |
+| Complex reshape (split + merge + redistribute many commits) | rebuild onto the upstream base with `cherry-pick -n` + file checkout — see §Workflow |
 
 A local commit that is not pushed is **amended to fold in the final state**
 (e.g. a comment-language fix) instead of leaving a follow-up "fix" commit —
@@ -64,17 +65,32 @@ this is the collection's rule, owned here.
 1. **Inspect** — `git log <remote>/<branch>..HEAD`: list the un-pushed commits,
    their messages, and what each actually changed.
 2. **Plan** — group the changes by final logical change (one per commit); decide
-   per commit: keep / reword / squash / drop / reorder.
+   per commit: keep / reword / squash / drop / reorder. Map every file a
+   follow-up/hygiene commit touches to the earlier commit that **owns** it (a
+   stability fix to a file added in commit X folds into X, not into a lumped
+   cleanup commit). Apply the **net-zero principle**: if a follow-up removes
+   something an earlier commit added (e.g. a dependency added then dropped),
+   skip introducing it in the first place — the final history shows only the
+   net state.
 3. **Execute** — `git rebase -i <base>` (or `--autosquash` with `fixup!`
-   commits); resolve conflicts like any rebase.
-4. **Verify** — once the stack is coherent, run the project's build + tests
-   once on the final state (see `rem-commit-workflow`). Intermediate commits
-   need not compile; the final state must.
+   commits); resolve conflicts like any rebase. For complex surgery (splitting
+   a commit, merging two, redistributing a cleanup commit's files across many
+   targets), rebuilding onto the upstream base is more controllable: `git
+   switch -c rewrite <remote>/<branch>`, recreate each target commit with `git
+   cherry-pick -n <source>`, prune or supply a file's exact state with `git
+   checkout <commit> -- <path>` (also the clean way to resolve a hunk
+   conflict: take a known-good version), then commit with the final message.
+4. **Verify** — first prove content is unchanged: `git diff <original-tip>
+   <rewritten-branch>` must be empty (only grouping changed). Then run the
+   project's build + tests once on the final state (see `rem-commit-workflow`).
+   Intermediate commits need not compile; the final state must.
 
 ## Boundaries
 
 - **Do not rewrite**: pushed commits, shared branches, tags, releases, hashes
   referenced in docs or issue trackers.
+- **A fix whose target content came from a pushed commit cannot be folded** —
+  keep it as its own commit (the origin is outside the rewritable range).
 - **Already pushed a mistake?** Do not rewrite — add a corrective commit.
 - When in doubt whether a commit was pushed, treat it as pushed.
 

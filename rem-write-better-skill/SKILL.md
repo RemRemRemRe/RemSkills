@@ -145,6 +145,16 @@ implicit for the reader to guess:
 When a rule has a justification, state it. When it has an escape hatch,
 describe the escape hatch and the criteria for using it.
 
+## 5.5 One Language per Skill
+
+Each skill file uses **exactly one language**. Public `RemSkills` skills are
+English; private `RemSkillsPrivate` skills are Chinese (the author's working
+language). Never mix: no bilingual headings (`Goals (目标)`), no bilingual
+descriptions, no translated sentences inline. Technical terms — commands, type
+names, plugin names, config values, warning keywords such as `PRIVATE` — stay
+as they are; that is vocabulary, not language mixing. Frontmatter
+`description` follows the same rule.
+
 ---
 
 ## 6. Cite Sources
@@ -277,6 +287,7 @@ silently drift apart and each review finds a different version.
 Before publishing a new or updated skill:
 
 - [ ] Frontmatter present with `name`, `description`, `metadata`
+- [ ] Single language per file — English (public RemSkills) or Chinese (private RemSkillsPrivate); no bilingual headings, descriptions, or inline sentences
 - [ ] `description` covers both what the skill covers AND when to use it — and uses only generic placeholders (no project names, no local paths)
 - [ ] One `SKILL.md` per folder; folder name matches `name` in kebab-case
 - [ ] Main `SKILL.md` is lean: rules/decision tables/checklist only; long listings and pitfall catalogues live in `references/`

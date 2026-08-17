@@ -159,7 +159,8 @@ the change.
    the test run. Submodule updates conventionally use `Changed: update
    submodules ...` with the touched plugins in the summary.
 5. History reshaping (amend/fixup) belongs to `rem-rewrite-commit-history`.
-6. Push is a separate explicit step — ask before pushing anything.
+6. Push is a separate workflow — see `rem-submodule-push` (three-axis audit,
+   batch push, `--recurse-submodules=check` gate). Ask before pushing anything.
 
 **Exit criterion:** parent commit contains only the intended gitlink updates
 (plus any agreed `.uproject` change); submodule trees are clean; uncommitted
@@ -185,4 +186,4 @@ surprises, dual-remote semantics, and artifact locations, live in
 - [ ] Rebuilt DLL timestamps confirmed per changed module
 - [ ] `Result: Succeeded`
 - [ ] Submodule commits made before parent gitlink; parent commit staged by exact path only
-- [ ] Commit message follows `rem-commit-workflow`; no push without asking
+- [ ] Commit message follows `rem-commit-workflow`; push per `rem-submodule-push` (with the gitlink-sync axis checked)

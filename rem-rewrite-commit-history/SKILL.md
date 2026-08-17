@@ -55,6 +55,7 @@ feed automated changelog / release-note generation (see `rem-commit-workflow`
 | Edit a commit mid-stack (split, partial rework) | `git rebase -i <base>` → mark `edit` → `git reset HEAD^` → re-commit the parts |
 | Rebuild the stack from a point | `git reset --soft <base>` → re-commit one logical change at a time |
 | Complex reshape (split + merge + redistribute many commits) | rebuild onto the upstream base with `cherry-pick -n` + file checkout — see §Workflow |
+| Strip paths (docs, scripts, sensitive files) from the range | drop pure-path commits; in mixed commits `cherry-pick -n` + `git rm --cached <path>` — see §Workflow |
 
 A local commit that is not pushed is **amended to fold in the final state**
 (e.g. a comment-language fix) instead of leaving a follow-up "fix" commit —
@@ -86,17 +87,32 @@ this is the collection's rule, owned here.
    cherry-pick -n <source>`, prune or supply a file's exact state with `git
    checkout <commit> -- <path>` (also the clean way to resolve a hunk
    conflict: take a known-good version), then commit with the final message.
+   To **strip paths** (docs, scripts, sensitive files): drop commits that touch
+   only those paths; for an add-then-remove pair inside the range, drop both —
+   the path never enters the history. In mixed commits, `git cherry-pick -n`
+   then `git rm --cached <path>` **and remove the worktree copy** — an
+   untracked leftover blocks a later branch switch to a tree that tracks it
+   (hit twice in practice). Keep stripped files locally by extracting them from
+   the old tip (`git show <old-tip>:<path>`) before finalizing — they end up
+   untracked on disk.
    Rebuild on a **disposable branch** from the base: the original branch stays
    untouched until the tree-identity check passes, so any failed attempt is
    recovered by simply deleting the branch. Reuse the same rebuild recipe
    across the repos of a batch; when scripting it, do not use `:` as a field
-   delimiter — commit messages contain colons (`Type: desc`).
+   delimiter — commit messages contain colons (`Type: desc`) — and note that
+   `cherry-pick` takes no `-q` flag. When the finalize involves `reset --hard`,
+   preserve uncommitted changes as a patch file (`git diff > <patch>`) rather
+   than a stash — a stash popped by a half-failed command chain gets silently
+   wiped by the later reset.
 4. **Verify** — first prove content is unchanged: `git diff <original-tip>
    <rewritten-branch>` must be empty (only grouping changed). Then run the
    project's build + tests once on the final state (see `rem-commit-workflow`).
    Intermediate commits need not compile; the final state must. For a
    multi-repo batch: per-repo tree identity plus one integration test run
    covers the whole batch — the project's test suite exercises every module.
+   Path-stripping needs a **history-level check** in addition: `git log
+   --oneline -- <paths>` must be empty — tree identity alone misses files
+   added and removed within the range.
 
 ## Boundaries
 

@@ -155,6 +155,11 @@ names, plugin names, config values, warning keywords such as `PRIVATE` — stay
 as they are; that is vocabulary, not language mixing. Frontmatter
 `description` follows the same rule.
 
+Language-switch links are navigation vocabulary: the label is written in the
+**target language** — the English README links to the Chinese doc as `中文版`,
+the Chinese doc links to the English one as `English version`. This is not
+language mixing.
+
 ---
 
 ## 6. Cite Sources
@@ -287,7 +292,7 @@ silently drift apart and each review finds a different version.
 Before publishing a new or updated skill:
 
 - [ ] Frontmatter present with `name`, `description`, `metadata`
-- [ ] Single language per file — English (public RemSkills) or Chinese (private RemSkillsPrivate); no bilingual headings, descriptions, or inline sentences
+- [ ] Single language per file — English (public RemSkills) or Chinese (private RemSkillsPrivate); no bilingual headings, descriptions, or inline sentences; language-switch link labels use the target language (navigation vocabulary, not mixing)
 - [ ] `description` covers both what the skill covers AND when to use it — and uses only generic placeholders (no project names, no local paths)
 - [ ] One `SKILL.md` per folder; folder name matches `name` in kebab-case
 - [ ] Main `SKILL.md` is lean: rules/decision tables/checklist only; long listings and pitfall catalogues live in `references/`

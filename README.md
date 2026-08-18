@@ -5,7 +5,7 @@ collection that guides an AI coding agent through Unreal Engine plugin developme
 C++ conventions, testing, commit workflow, submodule maintenance, and multi-engine
 adaptation. Each skill is a folder with a `SKILL.md` entry point and loads on demand.
 
-> **Chinese version**: [README.zh-CN.md](README.zh-CN.md)
+> **中文版**: [README.zh-CN.md](README.zh-CN.md)
 
 Both language versions are maintained in lockstep — the one-liners mirror each
 skill's own `SKILL.md` description. When a skill's description changes, update

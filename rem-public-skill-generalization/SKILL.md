@@ -88,7 +88,7 @@ uses the real type name.
 | Repo | Contents |
 |---|---|
 | `RemSkills` (public) | Generalized skills only — everything here obeys this skill |
-| `RemSkillsPrivate` (local-only) | Project-specific skills with a PRIVATE header; committed normally in the local repo (no remote), never pushed |
+| `RemSkillsPrivate` (private, no public remote) | Project-specific skills with a PRIVATE header; committed normally in the local repo; a private remote is allowed, a public one never |
 
 ## 4. How to generalize
 
@@ -123,7 +123,7 @@ The checklist is the contract — run it before pushing any skill:
 - [ ] No project plugin inventory; third-party names only if verified public AND the mention adds value
 - [ ] Placeholders are meaningless (no domain hints) — see `rem-write-better-skill` §3
 - [ ] Generic paths use `<placeholder>` syntax
-- [ ] Project-specific facts live in a `RemSkillsPrivate` skill with a PRIVATE header (committed locally, never pushed)
+- [ ] Project-specific facts live in a `RemSkillsPrivate` skill with a PRIVATE header (committed locally; private remote allowed, never public)
 - [ ] Tool-parameterized skills require an external config (`--config`), erroring when missing
 - [ ] Real-name content verified public (org/repo lookup) and cited
 - [ ] Reference docs for live configs are path-free snapshot copies — no symlinks, no skip-worktree tricks

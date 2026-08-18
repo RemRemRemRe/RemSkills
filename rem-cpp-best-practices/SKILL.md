@@ -1284,6 +1284,10 @@ it in its own `Build.cs`.
 
 ## 16. Test Modules & Automation Tests
 
+**Scope:** this section owns test style, placement, and build/run commands.
+Deciding whether a change's tests are *complete* (the pre-commit gate) is owned
+by `rem-test-completeness`.
+
 ### Module placement
 
 Test code never lives in a runtime module — it goes in a dedicated test module

@@ -2,12 +2,12 @@
 name: rem-commit-workflow
 description: >
   Commit local changes in a UE project and verify them — single-responsibility
-  commits, English comments, reformat edited files, then build and run the
-  project's automation tests headless. Use when committing plugin changes,
-  splitting a mixed commit for review, or running the project's test suite.
-  Machine- and project-specific values (paths, target, config, test prefix,
-  disabled plugins) live in the private companion skill
-  `rem-commit-workflow-local`.
+  commits, English comments, reformat edited files, a pre-build test
+  completeness gate, then build and run the project's automation tests
+  headless. Use when committing plugin changes, splitting a mixed commit for
+  review, or running the project's test suite. Machine- and project-specific
+  values (paths, target, config, test prefix, disabled plugins) live in the
+  private companion skill `rem-commit-workflow-local`.
 metadata:
   category: workflow
   trigger: manual
@@ -53,6 +53,22 @@ transitively. Leaf/third-party types leaking into a public header are declared
 by each consumer, not promoted to `PublicDependencyModuleNames`. See
 `rem-cpp-best-practices` §15.
 
+## Test completeness gate
+
+Before building, prove the change set's tests are complete. The methodology —
+change-to-case mapping, the five-point criteria, regression-first for fixes —
+is owned by `rem-test-completeness`; this section only states the gate rules.
+
+- **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
+  `Fixed` / `Improvement` commits). Skip only with a stated reason: pure
+  refactor with no semantic change, docs, formatting, naming, config-only.
+- Applies to the **whole change set once**, not per split commit.
+- Tests incomplete → write the missing cases per `rem-test-completeness`
+  **before** building; the build and test run happen once, after tests are
+  complete.
+- Regression cases bind bug fixes; spot-check core logic by temporarily
+  reverting the fix (the case must fail).
+
 ## Build
 
 ```
@@ -74,3 +90,11 @@ facts: see `rem-commit-workflow-local`.
 - The console prints only UBT platform validation — judge red/green from
   `<project-dir>/Saved/Logs/<ProjectName>.log` (search `Result={Fail}`; green
   ends with `**** TEST COMPLETE. EXIT CODE: 0 ****`).
+
+## Cross-references
+
+- `rem-test-completeness` — the test completeness gate methodology and criteria
+- `rem-rewrite-commit-history` — reshaping un-pushed commit stacks before push
+- `rem-cpp-best-practices` §16 — spec style, test module placement
+- `rem-bdd-test-tree` — layered review of the test suite
+

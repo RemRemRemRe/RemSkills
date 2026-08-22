@@ -1464,7 +1464,7 @@ Before committing any C++ file:
 - [ ] Integer locals/loop counters use explicit `int32` (`auto X = 0` would deduce `int`)
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - [ ] Control-flow macros avoided — repetitive `if/else` written explicitly; code deduplication done via templates in `.inl`
-- [ ] Private member access goes through a public getter/setter when one exists; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` only for members with no public API (const-only getters are read-only)
+- [ ] Private member access via the public API when one exists — plain getters are writable through their non-const overload (a setter is preferred for writes); `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` only when no public getter exists (`CONST_ONLY` getters are read-only)
 - [ ] No structured bindings (`auto [a, b]` — use explicit `Pair.Key` / `Pair.Value`)
 - [ ] `TInstancedStruct` two-arg copy-initialization uses `InitializeAsScriptStruct(Struct, Memory)` — never the template `InitializeAs<T>` with (struct, memory) args (C2661)
 - [ ] After a Rider `reformat`, long UPROPERTY `meta`/`EditCondition` string literals are still intact (reformat can split them mid-string → UHT "Unterminated character constant")

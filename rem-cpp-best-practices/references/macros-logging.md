@@ -211,14 +211,17 @@ struct FRemFooWrapper
 // Generates: GetNumber() const and GetNumber() (non-const), both return auto&&
 ```
 
-**Const-only getters are read-only.** `REM_DEFINE_CONST_ONLY_GETTERS_RETURN_REFERENCE[_SIMPLE]`
-expands to `auto&& GetX() const { return X; }` — inside a `const` member function the
-member is a `const` lvalue, so `auto&&` deduces `const T&`. The result stays read-only
-even on a mutable object; do not try to assign through it. If callers must override the
-value (e.g. tests temporarily swapping configured classes), expose a setter alongside the
-getter, or reach the member through `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` (§9). Only
-`REM_DEFINE_GETTERS_RETURN_REFERENCE` (which generates both `const` and non-`const`
-overloads) returns a mutable reference from its non-`const` overload.
+**`CONST_ONLY` getters are read-only; plain getters return a mutable reference.**
+`REM_DEFINE_CONST_ONLY_GETTERS_RETURN_REFERENCE[_SIMPLE]` expands to only
+`auto&& GetX() const { return X; }` — inside a `const` member function the member is a
+`const` lvalue, so `auto&&` deduces `const T&`; the result stays read-only even on a
+mutable object. `REM_DEFINE_GETTERS_RETURN_REFERENCE[_SIMPLE]` instead generates both a
+`const` and a non-`const` overload — the non-`const` one returns `T&`, so `GetX() = Value`
+is valid and modifies the member. Use a setter for modifications (clearer intent, room for
+validation); the mutable reference is the escape hatch, not the default. When a class is
+`CONST_ONLY` and callers must override the value (e.g. tests temporarily swapping
+configured classes), the write needs a setter or `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR`
+(§9) — the const getter cannot do it.
 
 ## 8. Other `REM_*` patterns
 
@@ -253,7 +256,9 @@ member functions, zero-argument member functions, and static members. Based on t
 ALS-Refactored `AlsPrivateMemberAccessor.h` pattern (public). Declared in the
 `RemPrivateMemberAccessor.h` macro header of RemCommon. Use it to read or write private
 members of engine or third-party types that expose **no public API**; when a public getter
-exists, prefer it — and add a setter when a write is needed — instead of the accessor.
+exists, prefer it over the accessor — plain (non-`CONST_ONLY`) getters even allow writes
+through their non-const overload, and a setter is the clearest option (see §7 for the
+`CONST_ONLY` read-only nuance).
 
 ```cpp
 REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(AccessorName,

@@ -143,7 +143,7 @@ UE_INLINE_GENERATED_CPP_BY_NAME(MyClass)
 
 | Rule | Details |
 |------|---------|
-| Copyright header | `// Copyright RemRemRemRe. {Year}. All Rights Reserved.` on every file |
+| Copyright header | `// Copyright RemRemRemRe. {Year}. All Rights Reserved.` on every file; **new files follow the owning module's existing format** (some legacy modules use the no-year variant — migrate a module's header format as a separate pass, not inside feature commits) |
 | `#pragma once` | Always, right after copyright |
 | Base class first | In `.h`, the first `#include` is the base class header |
 | `generated.h` before types | Must be included **before** any `UCLASS`/`USTRUCT` declaration (UHT requirement); forward declarations come after all includes |
@@ -221,6 +221,37 @@ Rem::Private::      — internal implementation details (never in public API)
 ```
 
 Every free utility function lives in `Rem::` or a sub-namespace.
+
+### Statics pattern: namespace free functions + UCLASS for Blueprint only
+
+C++-only utility/query APIs are **namespace-scoped free functions**, following
+the existing `statics.h`/`statics.inl` layout (e.g. `RemCommonStatics.h`,
+`RemUniversalDataStatics.inl`):
+
+- `U<Domain>Statics : UBlueprintFunctionLibrary` holds only the
+  **Blueprint-facing** `UFUNCTION`s — do not pile C++-only functions into it.
+- The C++ API lives in `namespace Rem::<Domain>` as exported free functions
+  (`REM_API`), `[[nodiscard]]`, raw interface pointers as parameters (never
+  `TScriptInterface` in C++-first signatures — that wrapper is Blueprint-only).
+- **Strongly type flag parameters**: replace `bool bXxx` with a small
+  `enum class ERem<Domain>XxxType : uint8 { ... }` when the bool selects
+  behavior branches (e.g. All/Any match semantics).
+- **Templates go in `<Name>.inl`** (compile-time dispatch with `if constexpr`)
+  alongside the header; the `.h` stays minimal, the `.cpp` includes the `.inl`.
+  Pattern: a concept-constrained typed accessor (`template <CHasStaticStruct T>
+  const T& TryGetTyped(...)`) and a compile-time branch template
+  (`template <ELogicOperator Logic> bool MatchItemTags(...)`) — generic names
+  shown, real ones live in the project's statics headers.
+- **Reuse `RemCommon` first — it is the bottom-layer functional-reuse module.**
+  Before implementing any utility, survey its namespaces for an existing
+  helper: `Rem::Math`, `Rem::Struct`, `Rem::Enum`, `Rem::Ranges`,
+  `Rem::Latent`, `Rem::Object`, `Rem::Subsystem`, ... and the shared headers
+  under `RemCommon/Public/`. Only add a new enum/helper when none covers the
+  semantics — e.g. check `Rem::Enum::ELogicOperator` (`All/Any/None` +
+  `And/Or/Not` aliases) before defining an All/Any-style enum. A duplicate of
+  an existing `RemCommon` facility is a review rejection (verified 2026-08:
+  a custom `ERemInventoryTagMatchType` was replaced by the reused
+  `Rem::Enum::ELogicOperator`).
 
 ### Function & member naming
 
@@ -698,8 +729,13 @@ for (const auto& Component : Components)
 | Weak reference (UPROPERTY) | `TWeakObjectPtr<UObject>` |
 | Soft reference (UPROPERTY) | `TSoftObjectPtr<UObject>` |
 | Soft class reference (UPROPERTY) | `TSoftClassPtr<UObject>` |
+| Interface parameter (C++ API) | `IRemInterface*` (raw pointer) |
+| Interface parameter (Blueprint API) | `TScriptInterface<IRemInterface>` |
 
-Full examples incl. `const` UObject pointers: `references/type-mapping.md`.
+`TScriptInterface` is the Blueprint-facing wrapper — a C++-only API takes a
+raw `IRemInterface*` (or the concrete `UObject*` that implicitly upcasts); do
+not leak `TScriptInterface` into C++-first signatures. Full examples incl.
+`const` UObject pointers: `references/type-mapping.md`.
 
 ### `TNotNull` for non-null semantics
 
@@ -1368,6 +1404,25 @@ build/run commands: `references/tests.md`.
 
 ---
 
+## 16b. Rider MCP Diagnostics (verified 2026-08)
+
+Run IDE diagnostics on every changed file **before committing**, not only after
+the build. `get_file_problems` catches issues incremental builds mask:
+
+- missing `#include`s (an incomplete type compiles when another translation
+  unit pulls the header in transitively — UHT still sees the broken header)
+- operand/type mismatches in expressions the compiler happens to accept
+- `UCLASS`/`USTRUCT` structure errors
+
+Usage: `get_file_problems --filePath <abs-path>` on each changed file (batch
+them in one `mcpScript` loop). **Severity contract**: ERROR and WARNING are
+returned; **HINT severities are NOT exposed** — e.g. Rider's "declaration
+order should match definition order" hint never arrives through MCP, so
+member/declaration ordering must be checked manually (see §4 member ordering).
+After fixing, re-run to confirm clean — a real case: a `UObject*`/`UPackage*`
+ternary and a missing `GameFramework/Actor.h` include both passed the build
+and were caught only by `get_file_problems`.
+
 ## 17. Pre-Commit Checklist
 
 Before committing any C++ file:
@@ -1391,8 +1446,12 @@ Before committing any C++ file:
 - [ ] `const` on all locals that are not mutated (wrapper locals too: `const auto` keeps `operator->` mutation of the pointed-to object legal)
 - [ ] Literal-type locals/statics initialized with constant expressions use the `constexpr` family (`constexpr`/`consteval`/`constinit`); container/allocating types stay `const`
 - [ ] `constexpr`-opportunity hints checked manually (Rider MCP does NOT return HINT severities)
+- [ ] `get_file_problems` run on every changed file; declaration/member order checked manually (HINTs not exposed)
 - [ ] No `const` on value-type parameters in declarations (optional in implementation)
 - [ ] `Rem::` namespace for free utility functions
+- [ ] `U<Domain>Statics` UCLASS holds only Blueprint-facing `UFUNCTION`s; C++-only API is namespace free functions
+- [ ] Flag/behavior parameters use a strong-typed enum, not `bool` (reuse a `Rem::Enum` one if it fits)
+- [ ] `RemCommon` surveyed first before adding a new helper/enum (bottom-layer reuse module)
 - [ ] `REM_API` export macro on public API types/functions; internals left unexported
 - [ ] RemEnsure* for runtime-possible states; RemCheck* for developer-error guards
 - [ ] Variables declared at narrowest scope; if-condition-init where possible

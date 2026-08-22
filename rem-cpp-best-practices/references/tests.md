@@ -238,6 +238,27 @@ Rules:
   `NewObject<UObject>()` logs an abstract-class warning that fails the test
   via its log event. Use concrete classes (`AActor` in a test world,
   `UInputComponent`, ...).
+
+## 8. NetSerialize round-trip archive choice (verified 2026-08)
+
+Round-trip a custom `NetSerialize` with **`FMemoryWriter`/`FMemoryReader`**, not
+`FBitWriter`/`FBitReader`. Some serializers depend on the archive's network
+versioning state — `FGameplayTag::NetSerialize_Packed` reads
+`Ar.EngineNetVer()` and the tag manager's packed-index parameters, which a bare
+`FBitWriter` does not carry, so the bit-archive round-trip fails in the test
+harness. Real RPC serialization uses a versioned `FNetBitWriter` and works; the
+memory-archive round-trip validates save/load symmetry without that harness
+noise. Don't chase bit-archive round-trips in unit tests.
+
+## 9. Fixture semantics depend on configuration (verified 2026-08)
+
+A behavior contract can differ under different configurations of the same
+system — a test that asserts one configuration's semantics fails on another.
+Example: inventory `CanAddItem` overwrites a same-kind slot in a
+non-stacking group but **merges** counts in a stacking group (MaxStack > 0).
+When a config flag changes semantics, the fixture must exercise **both**
+configurations, and each case must state which one it asserts. A single-config
+fixture silently locks in one branch and the other rots.
 - `ACharacter::Mesh` is private — the private-member accessor macro reaches it:
   `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(...)` then `Accessor::Access(*Character)`.
 - Test worlds (`FRemTestWorld`-style) must flush render-thread pending

@@ -28,7 +28,7 @@ extended examples live in `references/` — load them when writing that kind of 
 | File | When to load |
 |------|--------------|
 | `references/type-mapping.md` | Choosing STL vs UE types; writing UPROPERTY/UFUNCTION specifiers; UObject pointer types |
-| `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros |
+| `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage and pitfalls |
 | `references/naming-formatting.md` | Extended naming/formatting examples and the `ThisClass` alias pattern |
 | `references/tests.md` | Writing spec tests, test USTRUCT headers, or build/run commands for the test module; assertion pitfalls, reflection round-trip pitfalls, shared helper gotchas, dependency hygiene |
 | `references/origin-requirements.md` | Original requirements behind these rules |
@@ -1025,9 +1025,9 @@ If a code block is repetitive, extract it into a **function** or **template**.
 Templates go in `.inl` files alongside the header. Only reach for a macro when
 `REM_DEFINE_*` is the established project convention and there is no C++ equivalent.
 
-Getter macro signatures, Rule of Five, `REM_DEFINE_GET_SCRIPT_STRUCT_INTERFACE`,
-`REM_FUNCTION_TO_FUNCTOR_SIMPLE`, and the `TStructOpsTypeTraits` deleted-copy
-marker: `references/macros-logging.md`.
+Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Five,
+`REM_DEFINE_GET_SCRIPT_STRUCT_INTERFACE`, `REM_FUNCTION_TO_FUNCTOR_SIMPLE`, and the
+`TStructOpsTypeTraits` deleted-copy marker: `references/macros-logging.md`.
 
 ---
 
@@ -1464,6 +1464,7 @@ Before committing any C++ file:
 - [ ] Integer locals/loop counters use explicit `int32` (`auto X = 0` would deduce `int`)
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - [ ] Control-flow macros avoided — repetitive `if/else` written explicitly; code deduplication done via templates in `.inl`
+- [ ] Private member access goes through a public getter/setter when one exists; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` only for members with no public API (const-only getters are read-only)
 - [ ] No structured bindings (`auto [a, b]` — use explicit `Pair.Key` / `Pair.Value`)
 - [ ] `TInstancedStruct` two-arg copy-initialization uses `InitializeAsScriptStruct(Struct, Memory)` — never the template `InitializeAs<T>` with (struct, memory) args (C2661)
 - [ ] After a Rider `reformat`, long UPROPERTY `meta`/`EditCondition` string literals are still intact (reformat can split them mid-string → UHT "Unterminated character constant")

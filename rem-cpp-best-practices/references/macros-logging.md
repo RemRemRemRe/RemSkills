@@ -211,6 +211,15 @@ struct FRemFooWrapper
 // Generates: GetNumber() const and GetNumber() (non-const), both return auto&&
 ```
 
+**Const-only getters are read-only.** `REM_DEFINE_CONST_ONLY_GETTERS_RETURN_REFERENCE[_SIMPLE]`
+expands to `auto&& GetX() const { return X; }` — inside a `const` member function the
+member is a `const` lvalue, so `auto&&` deduces `const T&`. The result stays read-only
+even on a mutable object; do not try to assign through it. If callers must override the
+value (e.g. tests temporarily swapping configured classes), expose a setter alongside the
+getter, or reach the member through `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` (§9). Only
+`REM_DEFINE_GETTERS_RETURN_REFERENCE` (which generates both `const` and non-`const`
+overloads) returns a mutable reference from its non-`const` overload.
+
 ## 8. Other `REM_*` patterns
 
 ```cpp
@@ -233,4 +242,60 @@ struct TStructOpsTypeTraits<FMyStruct> : TStructOpsTypeTraitsBase2<FMyStruct>
 {
     enum { WithCopy = false };
 };
+```
+
+---
+
+## 9. `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR`
+
+Alternative to UE's `UE_DEFINE_PRIVATE_MEMBER_PTR()` that also works with overloaded
+member functions, zero-argument member functions, and static members. Based on the
+ALS-Refactored `AlsPrivateMemberAccessor.h` pattern (public). Declared in the
+`RemPrivateMemberAccessor.h` macro header of RemCommon. Use it to read or write private
+members of engine or third-party types that expose **no public API**; when a public getter
+exists, prefer it — and add a setter when a write is needed — instead of the accessor.
+
+```cpp
+REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(AccessorName,
+    &UFoo::Member,   // pointer to member (plain pointer for a static member)
+    MemberType);     // e.g. int32 UFoo::*, int32 (UFoo::*)(int32) const, int32*
+```
+
+`AccessorName::Access(Receiver, Args...)` reaches the member:
+
+| Member kind | Call | Result |
+|---|---|---|
+| data member | `Access(Obj)` | `T&` — read/write |
+| const data member | `Access(Obj)` | `const T&` — read-only |
+| member function, with arguments | `Access(Obj, Args...)` | call result |
+| member function, zero arguments | `Access(Obj)` | call result |
+| any of the above through a pointer receiver | `Access(ObjPtr, ...)` | same, via `->*` |
+| static data member / function | `Access(Obj, ...)` | member value / call result — receiver ignored |
+
+Dispatch is by member-pointer type (`std::is_member_function_pointer_v`, member-object
+branch, plain-pointer branch), not by argument count — so zero-argument member functions
+are invoked rather than misread as data members. `Access` always takes the receiver
+first; for static members the receiver argument is required but ignored. Static-member
+support and zero-argument member functions: last verified 2026-08.
+
+```cpp
+struct UFoo
+{
+private:
+    int32 Secret{7};
+    int32 Multiply(const int32 Factor) const { return Secret * Factor; }
+
+    static int32 StaticValue;
+};
+
+int32 UFoo::StaticValue = 10;
+
+REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(GSecretAccessor, &UFoo::Secret, int32 UFoo::*);
+REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(GMultiplyAccessor,
+    &UFoo::Multiply, int32 (UFoo::*)(int32) const);
+REM_DEFINE_PRIVATE_MEMBER_ACCESSOR(GStaticAccessor, &UFoo::StaticValue, int32*);
+
+GSecretAccessor::Access(*Foo) = 5;   // write
+GMultiplyAccessor::Access(*Foo, 3);  // call
+GStaticAccessor::Access(*Foo);       // static value; receiver ignored
 ```

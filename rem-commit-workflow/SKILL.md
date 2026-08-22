@@ -33,6 +33,11 @@ config (the local companion skill `rem-commit-workflow-local` keeps a copy).
 Accept the types the project's config defines. Add a body when the change
 spans several concerns or the "why" is non-obvious.
 
+**Body readability (collection rule):** a body with multiple details lists
+each change as **one bullet line** (`- <one change>`), never a long paragraph.
+One line per change keeps the diff readable and the changelog clean — a
+multi-sentence paragraph body is a review smell.
+
 ## Commit hygiene
 
 - One logical change per commit. Split a mixed commit (rename + bug fix, class
@@ -42,6 +47,9 @@ spans several concerns or the "why" is non-obvious.
 - Reformat edited files before committing so the code matches the solution code
   style.
 - Stage by exact path; never `git add -A` — leave unfinished work uncommitted.
+  After a broad `git add` or `git commit --amend`, verify the commit's file
+  list (`git show --stat`) before finalizing — a stray working-tree change
+  swept in by `-A`/amend is hard to untangle afterwards (hit in practice).
 - Reshaping the history of un-pushed commits (amend, fixup, squash, reorder,
   drop) belongs to `rem-rewrite-commit-history`: a follow-up "fix" is folded
   into its target before push, not left as noise in the pushed history.

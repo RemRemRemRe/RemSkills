@@ -271,6 +271,25 @@ time for a skill.
 | Engine version bump changed an API the skill documents | Re-verify cited headers/paths; update the dated facts |
 | A rule caused confusion or was ignored twice | Rewrite it or delete it — ignored rules are dead weight |
 
+## 10.5 Mark Workarounds and Iterative Plans
+
+A stopgap — a workaround, a local patch pending an upstream merge, a solution
+that still needs iteration — must carry its own lifecycle annotation, or it
+silently rots into a permanent convention:
+
+- **Label it**: mark the entry `Workaround` / `Temporary` / `Pending upstream`
+  so it is clearly not the final state
+- **State the failure signal**: the observable symptom that means the entry is
+  stale or broken and needs re-verification (e.g. "the headless run crashes
+  again with `EXCEPTION_ACCESS_VIOLATION` at `<file>`")
+- **State the iteration path**: the concrete steps that converge to the final
+  state (upstream PR → merge → sync → delete this entry), ending with the
+  action that removes the annotation
+
+Never document only *how* a stopgap is used without saying *why it is
+temporary* and *when it can be removed*. Once resolved, delete the entry —
+keep no "DEPRECATED" banner (§10).
+
 ---
 
 ## 11. Conflicts and Overlap Between Skills
@@ -308,3 +327,4 @@ Before publishing a new or updated skill:
 - [ ] Overlapping rules have single ownership — cross-referenced, not copied
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)
 - [ ] No stale or deprecated content — outdated sections removed, not flagged
+- [ ] Workarounds and iterative plans carry a lifecycle annotation: label (`Temporary` / `Pending upstream`), failure signal, iteration path ending in the deletion step

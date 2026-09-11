@@ -30,6 +30,7 @@
 - [`rem-create-new-module`](rem-create-new-module/SKILL.md) — 从 RemMyBlank 模板创建新模块或插件
 - [`rem-customize-factory-asset-menu`](rem-customize-factory-asset-menu/SKILL.md) — 把自定义 `UFactory` 放到 Content Browser "Add" 菜单的指定分类与子菜单
 - [`rem-sequencer-custom-channel-section`](rem-sequencer-custom-channel-section/SKILL.md) — 自定义 `FMovieSceneChannel` / `UMovieSceneSection`，支持逐关键帧结构体编辑
+- [`rem-ue-localization`](rem-ue-localization/SKILL.md) — UE 本地化：target 与加载策略、编辑器文本的 namespace+key 查表、gather → 翻译 → compile 管线与验证
 
 **测试**
 
@@ -59,6 +60,7 @@
   - 文档与配置暴露 — `rem-docs-and-config`（技术文档、配置参考、提示文本）
   - 新建模块 / 插件 — `rem-create-new-module`
   - UE 编辑器 / 资产工作 — `rem-customize-factory-asset-menu`、`rem-sequencer-custom-channel-section`
+  - 让编辑器文本支持其它语言 — `rem-ue-localization`
 - **测试**
   - 确认测试完备 — `rem-test-completeness`（关卡）；`rem-bdd-test-tree`（审查索引）；spec 模板与运行坑位在 `rem-cpp-best-practices/references/tests.md`
 - **提交与推送**

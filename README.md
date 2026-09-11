@@ -32,6 +32,7 @@ both files in the same change.
 - [`rem-create-new-module`](rem-create-new-module/SKILL.md) — scaffold a new module or plugin from the RemMyBlank boilerplate
 - [`rem-customize-factory-asset-menu`](rem-customize-factory-asset-menu/SKILL.md) — place a custom `UFactory` in specific Content Browser "Add" categories and sub-menus
 - [`rem-sequencer-custom-channel-section`](rem-sequencer-custom-channel-section/SKILL.md) — custom `FMovieSceneChannel` / `UMovieSceneSection` with per-key struct editing
+- [`rem-ue-localization`](rem-ue-localization/SKILL.md) — UE localization: targets and loading policies, the namespace+key lookups behind editor text, the gather → translate → compile pipeline, verification
 
 **Testing**
 
@@ -61,6 +62,7 @@ both files in the same change.
   - Document and expose config — `rem-docs-and-config` (technical docs, config references, tooltips)
   - Scaffold a module / plugin — `rem-create-new-module`
   - UE editor / asset work — `rem-customize-factory-asset-menu`, `rem-sequencer-custom-channel-section`
+  - Ship editor text in another language — `rem-ue-localization`
 - **Test**
   - Make sure the tests are complete — `rem-test-completeness` (the gate); `rem-bdd-test-tree` (review index); spec templates & run gotchas in `rem-cpp-best-practices/references/tests.md`
 - **Commit & push**

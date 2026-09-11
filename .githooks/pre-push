@@ -1,0 +1,24 @@
+#!/bin/sh
+# Collection lint gate. Install once per clone:
+#   git config core.hooksPath .githooks
+#
+# The lint is the mechanical half of the rem-write-better-skill checklist; it
+# must pass before a skill change leaves this machine. Bypass deliberately with
+# `git push --no-verify` (and say why).
+
+# Resolve the repo root from the hook's own location, not from the caller's
+# working directory: a manual `sh <path>` from another repository would otherwise
+# resolve to that repository.
+root=$(cd "$(dirname "$0")/.." && pwd) || exit 1
+cd "$root" || exit 1
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "pre-push: node not found — skipping the skill lint" >&2
+    exit 0
+fi
+
+if ! node tools/lint-skills.mjs; then
+    echo "" >&2
+    echo "pre-push: skill lint failed — fix it before pushing (bypass: git push --no-verify)" >&2
+    exit 1
+fi

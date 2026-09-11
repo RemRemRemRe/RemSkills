@@ -103,10 +103,12 @@ node tools/lint-skills.mjs
 checklist）、泄漏模式（盘符路径与家目录路径），以及
 [`tools/public-names.json`](tools/public-names.json) 中的 Rem 家族名单白名单。
 
-泄漏与名单检查会读取 skill 的**全部 markdown 文件**——`SKILL.md` **与**
-`references/**`——因此搬进 reference 文件的内容不会脱离检查。随 skill 一起提供的配置
-文件（如 `tools/engines.json`）豁免：它们是配置，不是文档。未在白名单中的
-`Rem*`/`URem*` 名字会使检查失败；请为其补充可公开验证的来源，或将其泛化。
+泄漏与名单检查会读取**所有会随仓库发布的非二进制文件**——每个 skill 自身的文件
+（`SKILL.md`、`references/**`、`tools/` 下的脚本与模板）以及仓库级文件（README、
+LICENSE、工作流、hooks、`tools/`）——因此搬进 reference 或随附脚本的内容都不会脱离
+检查。除了白名单本身（它就是名单检查的参照数据），没有任何豁免：会发布出去的文件，
+就是对所有人可见的文件。未在白名单中的 `Rem*`/`URem*` 名字会使检查失败；请为其补充
+可公开验证的来源，或将其泛化。
 
 它是**本地门禁**，不是 CI 任务——检查必须在变更离开本机之前通过，而不是推送之后。
 每个克隆安装一次：

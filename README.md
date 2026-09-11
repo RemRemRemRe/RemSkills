@@ -113,11 +113,13 @@ trigger, a closing checklist, the size budget (32 KB warn / 48 KB fail, checklis
 excluded), leak patterns (drive-letter and home paths), and the Rem-family name
 allowlist in [`tools/public-names.json`](tools/public-names.json).
 
-Leak and name checks read **every markdown file** of a skill — `SKILL.md` *and*
-`references/**` — so detail moved into a reference file stays covered. Config
-files shipped with a skill (e.g. `tools/engines.json`) are exempt: they are
-configuration, not documentation. An unknown `Rem*`/`URem*` name fails the run;
-give it a publicly verifiable source in the allowlist or generalize it.
+Leak and name checks read **every non-binary file that ships** — each skill's
+own files (`SKILL.md`, `references/**`, the scripts and templates under
+`tools/`) and the repository-level files (README, LICENSE, workflows, hooks,
+`tools/`) — so detail moved into a reference file, or into a shipped script,
+stays covered. Nothing is exempt but the allowlist itself: a file that ships,
+ships to everyone. An unknown `Rem*`/`URem*` name fails the run; give it a
+publicly verifiable source in the allowlist or generalize it.
 
 It is a **local gate**, not a CI job — the check must pass before a change
 leaves the machine, not after. Install the hook once per clone:

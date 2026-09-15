@@ -122,11 +122,23 @@ facts: see the local overlay (`rem-local` → `references/rem-commit-workflow.md
 - Disable plugins known to crash under `-nullrhi` (the project's list is in the
   local overlay — `rem-local` → `references/rem-commit-workflow.md`); the filter
   is `StartsWith:<test-prefix>`, not `*`.
-- Scope the filter to the change when it is confined to one plugin/module: run
-  `StartsWith:<module-prefix>` (e.g. the camera suite `StartsWith:Rem.Camera`)
-  instead of the whole project prefix. Run the full project prefix only when the
-  change touches shared/public code that other modules consume. The full build
-  still compiles everything either way.
+- **Pick one scope up front and run it once for the evidence.** Narrower filters are for
+  iteration only; the commit gate is a single run at the authorized scope — never stack
+  scopes (narrow, then module, then full).
+- The discriminator is **which tests exercise the changed behaviour**, not which module the
+  change lives in. An additive change that only its own test consumes (a new header, type or
+  function) → the module prefix. A change to an existing shared header, an exported symbol or a
+  macro → the module prefix **plus the prefix of every module whose specs call the changed API** —
+  find those by searching the changed names, never assume.
+- A signature change does **not** widen the test scope: every run loads every test module, so a
+  dependent left behind by a symbol-mangling change fails loudly at load time whatever the filter
+  is (a stale dependent DLL shows up as `Failed to load ... GetLastError=127`). The full build
+  already covers cross-module compilation either way.
+- Reserve the full project prefix for a genuinely project-wide blast radius: a behaviour change in
+  shared runtime code, a serialized/ABI-visible shape, or a config/macro other modules read at
+  runtime.
+- Why the scope matters: a failure outside the change's blast radius is noise — it can block
+  a clean commit and trains the reader to ignore the gate.
 - The console prints only UBT platform validation — judge red/green from
   `<project-dir>/Saved/Logs/<ProjectName>.log` (search `Result={Fail}`; green
   ends with `**** TEST COMPLETE. EXIT CODE: 0 ****`).

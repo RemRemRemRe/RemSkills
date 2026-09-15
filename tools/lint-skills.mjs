@@ -29,6 +29,13 @@ const DESC_BUDGET = 10_500;
 /** An always-loaded skill must be tiny — it costs every session. */
 const ALWAYS_SIZE_ERROR = 2_000;
 
+/** Skill text as the repository stores it: line endings normalized to LF, so a
+ * checkout with `core.autocrlf=true` measures the same characters as the blob
+ * instead of one extra `\r` per line, which inflates every size budget. */
+function readText(file) {
+  return readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+}
+
 /** The raw frontmatter text when it looks like skill frontmatter (name + description). */
 function skillFrontmatterBlock(source) {
   const match = /^(?:\uFEFF)?---[ \t]*\r?\n([\s\S]*?)\r?\n---/.exec(source);
@@ -192,7 +199,7 @@ function lintSkill(name, dir) {
     fail(issues, "SKILL.md is missing");
     return { name, size: 0, descChars: 0, issues };
   }
-  const source = readFileSync(file, "utf8");
+  const source = readText(file);
   const size = source.length;
 
   const parsed = parseFrontmatter(source);
@@ -263,7 +270,7 @@ function lintSkill(name, dir) {
   const refFiles = existsSync(refDir)
     ? readdirSync(refDir, { recursive: true }).filter((entry) => statSync(join(refDir, entry)).isFile())
     : [];
-  const refChars = refFiles.reduce((sum, entry) => sum + readFileSync(join(refDir, entry), "utf8").length, 0);
+  const refChars = refFiles.reduce((sum, entry) => sum + readText(join(refDir, entry)).length, 0);
 
   return { name, size, descChars: parsed.data?.description?.length ?? 0, refFiles: refFiles.length, refChars, issues };
 }
@@ -272,7 +279,7 @@ function lintSkill(name, dir) {
 function reportContentFindings(issues, files, base) {
   for (const file of files) {
     const where = relative(base, file).replace(/\\/g, "/");
-    const body = readFileSync(file, "utf8");
+    const body = readText(file);
     const findings = [];
     for (const { re, what } of LEAK_PATTERNS) {
       const flags = re.flags.includes("g") ? re.flags : `${re.flags}g`;
@@ -377,7 +384,7 @@ function runDiscovery(roots) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) stack.push(full);
         else if (entry.name.endsWith(".md") && !isBinary(full)) {
-          const source = readFileSync(full, "utf8");
+          const source = readText(full);
           if (!skillFrontmatterBlock(source)) continue;
           const parsed = parseFrontmatter(source);
           const chars = parsed.error ? 0 : (parsed.data.description ?? "").length;
@@ -424,7 +431,7 @@ const results = skills.map((name) => lintSkill(name, join(ROOT, name)));
 const repoFileList = repoFiles();
 const repoIssues = [];
 reportContentFindings(repoIssues, repoFileList, ROOT);
-const repoChars = repoFileList.reduce((sum, file) => sum + readFileSync(file, "utf8").length, 0);
+const repoChars = repoFileList.reduce((sum, file) => sum + readText(file).length, 0);
 results.push({ name: "(repository)", size: repoChars, refFiles: 0, refChars: 0, issues: repoIssues });
 
 if (AS_JSON) {

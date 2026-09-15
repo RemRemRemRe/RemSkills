@@ -254,3 +254,63 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Verification** — a type-erasure converting constructor that failed to match out of line and
   compiled once the checks moved into the body.
 - **Applies to** — MSVC 19.5x, C++20 (verified 2026-09).
+
+## UHT / UBT — renaming headers and includes
+
+### Renaming a UHT header also renames its generated include (verified 2026-09)
+
+- **Symptom** — after moving a processed header (`git mv Old.h New.h`) UHT reports
+  `Error: The given include must appear at the top of the header following all other includes:
+  '#include "Old.generated.h"'`, and a wide rebuild can still pick up a generated file for a header
+  that no longer exists.
+- **Cause** — the generated include name follows the *file* name, while UBT keeps the previous
+  generation under `Intermediate/.../UHT/`.
+- **Fix** — rename the `*.generated.h` include inside the moved header, and delete the orphaned
+  `Old.generated.h` / `Old.gen.cpp` under `Intermediate`: an orphan nothing includes is still compiled
+  when the module is rebuilt from scratch.
+- **Verification** — the UHT error above, then a green wide rebuild.
+- **Applies to** — UE 5.8 (verified 2026-09).
+
+### UBT's "own header first" check only fires on a wide rebuild (verified 2026-09)
+
+- **Symptom** — incremental builds stay green while a header/implementation split is wrong; a wide
+  rebuild then reports `error: Expected X.h to be first header included.`
+- **Cause** — the check belongs to the module's include-order validation, which incremental builds
+  skip for translation units they do not recompile.
+- **Fix** — a `.cpp` whose first include is no longer the header it implements has to put that header
+  back first (sibling headers follow).
+- **Verification** — the error appeared only after a change that forced a wide rebuild (a template
+  header edit) and disappeared after reordering the includes.
+- **Applies to** — UE 5.8 (verified 2026-09).
+
+## API design — accessors, names, invariants
+
+### An accessor that asserts needs the type's invalid-value paths audited (verified 2026-09)
+
+- **Symptom** — after an accessor was changed to assert validity and return a non-null wrapper,
+  comparing two unbound values and converting one through a type-erasure constructor asserted,
+  although both are legitimate operations on such a type.
+- **Cause** — the comparison operator and the erasure bridge read the *asserting* accessor, so paths
+  designed for a possibly dead value began demanding a live one.
+- **Fix** — give the type both accessors (asserting plus invalid-returning) and use the
+  invalid-returning one wherever a value may legitimately be absent: comparison, conversion/erasure,
+  reset. Audit every *internal* user of the accessor being changed, not only the external call sites.
+- **Verification** — the type's invalid-state spec cases failed with the asserting accessor alone and
+  pass with the invalid-returning one; the rest of the affected suites stayed green.
+- **Applies to** — any wrapper type gaining a checked accessor (verified 2026-09, MSVC 19.50).
+
+### An identity hook must not share a name with the CRTP accessor (verified 2026-09)
+
+- **Symptom** — after renaming a virtual identity hook to the accessor's name (or the reverse), the
+  implementations stop overriding (`error C3668: method with override specifier 'override' did not
+  override any base class methods`) and every accessor call site fails with
+  `error C3878: syntax error: unexpected token '>' following 'simple-type-specifier'`.
+- **Cause** — two effects at once: an override whose name no longer matches the interface is not an
+  override, and the same-named non-template member *hides* the inherited accessor template (name
+  lookup stops in the derived class, so `object.Accessor<T>()` no longer parses as a template call).
+- **Fix** — keep the protocol primitive and the typed accessor on different names: the primitive says
+  what it hands out (the owner/identity), the accessor says it builds the value. A rename that looks
+  like it unifies them is the collision, not the intent.
+- **Verification** — the two error codes above, then a green build and specs once the names diverged
+  again.
+- **Applies to** — UE 5.8 / MSVC 19.5x (verified 2026-09).

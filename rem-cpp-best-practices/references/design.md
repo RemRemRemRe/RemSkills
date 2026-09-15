@@ -52,6 +52,20 @@ site** (the caller passes the owning object), the concrete handle can simply be 
 interfaces need no addition at all. Add the protocol only when a worker's identity must differ from
 what the creation call knows.
 
+### Holding a callback a module registers (pattern, verified 2026-09)
+
+When a family needs a callback some other module registers at startup (a capability it contributes),
+hold it in a small type with **one signature template parameter** instead of a pair of types:
+
+- `template <typename TSignature> class TCallbackHolder` with `using FFunction = TFunction<TSignature>`,
+  a `Set` (an empty function clears it), a `TryProvide(Args...)` that default-constructs its result
+  when nothing is registered, and an `IsRegistered`;
+- the signature parameter is what keeps it flexible: `Result(Arg)` today, `void()` or `Result(A, B, C)`
+  tomorrow, with no change to the type and no "single argument only" limit - and no word like "handle"
+  in the name, because the signature already says what the type produces;
+- define the forwarding member in the class body: an out-of-line definition whose return type spells
+  the enclosing template's parameter fails to match under MSVC (see `references/pitfalls.md`).
+
 ### Zero-Overhead
 
 | Principle | Guideline |

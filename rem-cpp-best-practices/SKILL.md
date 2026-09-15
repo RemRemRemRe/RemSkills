@@ -176,6 +176,12 @@ UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `
 
 `Rem::TNotNull<T>` expresses non-null semantics: `*NotNull` on `TNotNull<const T*>` yields the **value** reference, no pointer arithmetic (MSVC selects the deleted `operator bool` — convert to a raw pointer first), and it cannot hold `nullptr` (a walk that terminates on null uses a raw pointer). Never `NULL` or `0`.
 
+Express that contract in the **type**, not by wrapping at the call site: `TNotNull`'s pointer
+constructor is implicit (`explicit(!TIsImplicitlyConstructible_V<T, ArgTypes...>)`), so
+`return Pointer;` into a `TNotNull<T*>` return type needs no helper and runs the same null check.
+`MakeNotNull` is for the cases where *deduction* matters: it keeps the pointee's constness and
+unwraps a `TObjectPtr`.
+
 Examples and the full table: `references/language-features.md`.
 
 ---

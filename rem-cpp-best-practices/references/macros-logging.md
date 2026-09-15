@@ -153,6 +153,22 @@ RemEnsureCondition(REM_NO_ASSERTION, Container.IsValidIndex(Index), return {});
   only on the miss. Where that matters — or when the guard body is more than the
   bail-out — write the plain `if`.
 
+## 2c. `RemCheck*` is development-only — and a guard's condition must not have side effects
+
+`DISABLE_CHECK_MACRO` derives from `UE_BUILD_SHIPPING`, so `RemCheckCondition(...)` expands to
+`RemEnsureCondition(...)` in development and to nothing in Shipping: **the guard and its handling
+statement vanish together**. Three consequences decide where a guard belongs:
+
+- a guard that must survive every configuration is `RemEnsure*` — the family that is never gated;
+- a purely diagnostic guard (no handling statement) is *additionally* wrapped in
+  `#if REM_WITH_DEVELOPMENT_ONLY_CODE` when it is unnecessary in development as well (precedent:
+  `RemCommon/Public/Math/RemCircularAngleRange.h`);
+- **never let the condition have side effects.** The condition is not evaluated where the guard is
+  stripped, so a call inside it disappears with the guard. A real bug (verified 2026-09): a slot range
+  came out of a call with OUT parameters written inside the condition, so in the stripped build the
+  loop ran over a zero range and every stacking operation silently did nothing. Hoist such a call into
+  a named bool first, then guard the bool.
+
 ## 3. Config macros
 
 | Macro | Effect |

@@ -33,6 +33,7 @@
     "RemStd": "https://github.com/RemRemRemRe/RemCommon (Public/RemStd.inl)",
     "RemCastFn": "https://github.com/RemRemRemRe/RemCommon (Public/RemCastFn.h)",
     "RemAlphaBlend": "https://github.com/RemRemRemRe/RemCommon (Public/RemAlphaBlend.h)",
+    "RemCircularAngleRange": "https://github.com/RemRemRemRe/RemCommon (Public/Math/RemCircularAngleRange.h)",
     "RemScopedStructContainer": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemScopedStructContainer.h)",
     "RemInstancedStructContainer": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemInstancedStructContainer.h)",
     "RemStructViewStatics": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemInstancedStructStatics.inl)",

@@ -434,8 +434,10 @@ owned by `rem-observability-and-profiling`.
 
 - `RemEnsureCondition` / `RemEnsureVariable` — runtime-possible states, always
   active; use `RemEnsureVariable` for pointer/object checks (`Rem::IsValid`)
-- `RemCheckCondition` / `RemCheckVariable` — developer-error guards, stripped
-  when `DISABLE_CHECK_MACRO` is defined
+- `RemCheckCondition` / `RemCheckVariable` — the **development-only** family:
+  `DISABLE_CHECK_MACRO` derives from `UE_BUILD_SHIPPING`, so guard *and* handling vanish there. A guard
+  that must survive is `RemEnsure*`; a purely diagnostic one also gets
+  `#if REM_WITH_DEVELOPMENT_ONLY_CODE`. See `references/macros-logging.md` §2c.
 - **Never guard a value that is allowed to be invalid with `RemCheck*`** — guard *and*
   handling are stripped with it, so execution continues into the invalid value.
   `REM_NO_ASSERTION` only suppresses the report. For an expected miss prefer

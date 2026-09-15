@@ -137,6 +137,14 @@ facts: see the local overlay (`rem-local` → `references/rem-commit-workflow.md
 - Reserve the full project prefix for a genuinely project-wide blast radius: a behaviour change in
   shared runtime code, a serialized/ABI-visible shape, or a config/macro other modules read at
   runtime.
+- A change that **cannot** alter behaviour needs **no test run at all** - a pure code rename, a
+  comment-only or formatting change. The evidence is then the build plus a search showing zero stale
+  references to the old name, and the review carries the two conditions a compiler does not check:
+  every reference moved in the same change, and the new name does **not** already exist in those
+  scopes (a collision silently re-resolves overloads, overrides or concept satisfaction).
+- The exemption does not apply when the *name is data*: a reflected or serialized name (a
+  `UPROPERTY`/`UFUNCTION` name, a class name assets reference), a config key, a cvar, a stat id.
+  Renaming those is a behaviour change - run the scope that can reach them.
 - Why the scope matters: a failure outside the change's blast radius is noise — it can block
   a clean commit and trains the reader to ignore the gate.
 - The console prints only UBT platform validation — judge red/green from

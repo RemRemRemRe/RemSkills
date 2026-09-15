@@ -430,6 +430,11 @@ owned by `rem-observability-and-profiling`.
   active; use `RemEnsureVariable` for pointer/object checks (`Rem::IsValid`)
 - `RemCheckCondition` / `RemCheckVariable` — developer-error guards, stripped
   when `DISABLE_CHECK_MACRO` is defined
+- **Never guard a value that is allowed to be invalid with `RemCheck*`** — guard *and*
+  handling are stripped with it, so execution continues into the invalid value.
+  `REM_NO_ASSERTION` only suppresses the report. For an expected miss prefer
+  `RemEnsureCondition(REM_NO_ASSERTION, Cond, return {});` (one line, `LIKELY`-hinted; a no-op
+  on MSVC) — or a plain `if` when the body is more than the bail-out.
 - `REM_LOG_ROLE` / `REM_LOG_FUNCTION` / `REM_LOG_ROLE_FUNCTION` (+ `_COND`/`_CVAR`
   variants, `REM_SCOPED_LOG`) — log with `{}` placeholders, explicit category,
   no default category
@@ -521,6 +526,25 @@ preconditions. Capture `[&]` for full access to the enclosing scope.
   assert only for genuinely impossible states (verified 2026-09: a nested
   bind/unbind guard written this way failed 9 automation cases).
 - Remove debug prints before committing.
+
+### 14j. Checked accessors and their invalid-value twins
+
+An accessor pair splits by contract:
+
+- **`Get` is the checked primitive** — assertion plus the direct read: no validity
+  branch, no recovery path (`TNotNull<T*>` or a reference).
+- **`TryGet` reports the invalid value** — guard, then delegate to `Get`, so there is
+  one read path and one assertion.
+- Never the reverse (`Get` = assert + `TryGet`): the checked path would pay a validity
+  branch that Shipping pays too. Same for a forwarding `operator*` / `operator->` —
+  one assertion point per family.
+- Exception: a lookup whose check *is* the work (`Find` + index) keeps its own
+  single-lookup body; delegating would repeat it.
+- A violated precondition is the caller's bug: assert it in development, read the
+  payload in Shipping, and say so in the `@note`.
+
+Worked shapes and the `REM_NO_ASSERTION` misuse: `references/macros-logging.md`
+§2b.
 
 ---
 

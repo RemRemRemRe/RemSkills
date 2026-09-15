@@ -80,6 +80,79 @@ RemCheckVariable(Pointer, return;);
 RemCheckVariable(check, CriticalPtr, return;);
 ```
 
+## 2b. Checked vs invalid-value accessors — which guard belongs where
+
+`RemCheck*` is the developer-error guard, `RemEnsure*` the runtime-possible one.
+Neither is control flow, and that decides how an accessor pair is written:
+
+```cpp
+// The checked primitive: the caller guarantees the precondition.
+[[nodiscard]] TNotNull<TPointee*> Get() const
+{
+    check(IsValid());                    // dev-only, zero cost in Shipping
+    return Super::Pointer.Get();         // direct read, no branch
+}
+
+// The invalid-value wrapper: the validity branch is its contract.
+TPointee* TryGet() const
+{
+    if (!IsValid())
+    {
+        return nullptr;
+    }
+
+    return Get();                        // one read path, one assertion
+}
+```
+
+- Inverting the pair (`Get` = `check` + `TryGet`) makes the checked path pay the
+  invalid path's branch — that branch is not an assertion, so Shipping pays too.
+- `operator*` / `operator->` forward to `Get`; repeating `check(IsValid())` there
+  evaluates the predicate twice in development builds.
+- A lookup whose check *is* the work keeps its own body in `TryGet`
+  (`Find` + index); delegating to `Get` would repeat the lookup.
+
+### `REM_NO_ASSERTION` does not make an assertion a guard
+
+`REM_NO_ASSERTION` is an empty macro that fills the assertion-macro slot, so the
+assert expands away and the handling statement stays. That is the right shape for
+a state you recover from deliberately without reporting:
+
+```cpp
+// Expected miss, recovered without a report. Legitimate.
+RemEnsureCondition(REM_NO_ASSERTION, Container.IsValidIndex(Index), return {});
+```
+
+It does **not** rescue a `RemCheck*` guard. `RemCheckCondition` is `#define`d
+empty when `DISABLE_CHECK_MACRO` is on, so where the value may be invalid the
+whole guard disappears and the code continues into the invalid value:
+
+```cpp
+// WRONG where the value may be invalid: no guard at all once the check macros are
+// disabled.
+RemCheckCondition(REM_NO_ASSERTION, Container.IsValidIndex(Index), return {});
+return Container[Index];
+```
+
+Where the value may legitimately be invalid, use the `RemEnsure*` form — the house
+idiom, one line, and always evaluated:
+
+```cpp
+// Preferred for a single-statement bail-out.
+RemEnsureCondition(REM_NO_ASSERTION, Container.IsValidIndex(Index), return {});
+```
+
+- `RemEnsure*` is never gated by a config macro, and `REM_DISABLE_ASSERTION` only
+  drops the report — condition and handling stay in every configuration. That is
+  what makes it safe for control flow, and what `RemCheck*` cannot offer.
+- The macro applies `LIKELY` to the *positive* condition, so the bail-out is the
+  marked-cold path. That is a real hint on clang/GCC; on MSVC `LIKELY(x)` is just
+  `!!(x)` (`HAL/Platform.h`), i.e. no hint and the same test-and-jump a plain `if`
+  produces. Pick the macro for the uniform shape, not for a speed-up on MSVC.
+- It costs debugging: a line breakpoint on the guard fires on *every* call, not
+  only on the miss. Where that matters — or when the guard body is more than the
+  bail-out — write the plain `if`.
+
 ## 3. Config macros
 
 | Macro | Effect |

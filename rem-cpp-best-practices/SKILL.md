@@ -508,7 +508,8 @@ preconditions. Capture `[&]` for full access to the enclosing scope.
 
 ### 14i. Assertion principles
 
-- `check()` — program invariant; fatal in all builds. Never put side effects inside.
+- `check()` — program invariant. A violated check aborts in Debug/Development and is **compiled out in Shipping** (`DO_CHECK` = `USE_CHECKS_IN_SHIPPING`, default 0, so it becomes `CA_ASSUME` = a `sizeof` no-op: zero instructions and the expression is not even evaluated). Never put side effects inside, and never rely on it as a runtime guard.
+- **Do not hand-wrap `check` in a development macro** — it is already build-gated; `checkSlow` costs the same outside Debug (`DO_GUARD_SLOW` follows the same pattern) and only marks the check as expensive.
 - `ensure()` — recoverable "shouldn't happen"; fires once in non-shipping, returns bool.
 - `ensureAlways()` — like ensure but fires every time.
 - A state-invariant assert must sit beside the code that maintains that state.

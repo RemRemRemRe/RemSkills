@@ -150,3 +150,92 @@ Rem-specific entries name Rem APIs as documented in this skill.
   and set `bRetry = true;` before an early `return;`.
 - **Verification** — the exit body observes the flag (confirmed via log output
   in the retry-path fix).
+
+## UHT — interfaces & base lists
+
+### UHT reads a base list literally and registers interfaces only from it (verified 2026-09)
+
+- **Symptom** — two failure modes. (a) `Error: Found 'MY_BASE_MACRO' when expecting ...` on a base
+  list written with a macro. (b) Worse: everything compiles, but `Cast<IMyInterface>(Object)`
+  returns null at runtime and `Implements<IMyInterface>()` is false, so a handle built through the
+  protocol silently falls back to a default.
+- **Cause** — UHT does not preprocess `#include`s, so a macro defined in another header is never
+  expanded in a base list (it is fine inside a class body); and UHT records an interface for
+  reflection only when the interface appears **as a base itself** — one inherited *through a
+  template base* (a CRTP helper) is invisible to reflection.
+- **Fix** — write base lists literally (no macros, even for repetitive interface lists), and list
+  every interface as its own base next to a CRTP/mixin base instead of relying on inheritance
+  through the template. Two independent bases are fine: `class UMy : public IMyInterface,
+  public TRemFooBase<UMy>`. A template base on a `UCLASS` is accepted by UHT - it just does not
+  register interfaces.
+- **Verification** — the UHT error text, and two automation specs that compiled but failed at
+  runtime (`Cast` null -> wrong identity) until the interface was listed directly.
+- **Applies to** — UE 5.8 (verified 2026-09).
+
+### A USTRUCT's unguarded bases are read as struct parents (verified 2026-09)
+
+- **Symptom** — three distinct UHT errors on one struct:
+  `Unable to find parent struct type for 'FX' named 'IY'` (interface base written without a guard);
+  `USTRUCTs can only have one USTRUCT base. Wrap any extra bases in a '#if CPP' block.` (a second
+  struct base, or a guarded-interface attempt that left another base unguarded);
+  `static_assert failed: 'USTRUCT FX cannot be polymorphic unless super FXBase is polymorphic'`
+  (a struct adding a virtual through an interface while deriving from a non-polymorphic struct).
+- **Cause** — every unguarded base of a `USTRUCT` is treated as a *struct* parent; interface bases
+  must be hidden behind `#if CPP`; and a struct that becomes polymorphic needs a polymorphic parent.
+- **Fix** — keep at most one unguarded struct base (or none) and wrap every interface base in
+  `#if CPP ... #endif`; give a virtual-adding struct a polymorphic base. Related: UHT emits
+  `_getUObject()` for **classes only**, so a struct's interface has no `UObject` behind it and
+  `Cast<UObject>` of it is null - resolve such interfaces with a compile-time `static_cast` from the
+  known concrete type instead (the shape a free-function accessor can provide).
+- **Verification** — all three errors in one session, each fixed in turn; the final struct compiled
+  and a spec asserted the null `Cast<UObject>`.
+- **Applies to** — UE 5.8 (verified 2026-09).
+
+### A derived-to-base conversion in a header-inline hook needs the complete type (verified 2026-09)
+
+- **Symptom** — IDE/build error `Cannot convert UDerived* (pointer to incomplete type) to return
+  type UObject*` on a virtual whose body a macro expanded in a header that only forward-declares
+  `UDerived`.
+- **Cause** — converting `Derived*` to `UObject*` requires `Derived` to be complete; a
+  forward-declared type cannot do it.
+- **Fix** — declare the override in the header and define it in the `.cpp` (or include the complete
+  type there), instead of expanding the body inline.
+- **Verification** — three hooks moved to `.cpp` bodies; build green. Note this diagnostic is a
+  **true positive**: the same shape was reported clean in a neighbouring header that also lacked the
+  complete type, so treat a single clean report as an analysis miss, not as evidence.
+- **Applies to** — UE 5.8 / MSVC 19.5x (verified 2026-09).
+
+## C++ — wrapper parameters, overloads, templates
+
+### A wrapper type as a parameter changes overload resolution (verified 2026-09)
+
+- **Symptom** — two silent-looking failures after converting *part* of an overload set to a
+  typed-pointer wrapper (a `TNotNull<T*>`-style parameter):
+  (a) raw-pointer calls keep compiling but bind to a **different** overload - often a broader one
+  (e.g. a `const UObject*` entry), which can turn a forwarding body into infinite recursion;
+  (b) converting a base/derived overload pair makes every pointer argument ambiguous:
+  `error C2668: ambiguous call to overloaded function`.
+- **Cause** — a standard pointer conversion outranks a user-defined conversion, so a wrapper
+  parameter *loses* to a raw-pointer parameter; and between two wrapper parameters the two
+  user-defined conversion sequences are indistinguishable (neither is "the same function").
+- **Fix** — treat an overload set as **all-or-nothing**: convert every pointer-taking overload of a
+  name, or none. When neither is possible (a never-null overload next to a null-tolerant entry, or a
+  base/derived pair), keep that set raw and leave a one-line comment at the declaration saying why,
+  so the next reader does not "fix" it. Also: wrapper parameters do not participate in template
+  argument deduction - pass a raw pointer, or take a raw local at the top of the body.
+- **Verification** — a minimal translation unit compiled with MSVC (raw pointer argument selecting
+  the base-typed overload; `C2668` for the pair) plus a module build after the rule was applied.
+- **Applies to** — any explicitly-constructible wrapper parameter type; MSVC 19.5x (verified 2026-09).
+
+### An out-of-line member template of a class template can fail to match its declaration (verified 2026-09)
+
+- **Symptom** — `error C2244: unable to match function definition to an existing declaration` for
+  `TClass<A>::Member<T>()` defined out of line when the `requires`-clause of the definition names
+  the enclosing class template's parameters; the diagnostic shows the declaration as a candidate.
+- **Cause** — MSVC does not match the constrained definition's redeclaration pattern against the
+  declaration in that shape.
+- **Fix** — move the constraint's checks into the body as `static_assert`s (or define the member
+  inline in the class). Document why, so a later cleanup does not move it back.
+- **Verification** — a type-erasure converting constructor that failed to match out of line and
+  compiled once the checks moved into the body.
+- **Applies to** — MSVC 19.5x, C++20 (verified 2026-09).

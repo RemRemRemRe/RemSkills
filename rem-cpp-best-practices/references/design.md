@@ -30,6 +30,28 @@ abstraction](https://www.fluentcpp.com/2016/12/15/respect-levels-of-abstraction/
 - Or via C++20 concepts (preferred for compile-time dispatch)
 - Free functions in `Rem::` namespaces over member functions where possible
 
+### Declaring a worker's identity and liveness (pattern, verified 2026-09)
+
+When several interfaces each need to answer "which object bounds my lifetime, and am I still
+usable?", do not give every interface its own accessor. Put **one primitive with a uniform
+signature** behind a dedicated protocol and expose **typed accessors** on top:
+
+- one virtual, e.g. `virtual UObject* GetOwner() const = 0;` - uniform, so a class implementing
+  several of those interfaces implements it **once**, and no two interfaces collide on it (the
+  same name with a *different* return type cannot be implemented by one class at all);
+- a typed accessor per interface type that returns a handle carrying the identity plus the pointer
+  (`{liveness, pointee}`), resolved with a **compile-time** `static_cast` from the concrete type -
+  never `Cast<UObject>`, which is null for USTRUCT implementers (UHT emits `_getUObject()` for
+  classes only) and can fail at runtime for classes;
+- for a `UCLASS` the accessor can come from a CRTP mixin base; a `USTRUCT` cannot list a template
+  base (UHT reads unguarded bases as struct parents), so it uses a free-function form over the same
+  implementation.
+
+Ask first whether a protocol is needed at all: when the identity is already known at the **creation
+site** (the caller passes the owning object), the concrete handle can simply be built there, and the
+interfaces need no addition at all. Add the protocol only when a worker's identity must differ from
+what the creation call knows.
+
 ### Zero-Overhead
 
 | Principle | Guideline |

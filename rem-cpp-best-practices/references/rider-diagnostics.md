@@ -95,3 +95,29 @@ checking against the compiler:
   or failed template substitution in a file that **compiles** (the build
   passed) is a Rider analysis bug, not a real defect. Cross-check with the
   build result before touching the code.
+
+### Known false positives, and one true positive in disguise (verified 2026-09)
+
+More families confirmed as noise on this codebase - do not "fix" them:
+
+- **Redundant `typename`** on a dependent nested type: **not a false positive since C++20** — P0634R3
+  makes the prefix optional wherever only a type can appear (a leading return type, a parameter, a
+  template argument, an alias RHS), which is exactly where this hint fires. It is still *required*
+  in contexts the grammar cannot disambiguate (a variable declaration in a block scope). Verified
+  with MSVC 19.50 on one file: it compiles with the prefix removed under `/std:c++20 /permissive-`
+  and fails with `C2061`/`C2059` under `/std:c++17`. Keeping the prefix is a style choice, not a
+  correctness one — do not add it back "to fix the analyzer", and do not assume every compiler in
+  reach implements P0634 (UE 5.8's toolchains do).
+- **Redundant template arguments / "use CTAD"** where the explicit argument is *semantically*
+  required - e.g. naming the base class a weak pointer should erase to on purpose. Deduction would
+  change the meaning, not just the spelling.
+- **"Parameter can be made pointer to const"** applied to a wrapper-pointer API that stores a
+  non-const `T*` internally: following it breaks the wrapper's type and its contract.
+- **Unused template parameters** of a SFINAE primary template (they exist to switch the
+  specialization).
+
+The inverse also happens: a diagnostic that looks like stale analysis can be **correct**. An
+incomplete-type conversion reported in a header that only forward-declares the type is real, and the
+same shape may be reported *clean* in a neighbouring header - that clean report is the analysis
+miss, not evidence. When a diagnostic is plausible, adjudicate it against the language rule or a
+minimal repro before dismissing it.

@@ -207,6 +207,21 @@ Rem-specific entries name Rem APIs as documented in this skill.
 
 ## C++ — wrapper parameters, overloads, templates
 
+### A CRTP base cannot probe a member of its derived class (verified 2026-09)
+
+- **Symptom** — a member alias (or any nested type) declared by the derived class is never seen: the
+  CRTP base silently falls back to its default template argument, so a trait that was supposed to
+  pick a narrowed type keeps picking the erased one. Nothing fails to compile.
+- **Cause** — the base is instantiated while `TDerived` is still incomplete, so
+  `void_t<typename TDerived::Alias>` is SFINAE-rejected at that point and the resulting (primary)
+  specialization is *cached*; completeness later does not re-open the question.
+- **Fix** — pass the value as a template argument at the base-list site
+  (`public TRemFooBase<UMyWorker, UMyWorker>`) instead of probing the derived class, or defer the
+  probe to a point where the type is complete (a free function called with an object).
+- **Verification** — a compile-time `static_assert` on the returned handle's storage form failed
+  although the alias existed; adding the explicit template argument made it pass.
+- **Applies to** — any compiler; verified with MSVC 19.50 (2026-09)
+
 ### A wrapper type as a parameter changes overload resolution (verified 2026-09)
 
 - **Symptom** — two silent-looking failures after converting *part* of an overload set to a

@@ -111,6 +111,20 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Fix** — construct from a lambda: `TFunction<T(U)> Fn{[](U In) { ... }};`
 - **Verification** — compile.
 
+### `const auto*` makes the pointee const, so `Cast` + `TWeakObjectPtr` will not compile (verified 2026-09)
+
+- **Symptom** � `TWeakObjectPtr<UMyType>{TypedOwner}` reports
+  `error C2440: '<function-style-cast>': cannot convert from 'initializer list'` (next to
+  `C2737: const object must be initialized`), although the types look compatible.
+- **Cause** � in `const auto* Owner = Object.GetOwner();` the `const` belongs to the *pointee*, so
+  `Owner` is `const UMyType*`; a `Cast<T>` of that keeps the constness, and `TWeakObjectPtr<T>` has
+  no constructor from a const pointer.
+- **Fix** � const the pointer, not the pointee: `auto* const Owner = ...`, or drop the `const`.
+- **Verification** � a handle builder's type guard failed on exactly this line and compiled after the
+  swap (2026-09).
+- **Applies to** � MSVC 19.5x (UE 5.8); `const auto*` and `auto* const` differ by one word and a
+  whole error message.
+
 ## Test-world driving
 
 ### `SetTimerForNextTick` fires on the tick AFTER the registration tick (verified 2026-08)

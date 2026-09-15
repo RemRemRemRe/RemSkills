@@ -113,27 +113,56 @@ Use the project's editor development configuration — never build a different
 editor config for this. Exact engine path, target, and config are project
 facts: see the local overlay (`rem-local` → `references/rem-commit-workflow.md`).
 
-## Run tests
+## Test scope
+
+Scope is a two-stage decision, and both stages leave evidence: **enumerate candidates
+from the module graph, then prune by symbol**.
+
+Stage 1 — candidates, from the module dependency graph (`tools/scope.py`):
 
 ```
-<engine-install-path>\Engine\Binaries\Win64\UnrealEditor-Win64-<config>-Cmd.exe "<project-dir>\<ProjectName>.uproject" -unattended -nullrhi -ExecCmds="Automation RunTests StartsWith:<test-prefix>; Quit" -TestExit="Automation Test Queue Empty" -DisablePlugins=<nullrhi-crash-plugin> -log
+python <skill-dir>/tools/scope.py --root <plugin-root> [--root <source-root>] --diff [REV]
 ```
 
-- Disable plugins known to crash under `-nullrhi` (the project's list is in the
-  local overlay — `rem-local` → `references/rem-commit-workflow.md`); the filter
-  is `StartsWith:<test-prefix>`, not `*`.
-- **Pick one scope up front and run it once for the evidence.** Narrower filters are for
-  iteration only; the commit gate is a single run at the authorized scope — never stack
-  scopes (narrow, then module, then full).
+- The graph is the same shape as a plugin-dependency viewer, one level down: the unit is the
+  **module**, an edge is a `Build.cs` dependency, and the leaves are the automation prefixes read
+  out of `DEFINE_SPEC`. Never derive a prefix from a module name — one test module can host several
+  prefixes, and a prefix need not repeat its module's name.
+- Reach follows UBT's own propagation: a module sees the change when it — or a module on its
+  public-dependency path — lists the changed module. Every candidate is printed with the path that
+  reached it, so the reason is auditable instead of assumed.
+- It also prints the prefixes that **cannot** reach the change. That negative half is the point of
+  running it: it is what lets the scope stay narrow without guessing, and it is the evidence a
+  narrowed scope is reviewed against.
+- Exit code 2 means the inventory could not be built (wrong `--root`, no `Build.cs`, no changed
+  file mapped). An empty candidate set is never "nothing to run".
+
+Stage 2 — prune by symbol, then decide:
+
 - The discriminator is **which tests exercise the changed behaviour**, not which module the
   change lives in. An additive change that only its own test consumes (a new header, type or
   function) → the module prefix. A change to an existing shared header, an exported symbol or a
   macro → the module prefix **plus the prefix of every module whose specs call the changed API** —
-  find those by searching the changed names, never assume.
-- A signature change does **not** widen the test scope: every run loads every test module, so a
-  dependent left behind by a symbol-mangling change fails loudly at load time whatever the filter
-  is (a stale dependent DLL shows up as `Failed to load ... GetLastError=127`). The full build
-  already covers cross-module compilation either way.
+  search the changed names (IDE text search / find usages, never a disk scanner:
+  `rem-no-disk-scanning`), map every hit to its module, and keep a candidate only while a spec file
+  of that prefix appears in the hits.
+- Map a hit to the prefix **declared in that spec file** (its `DEFINE_SPEC` name), never to the
+  module name: one test module can host several prefixes (a `*Test` module may declare both
+  `X.Struct` and `X.Common`). Pruning by module name drops the prefix that does not look like it —
+  and with it the case that would have covered the change. `tools/scope.py --spec <file>` prints the
+  prefix of a given spec file (plus the ready-made filter line), so the mapping is not done by eye.
+- **Record the pruning**: one line per dropped candidate saying why it cannot reach the change. A
+  candidate dropped without a reason is how a scope silently turns too narrow; the graph's
+  unreachable list is the ready-made version of that line.
+- The graph proves reachability, never usage. What it adds over a text search is the consumers a
+  search cannot see: a virtual override, a delegate binding, a template instantiation, a
+  macro-expanded path, or consumption through an intermediate API.
+- The load-time argument is a **link** argument, not a coverage one. A signature change does not
+  widen the scope — every run loads every test module, so a dependent left behind by a
+  symbol-mangling change fails loudly at load time whatever the filter is (a stale dependent DLL
+  shows up as `Failed to load ... GetLastError=127`), and the full build covers cross-module
+  compilation either way. That says nothing about whether a spec behind the renamed symbol ran:
+  narrow on coverage evidence, never on "the linker would have caught it".
 - Reserve the full project prefix for a genuinely project-wide blast radius: a behaviour change in
   shared runtime code, a serialized/ABI-visible shape, or a config/macro other modules read at
   runtime.
@@ -147,6 +176,20 @@ facts: see the local overlay (`rem-local` → `references/rem-commit-workflow.md
   Renaming those is a behaviour change - run the scope that can reach them.
 - Why the scope matters: a failure outside the change's blast radius is noise — it can block
   a clean commit and trains the reader to ignore the gate.
+
+## Run tests
+
+```
+<engine-install-path>\Engine\Binaries\Win64\UnrealEditor-Win64-<config>-Cmd.exe "<project-dir>\<ProjectName>.uproject" -unattended -nullrhi -ExecCmds="Automation RunTests StartsWith:<test-prefix>; Quit" -TestExit="Automation Test Queue Empty" -DisablePlugins=<nullrhi-crash-plugin> -log
+```
+
+- Disable plugins known to crash under `-nullrhi` (the project's list is in the
+  local overlay — `rem-local` → `references/rem-commit-workflow.md`); the filter
+  is `StartsWith:<test-prefix>`, not `*`.
+- **Scope is decided first** (`Test scope` above); this command only runs it.
+- **Pick one scope up front and run it once for the evidence.** Narrower filters are for
+  iteration only; the commit gate is a single run at the authorized scope — never stack
+  scopes (narrow, then module, then full).
 - The console prints only UBT platform validation — judge red/green from
   `<project-dir>/Saved/Logs/<ProjectName>.log` (search `Result={Fail}`; green
   ends with `**** TEST COMPLETE. EXIT CODE: 0 ****`).
@@ -203,7 +246,8 @@ Before committing:
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration
-- [ ] Headless tests run with the project's filter; red/green judged from the project log, not the console output
+- [ ] Test scope: candidates enumerated from the module graph (`tools/scope.py`), pruned by a search of the changed names, every dropped candidate given a reason
+- [ ] Headless tests run with the project's filter at that scope; red/green judged from the project log, not the console output
 - [ ] Every irreversible act carries its own explicit instruction — push **or upload**, force-push, deleting a branch/tag, pruning (`reflog expire` / `gc --prune`), publishing — never inferred from an approval of the commit work
 - [ ] Before a branch's first push: what else becomes public was stated (a first push publishes the whole history)
 

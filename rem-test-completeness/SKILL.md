@@ -68,6 +68,12 @@ For each behavior change decide: covered by an existing case (which one?),
 needs a new case, or needs an existing case updated. Fill the mapping table —
 template and worked example: `references/case-mapping-template.md`.
 
+A behavior is only covered if a case that exercises it **runs**. Which prefixes
+must carry those cases is the scope question, owned by `rem-commit-workflow`
+§Test scope: enumerate the candidate prefixes (`rem-commit-workflow/tools/scope.py`)
+and prune them by searching the changed names. A behavior whose only spec sits
+in a prefix outside the run's scope is not covered, however green the run is.
+
 ## 2. Regression-First for Bug Fixes
 
 A fixed bug gets a regression case **bound to the fix**:
@@ -123,6 +129,7 @@ when the change is:
 | BDD spec style, test module placement, dependency direction | `rem-cpp-best-practices` §16 |
 | Spec/test-struct/module templates, build & run commands, pitfall catalog | `rem-cpp-best-practices/references/tests.md` |
 | Test tree generation + layered review | `rem-bdd-test-tree` |
+| Which prefixes can reach a change (candidate scope before pruning) | `rem-commit-workflow` §Test scope + `rem-commit-workflow/tools/scope.py` |
 | Building & running the suite headless | `rem-commit-workflow` |
 
 Rules live in exactly one skill; this skill references, never restates them
@@ -144,7 +151,7 @@ Before declaring a change set complete:
 
 ## Cross-references
 
-- `rem-commit-workflow` — the gate that calls this skill
+- `rem-commit-workflow` — the gate that calls this skill; owns the scope (`§Test scope`) that decides whether a case runs at all
 - `rem-bdd-test-tree` — test tree generation + layered review
 - `rem-cpp-best-practices/references/tests.md` — §16 spec conventions; templates & pitfalls
 - `rem-write-better-skill` — skill-writing conventions

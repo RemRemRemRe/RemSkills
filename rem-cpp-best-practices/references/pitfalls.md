@@ -62,6 +62,22 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Verification** — the same code compiles after the include; `get_file_problems`
   stays clean.
 
+### A call with OUT parameters inside a guard condition disappears with the guard (verified 2026-09)
+
+- **Symptom** — an operation that works in development silently does nothing where the check macros are
+  stripped (Shipping, or `DISABLE_CHECK_MACRO` on): a loop runs zero times, a container stays empty, and
+  the specs that drive it fail under the stripped build (or a later index into the empty container
+  asserts).
+- **Cause** — the only appearance of a call with OUT parameters was inside the guarded condition
+  (`RemCheckCondition(Setting->GetTypeGroupRange(Locator, GroupStart, GroupSlotCount), return false);`).
+  The macro is compiled away together with its condition, so the call and the values it wrote vanish.
+- **Fix** — hoist the call into a named bool and guard the bool; the family's contract forbids side
+  effects in the condition for exactly this reason.
+- **Verification** — an audit run with every `RemCheck*` stripped reproduced six spec failures plus an
+  empty-array assert; after hoisting, the same audit run is green (1003 cases, 0 failures).
+- **Applies to** — MSVC 19.5x / UE 5.8; a project-wide scan for reference arguments inside a guard
+  condition found no other site.
+
 ## UE types
 
 ### Struct copies reset non-reflected members (verified 2026-09)

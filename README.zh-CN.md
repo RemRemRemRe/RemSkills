@@ -50,10 +50,11 @@
 **环境约束**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用 `rg` / `grep` / `fd`，所有文本搜索走 Rider MCP
+- [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件、一次性 clone、临时 git worktree 放系统 TEMP 目录，绝不落在项目树
 
 ## 日常参考工作流
 
-- **开始会话** — `rem-no-disk-scanning` 始终加载；所有文本搜索走 Rider MCP
+- **开始会话** — `rem-no-disk-scanning` 与 `rem-temp-files` 始终加载；所有文本搜索走 Rider MCP
 - **编写**
   - 编写 / 审查 C++ — `rem-cpp-best-practices`（规则 + §17 提交前 checklist）；流水线代码用 `rem-ranges-transrangers`
   - 埋点与性能剖析 — `rem-observability-and-profiling`（日志、调试绘制、钩子、标签）

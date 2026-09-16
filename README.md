@@ -52,10 +52,11 @@ both files in the same change.
 **Environment constraints**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — always loaded: no `rg` / `grep` / `fd`, all text search goes through Rider MCP
+- [`rem-temp-files`](rem-temp-files/SKILL.md) — always loaded: scratch files, throwaway clones and temporary git worktrees go to the OS temp directory, never the project tree
 
 ## Daily Reference Workflow
 
-- **Start a session** — `rem-no-disk-scanning` is always loaded; all text search goes through Rider MCP
+- **Start a session** — `rem-no-disk-scanning` and `rem-temp-files` are always loaded; all text search goes through Rider MCP
 - **Write**
   - Write / review C++ — `rem-cpp-best-practices` (rules + §17 pre-commit checklist); `rem-ranges-transrangers` for pipeline code
   - Instrument and profile — `rem-observability-and-profiling` (logs, debug draw, hooks, tags)

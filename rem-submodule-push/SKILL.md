@@ -26,8 +26,17 @@ discipline around pushing rewritten history. Whether the commits may be
 published **at all** is the gate in `rem-commit-workflow` — this skill starts
 once they may.
 
-Project values — paths, account lists, per-submodule ownership — live in the
-local overlay: `rem-local` → `references/rem-submodule-push.md`.
+## Local overlay
+
+Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
+symlinks into a private repository that tracks them - never committed here. Files this skill reads
+when present:
+
+- `local/repositories-and-ownership.md` - repositories, accounts, ownership, no-push exceptions
+
+A file in `local/` takes precedence over `references/` and over the generic rules below; this
+`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
+configuration only. When `local/` is absent, follow the generic rules.
 
 ---
 

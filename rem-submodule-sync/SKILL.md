@@ -21,8 +21,17 @@ a checkable exit criterion. Run the detection script first; it drives phases
 Run order: **Detect → Update → Verify → Commit**. Do not skip Verify; do not
 commit before Verify passed.
 
-Project-specific values — paths, target, the non-Rem filter rule — live in the
-local overlay: `rem-local` → `references/rem-submodule-sync.md`.
+## Local overlay
+
+Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
+symlinks into a private repository that tracks them - never committed here. Files this skill reads
+when present:
+
+- `local/update-preferences.md` - update preferences, build verification, project pitfalls
+
+A file in `local/` takes precedence over `references/` and over the generic rules below; this
+`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
+configuration only. When `local/` is absent, follow the generic rules.
 
 ---
 

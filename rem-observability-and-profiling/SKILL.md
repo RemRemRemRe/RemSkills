@@ -20,9 +20,8 @@ Owns one review dimension: **can this code tell you what it is doing at
 runtime, without a debugger, in the build you ship?**
 
 The rules are UE-generic. Project-specific values — real log category names,
-stat group names, cvar names, trace channel names — live in the local overlay
-(`rem-local` → `references/<this-skill>.md`) or the project's own conventions
-doc, never here.
+stat group names, cvar names, trace channel names — live in the skill's `local/`
+overlay (when present) or the project's own conventions doc, never here.
 
 | Concern | Owner |
 |---|---|

@@ -25,8 +25,8 @@ change, and change its configuration, without reading the source?**
 | **Technical docs, config documentation, change-linked doc obligations** | this skill |
 
 Project-specific facts — where docs live, which config files exist, which
-subsystem owns which key — belong in the local overlay (`rem-local` →
-`references/<this-skill>.md`) or the project's own conventions doc, never here.
+subsystem owns which key — belong in the skill's `local/` overlay (when
+present) or the project's own conventions doc, never here.
 
 ---
 

@@ -44,7 +44,7 @@
 **Skill 元技能**
 
 - [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — 本集合的 skill 编写约定
-- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — 发布规则：占位符、私有伴生 skill、推送前 checklist
+- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — 发布规则：占位符、逐 skill 的 `local/` overlay、推送前 checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — 将会话中可复用的知识点沉淀到新文档，或对现有文档 / skill 进行改进与补充
 
 **环境约束**
@@ -65,7 +65,7 @@
 - **测试**
   - 确认测试完备 — `rem-test-completeness`（关卡）；`rem-bdd-test-tree`（审查索引）；spec 模板与运行坑位在 `rem-cpp-best-practices/references/tests.md`
 - **提交与推送**
-  - 提交 — `rem-commit-workflow`（message、hygiene、完备性关卡、构建、无头测试）；项目事实来自其 `-local` 伴生 skill
+  - 提交 — `rem-commit-workflow`（message、hygiene、完备性关卡、构建、无头测试）；项目事实来自其 `local/` overlay
   - 推送前整理历史 — `rem-rewrite-commit-history`
   - 同步 / 推送子模块 — `rem-submodule-sync`、`rem-submodule-push`
 - **扩展与维护**
@@ -80,7 +80,8 @@
   settings 的 `skills` 数组，或传 `--skill <path>`（可重复）。任何兼容 Agent Skills
   的 harness 均可。
 - 项目本地 skill：放在项目的 `.agents/skills` 下（harness 启动时信任）。
-- 私有伴生 skill（`*-local`）位于独立的私有仓库（**无公开远端**）—— 见下方分流说明。
+- 机器本地值放在每个 skill 的 git 忽略 `local/` overlay 中，通过符号链接指向独立的私有仓库
+  （**无公开远端**）—— 见下方分流说明。
 
 ## 前置依赖
 
@@ -90,9 +91,10 @@
 
 ## 公开 / 私有分流
 
-公开 skill 只携带泛化知识 —— 通用占位符，不含项目名、路径或内部决策。项目专属事实
-放在**私有伴生 skill**（`*-local`，独立私有仓库，永无公开远端）或外部逐插件配置中。
-规则单一归属
+公开 skill 只携带规则 —— 通用占位符，不含项目名、路径或内部决策。机器本地值放在每个
+skill 的 git 忽略 `local/` overlay 中：以符号链接指向私有仓库中的跟踪文件，绝不提交到
+公开仓库。`RemSkillsPrivate` 保存仅本地使用的 skill 与跟踪的 overlay 值；参数化工具的
+skill 把值放在外部逐插件配置中。规则单一归属
 [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md)。
 
 ## Skill lint
@@ -109,9 +111,11 @@ checklist）、泄漏模式（盘符路径与家目录路径），以及
 泄漏与名单检查会读取**所有会随仓库发布的非二进制文件**——每个 skill 自身的文件
 （`SKILL.md`、`references/**`、`tools/` 下的脚本与模板）以及仓库级文件（README、
 LICENSE、工作流、hooks、`tools/`）——因此搬进 reference 或随附脚本的内容都不会脱离
-检查。除了白名单本身（它就是名单检查的参照数据），没有任何豁免：会发布出去的文件，
-就是对所有人可见的文件。未在白名单中的 `Rem*`/`URem*` 名字会使检查失败；请为其补充
-可公开验证的来源，或将其泛化。
+检查。除了白名单与 git 忽略的 `local/` overlay，没有任何豁免：会发布出去的文件，
+就是对所有人可见的文件。`local/` overlay 不会发布，也不参与扫描；lint 会保持这一点
+——`local/` 下没有任何被跟踪的路径、其中的每个文件都是目标可解析的符号链接、
+且顶层 skill 目录之外不存在 `SKILL.md`。未在白名单中的 `Rem*`/`URem*` 名字会使
+检查失败；请为其补充可公开验证的来源，或将其泛化。
 
 它是**本地门禁**，不是 CI 任务——检查必须在变更离开本机之前通过，而不是推送之后。
 每个克隆安装一次：

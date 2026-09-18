@@ -115,7 +115,8 @@ not by grepping for `^To`.
 
 `git remote get-url origin` string-match on your account names classifies
 submodules as pushable. Two account names may both be yours (a fork account
-and a family-org account) — list both in the local companion skill. A
+and a family-org account) — list both in the local overlay
+(`local/repositories-and-ownership.md`). A
 third-party `origin` (original author) is never pushable, even if it is a
 clean fast-forward; local-only edits there stay local (e.g. removing
 `EngineVersion` from a `.uplugin` for cross-version compatibility).

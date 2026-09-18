@@ -16,10 +16,17 @@ metadata:
 
 Last verified: 2026-09, UE 5.8. Engine paths are relative to the engine root.
 
-Project-specific values — the real engine/project/plugin paths this was verified
-against, the verified commands, the pilot's target and outcome, the glossary
-location — live in the local overlay: `rem-local` →
-`references/rem-ue-localization.md`.
+## Local overlay
+
+Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
+symlinks into a private repository that tracks them - never committed here. Files this skill reads
+when present:
+
+- `local/project-localization.md` - real paths, verified commands, pilot results, project trade-offs
+
+A file in `local/` takes precedence over `references/` and over the generic rules below; this
+`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
+configuration only. When `local/` is absent, follow the generic rules.
 
 ## 1. Scope
 

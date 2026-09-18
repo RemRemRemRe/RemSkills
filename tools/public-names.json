@@ -5,7 +5,7 @@
     "Every entry needs a publicly verifiable source. Verify ANONYMOUSLY, because a stored",
     "credential silently resolves a private repository:",
     "  git -c credential.helper= -c core.askPass= ls-remote --heads <repo>",
-    "A name that fails that check is generalized, or moved to a RemSkillsPrivate companion skill.",
+    "A name that fails that check is generalized, or moved into a non-public skill or a skill's `local/` overlay.",
     "The check matches RemXxx plus the type-prefixed URemXxx/ERemXxx forms; both resolve to the",
     "bare entry here. Names that merely read like Rem (remote, RemoveAtSwap, the engine's",
     "RemapTimes) never match and need no entry.",
@@ -17,7 +17,7 @@
   "publicNames": {
     "RemRemRemRe": "https://github.com/RemRemRemRe",
     "RemSkills": "this collection",
-    "RemSkillsPrivate": "the collection's private companion repo (rem-public-skill-generalization §3.3)",
+    "RemSkillsPrivate": "the collection's private repo: local-only skills + the tracked overlay values (rem-public-skill-generalization §3.3)",
 
     "RemCommon": "https://github.com/RemRemRemRe/RemCommon",
     "RemCommonModule": "https://github.com/RemRemRemRe/RemCommon (the IRemCommonModule interface)",

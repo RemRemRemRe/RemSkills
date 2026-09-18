@@ -51,7 +51,7 @@ both files in the same change.
 
 **Environment constraints**
 
-- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — always loaded: no `rg` / `grep` / `fd`, all text search goes through Rider MCP
+- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — always loaded: disk scanners (`rg`, `grep`, `find`, `fd`, ripgrep, findstr) are banned, all text search goes through the project's MCP server (Rider MCP); the tools are removed from agent toolsets by configuration
 - [`rem-temp-files`](rem-temp-files/SKILL.md) — always loaded: scratch files, throwaway clones and temporary git worktrees go to the OS temp directory, never the project tree
 
 ## Daily Reference Workflow
@@ -130,6 +130,14 @@ leaves the machine, not after. Install the hook once per clone:
 ```bash
 git config core.hooksPath .githooks
 ```
+
+## Project Notes
+
+- [`orchestration-policy.md`](orchestration-policy.md) — the main-session
+  orchestration policy (tools, delegation defaults, iteration & freeze, waiting,
+  artifacts). It is the source of the project-root `AGENTS.md` symlink, so a
+  harness pointed at that symlink loads exactly this file. Like the root READMEs,
+  it is repository documentation, not a skill.
 
 ## Star History
 

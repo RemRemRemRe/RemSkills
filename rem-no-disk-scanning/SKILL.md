@@ -1,10 +1,11 @@
 ---
 name: rem-no-disk-scanning
 description: >
-  Bans disk-scanning tools (rg.exe, grep.exe, fd.exe and similar pure string
-  searchers) — they hang scanning entire drives — and requires Rider MCP text
-  search instead, with a bounded fallback when Rider MCP is unavailable. Use
-  this constraint in every session, not on demand.
+  Bans disk-scanning text searchers (rg, grep, find, fd, ripgrep, findstr and any
+  editor "search in files" equivalent) - they walk entire trees and hang - and
+  requires search through the project's MCP server (Rider MCP) instead. The tools
+  are removed from the project's agent toolsets by configuration, so their absence
+  is expected. Use this constraint in every session, not on demand.
 metadata:
   category: meta
   trigger: always
@@ -12,27 +13,33 @@ metadata:
 
 # No Disk Scanning
 
-**`rg.exe`, `grep.exe`, `fd.exe` and similar disk-scanning / pure string
-searching tools are banned.** Never invoke them — not through a Grep tool, not
-through a shell, not directly. They walk entire drives and hang.
+**Disk-scanning text searchers — `rg`, `grep`, `find`, `fd`, `ripgrep`,
+`findstr`, and any editor "search in files" equivalent — are banned.** They are
+unbounded recursive content searches over huge trees, and are removed from the
+agent toolsets by configuration, so their absence is expected. Never invoke
+them — not through a tool, not through a shell.
 
-The description above states the ban itself, not just a pointer to this file:
-it is the only surface guaranteed to be in context every session, so an agent
-that never loads this file must still know those tools are banned. The fallback
-detail below is deliberately not duplicated there.
-
-**Use Rider MCP text search** (symbol lookup, find usages, text search) for
-content search.
+Use **Rider MCP** only: `search_symbol` / find-usages first, then a bounded
+`search_text` / `search_regex` / `search_file` (`maxResults` + a path or glob);
+`get_file_problems` for diagnostics. Command map: `ue-code-authoring` ("Tool
+split" table); degraded-mode notes: `ue-live-debugging`.
 
 ## When Rider MCP is unavailable
 
-Do not halt, and do not fall back to a banned scanner. In order of preference:
+Rider MCP unavailable, or a search you cannot bound → stop: a subagent
+reports `rider-unavailable`, the main session tells the user. Never fall back to
+a scanner.
 
-1. Read the files you already know are relevant.
-2. For an aggregate question (counts, sizes, cross-references), run a bounded
-   script over an **explicit path list** — never a recursive scan from a drive
-   root or a home directory.
-3. Say which substitution you used, so the reader knows the evidence came from
-   a targeted read rather than a full search.
+## Exemptions
 
-The ban is on unbounded scanning, not on reading files.
+The ban is on unbounded recursive content search, not on reading or filtering:
+text filtering in a pipe (`git show <file> | grep`, `git log --grep=...`), a
+single named file, a bounded directory, or a log tail; build or cleanup commands
+whose paths are explicit.
+
+## Aggregates (main session)
+
+Counts and sizes may come from a bounded script over an **explicit path list**
+— never a scan from a drive root or home directory. Say which substitution was
+used, so the reader knows the evidence came from a targeted read. The description
+states the ban itself — it is in context every session.

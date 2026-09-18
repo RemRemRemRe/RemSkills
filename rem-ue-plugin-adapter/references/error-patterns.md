@@ -203,9 +203,11 @@ error C1083: Cannot open include file: 'StructUtils/InstancedStruct.h'
 - `StructUtils/InstancedStruct.h` (5.4+)
 - `InstancedStruct.h` (5.3, in StructUtils module)
 
-When the exact path is uncertain, search the engine source:
-```bash
-find <engine-root>/Engine/Source -name "InstancedStruct.h" 2>/dev/null
+When the exact path is uncertain, look it up in the IDE index instead of walking
+the engine tree (`rem-no-disk-scanning`):
+
+```text
+Rider MCP: search_file --q '*InstancedStruct.h*'
 ```
 
 ---

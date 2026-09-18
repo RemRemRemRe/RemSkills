@@ -74,7 +74,10 @@ layout differs.
    }
    ```
 
-   Or use the `glob` tool to list files, then `bash mv` for each.
+   Or list the files with `ls -R {TargetPluginPath}/Source/{NewModule}` and `mv`
+   each. Both `find` calls in this section are **bounded to the new module
+directory** — the disk-scanning ban targets unbounded project-wide searches
+(`rem-no-disk-scanning`).
 
 3. **Replace `RemMyBlank` and `REMMYBLANK` in all file contents**
 

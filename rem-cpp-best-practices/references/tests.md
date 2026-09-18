@@ -164,6 +164,10 @@ when in doubt.
 Editor binaries encode their configuration in the file name — always run the
 binary that matches the configuration you built:
 
+> Host note: the forms below are Windows/Win64. On other hosts substitute the
+> platform's script suffix (`.sh` for `.bat`), the platform directory
+> (`<Platform>` for `Win64`), and drop the `.exe` suffix.
+
 | Configuration | Binary |
 |---------------|--------|
 | Development | `UnrealEditor-Cmd.exe` (no suffix) |

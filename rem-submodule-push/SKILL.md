@@ -83,8 +83,9 @@ failures then fail per account, not mid-list). Record per-submodule results;
 a rejected push stops that submodule only.
 
 Detecting success: the output line `   <old>..<new> HEAD -> <branch>` means
-success. Grep for `rejected`, `error:`, `fatal:` to detect failure — grepping
-for `To <url>` misses the success line when the summary line is the tail.
+success. Filter the captured output for `rejected`, `error:`, `fatal:` to
+detect failure — filtering for `To <url>` misses the success line when the
+summary line is the tail.
 
 **Exit criterion:** every classifiable submodule reports `unpushed=0` for
 `origin` (`git rev-list --count HEAD --not --remotes=origin`).

@@ -50,6 +50,18 @@ extended examples live in `references/` — load them when writing that kind of 
 | `references/rider-diagnostics.md` | Rider false-positive catalogue and the triage rule |
 | `references/origin-requirements.md` | Original requirements behind these rules |
 
+## Local overlay
+
+Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
+symlinks into a private repository that tracks them - never committed here. Files this skill reads
+when present:
+
+- `local/project-conventions.md` - project-specific conventions and verified practice
+
+A file in `local/` takes precedence over `references/` and over the generic rules below; this
+`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
+configuration only. When `local/` is absent, follow the generic rules.
+
 ---
 
 ## 1. Build & Compiler Settings
@@ -265,14 +277,9 @@ Definitions and examples: `references/language-features.md`.
 - Object references get `meta = (AddFilterUI = true)`; wrapper arrays get
   `TitleProperty`; instanced struct collections get `meta = (ExcludeBaseStruct)`
 - Numeric properties with units use `meta = (ForceUnits = "<unit>")`, not `Units`:
-  `ForceUnits` pins the display to that fixed unit, while `Units` lets the editor
-  auto-scale to locale preference and value magnitude (showing cm as km, bytes as
-  MB) — inconsistent with fixed gameplay values and hard to eyeball in data
-  assets. `ForceUnits` keeps the presented unit static and predictable. (Semantics
-  verified in `CoreUObject/Public/UObject/ObjectMacros.h`: "Units ... displayed in
-  the user's locale preference, and/or in the most appropriate unit for the
-  value's magnitude"; "ForceUnits ... forcibly show a property in a fixed unit,
-  without locale or other conversion".)
+  `ForceUnits` pins the display to a fixed unit; `Units` auto-scales to locale
+  preference and magnitude (cm as km, bytes as MB), which is unpredictable for
+  fixed gameplay values. Engine semantics: `references/type-mapping.md`.
 - Bitfields (`uint8 bFlag : 1`) only when packing gains real space under alignment
 
 ### Metadata completeness

@@ -194,7 +194,8 @@ describe the escape hatch and the criteria for using it.
 ## 5.5 One Language per Skill
 
 Each skill file uses **exactly one language**. Public `RemSkills` skills are
-English; private `RemSkillsPrivate` skills are Chinese (the author's working
+English; private `RemSkillsPrivate` content — local-only skills and the tracked
+overlay values — is Chinese (the author's working
 language). Never mix: no bilingual headings (`Goals (目标)`), no bilingual
 descriptions, no translated sentences inline. Technical terms — commands, type
 names, plugin names, config values, warning keywords such as `PRIVATE` — stay
@@ -298,8 +299,8 @@ replacement for it.
 
 Externalizing project config and anonymizing project data is owned by
 `rem-public-skill-generalization` (§4 methods: external per-plugin configs,
-private companion skills in `RemSkillsPrivate`, link-based reference docs).
-This section no longer restates the rules.
+per-skill `local/` overlays linked from `RemSkillsPrivate`, link-based
+reference docs). This section no longer restates the rules.
 
 ---
 
@@ -404,7 +405,7 @@ Two corollaries the same measurement makes visible:
 Before publishing a new or updated skill:
 
 - [ ] Frontmatter present with `name`, `description`, `metadata`
-- [ ] Single language per file — English (public RemSkills) or Chinese (private RemSkillsPrivate); no bilingual headings, descriptions, or inline sentences; language-switch link labels use the target language (navigation vocabulary, not mixing)
+- [ ] Single language per file — English (public RemSkills) or Chinese (private RemSkillsPrivate content); no bilingual headings, descriptions, or inline sentences; language-switch link labels use the target language (navigation vocabulary, not mixing)
 - [ ] `description` covers both what the skill covers AND when to use it — and uses only generic placeholders (no project names, no local paths)
 - [ ] Description duplication audited: each situation phrase is claimed by exactly one description; overlapping skills name the entry point instead of restating the situation
 - [ ] One `SKILL.md` per folder; folder name matches `name` in kebab-case
@@ -413,11 +414,11 @@ Before publishing a new or updated skill:
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
 - [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`) — no literal machine path and no example project name
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)
-- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized per `rem-public-skill-generalization` (per-plugin configs, private companion skills in `RemSkillsPrivate`)
+- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized per `rem-public-skill-generalization` (per-plugin configs, per-skill `local/` overlays, link-based reference docs)
 - [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
-- [ ] Public-content / generalization rules per `rem-public-skill-generalization` — real names only for verified-public content (cited); everything else generalized or moved to a private `RemSkillsPrivate` skill
+- [ ] Public-content / generalization rules per `rem-public-skill-generalization` — real names only for verified-public content (cited); everything else generalized, or moved to the private overlay (values) or a private skill (rules)
 - [ ] Reference content formatted as tables where appropriate
 - [ ] Overlapping rules have single ownership — cross-referenced, not copied
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)

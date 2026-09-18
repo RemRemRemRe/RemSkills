@@ -14,6 +14,19 @@ metadata:
 
 # Commit Workflow
 
+## Local overlay
+
+Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
+symlinks into a private repository that tracks them - never committed here. Files this skill reads
+when present:
+
+- `local/build-test-and-commit.md` - build/headless-test commands, commit-convention snapshot, project inventory and sweep notes
+- `local/CommitConventionHelper.json` - commit-type config snapshot
+
+A file in `local/` takes precedence over `references/` and over the generic rules below; this
+`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
+configuration only. When `local/` is absent, follow the generic rules.
+
 ## Commit message
 
 Follow `Type: short desc` in English. The accepted types for this collection are:
@@ -28,8 +41,7 @@ Follow `Type: short desc` in English. The accepted types for this collection are
 | `Misc` | typo, formatting, naming |
 
 The per-project authoritative list lives in the project's commit-convention
-config (the local overlay keeps a path-free snapshot: `rem-local` →
-`references/CommitConventionHelper.json`).
+config (the local overlay keeps a snapshot of it).
 Accept the types the project's config defines. Add a body when the change
 spans several concerns or the "why" is non-obvious.
 
@@ -117,7 +129,7 @@ green).
 
 Use the project's editor development configuration — never build a different
 editor config for this. Exact engine path, target, and config are project
-facts: see the local overlay (`rem-local` → `references/rem-commit-workflow.md`).
+facts: see the Local overlay section (`local/build-test-and-commit.md`).
 
 ## Test scope
 
@@ -190,7 +202,7 @@ Stage 2 — prune by symbol, then decide:
 ```
 
 - Disable plugins known to crash under `-nullrhi` (the project's list is in the
-  local overlay — `rem-local` → `references/rem-commit-workflow.md`); the filter
+  Local overlay section, `local/build-test-and-commit.md`); the filter
   is `StartsWith:<test-prefix>`, not `*`.
 - **Scope is decided first** (`Test scope` above); this command only runs it.
 - **Pick one scope up front and run it once for the evidence.** Narrower filters are for

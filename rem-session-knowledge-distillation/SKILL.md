@@ -85,7 +85,7 @@ recurring knowledge is owned by `rem-write-better-skill` §9.
 | Generality | Destination |
 |---|---|
 | Universal (any project, any tool) | Public knowledge base / skill |
-| Project-specific (this codebase, this stack) | The local overlay (`rem-local`) or the project's local docs |
+| Project-specific (this codebase, this stack) | The skill's `local/` overlay or the project's local docs |
 | Session-specific | Drop, or fold into a general item |
 
 ## Destination decision table
@@ -96,7 +96,7 @@ recurring knowledge is owned by `rem-write-better-skill` §9.
 | The session corrected a rule in a skill | Amend the skill per `rem-write-better-skill` §10 |
 | A coherent topic with no home yet | Create a new document — or a new section in the closest document |
 | A domain-wide rule with no home | Create a new skill (see `rem-write-better-skill` §9) |
-| Project-specific facts | The local overlay (`rem-local`) or local docs — never the public repo |
+| Project-specific facts | The skill's `local/` overlay or local docs — never the public repo |
 
 When in doubt between "new doc" and "amend existing": **amend**. A new
 document is a new place to search; it is justified only by a coherent topic

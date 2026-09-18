@@ -46,7 +46,7 @@ both files in the same change.
 **Skill meta**
 
 - [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — writing conventions for this collection
-- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — publication rules: placeholders, private companion skills, pre-push checklist
+- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — publication rules: placeholders, per-skill `local/` overlays, pre-push checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — distill reusable knowledge from a session into new docs or amendments to existing docs/skills
 
 **Environment constraints**
@@ -67,7 +67,7 @@ both files in the same change.
 - **Test**
   - Make sure the tests are complete — `rem-test-completeness` (the gate); `rem-bdd-test-tree` (review index); spec templates & run gotchas in `rem-cpp-best-practices/references/tests.md`
 - **Commit & push**
-  - Commit — `rem-commit-workflow` (message, hygiene, completeness gate, build, headless tests); project facts come from its `-local` companion skill
+  - Commit — `rem-commit-workflow` (message, hygiene, completeness gate, build, headless tests); project facts come from its `local/` overlay
   - Clean history before push — `rem-rewrite-commit-history`
   - Sync / push submodules — `rem-submodule-sync`, `rem-submodule-push`
 - **Extend & maintain**
@@ -84,8 +84,9 @@ both files in the same change.
   (repeatable). Any Agent Skills–compatible harness works.
 - Project-local skills: place them under your project's `.agents/skills`
   (trusted on harness startup).
-- Private companion skills (`*-local`) live in a separate private repository
-  with no public remote — see the split below.
+- Machine-local values live in each skill's git-ignored `local/` overlay,
+  linked in from a separate private repository with no public remote — see the
+  split below.
 
 ## Prerequisites
 
@@ -97,11 +98,12 @@ both files in the same change.
 
 ## Public / Private Split
 
-Public skills carry generalized knowledge only — generic placeholders, no
-project names, paths, or internal decisions. Project-specific facts live in
-**private companion skills** (`*-local`) in a separate private repository
-(never a public remote), or in external per-plugin configs. The rules are owned
-by
+Public skills carry only rules — generic placeholders, no project names, paths,
+or internal decisions. Machine-local values live in each skill's git-ignored
+`local/` overlay: created as symlinks into a private repository that tracks
+them, never committed here. `RemSkillsPrivate` keeps local-only skills and the
+tracked overlay values; tool-parameterized skills keep their values in external
+per-plugin configs. The rules are owned by
 [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md).
 
 ## Skill lint
@@ -120,9 +122,12 @@ Leak and name checks read **every non-binary file that ships** — each skill's
 own files (`SKILL.md`, `references/**`, the scripts and templates under
 `tools/`) and the repository-level files (README, LICENSE, workflows, hooks,
 `tools/`) — so detail moved into a reference file, or into a shipped script,
-stays covered. Nothing is exempt but the allowlist itself: a file that ships,
-ships to everyone. An unknown `Rem*`/`URem*` name fails the run; give it a
-publicly verifiable source in the allowlist or generalize it.
+stays covered. Only the allowlist is exempt: a file that ships, ships to
+everyone. The git-ignored `local/` overlay ships nowhere and is not scanned;
+the lint keeps it that way — no tracked `local/` path, every file under
+`local/` a symlink whose target resolves, and no `SKILL.md` outside a top-level
+skill folder. An unknown `Rem*`/`URem*` name fails the run; give it a publicly
+verifiable source in the allowlist or generalize it.
 
 It is a **local gate**, not a CI job — the check must pass before a change
 leaves the machine, not after. Install the hook once per clone:

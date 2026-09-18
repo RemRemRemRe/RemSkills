@@ -49,7 +49,7 @@
 
 **环境约束**
 
-- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用 `rg` / `grep` / `fd`，所有文本搜索走 Rider MCP
+- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用磁盘扫描器（`rg`、`grep`、`find`、`fd`、ripgrep、findstr），所有文本搜索走项目的 MCP 服务器（Rider MCP）；这些工具已由配置从 agent 工具集中移除
 - [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件、一次性 clone、临时 git worktree 放系统 TEMP 目录，绝不落在项目树
 
 ## 日常参考工作流
@@ -119,6 +119,10 @@ LICENSE、工作流、hooks、`tools/`）——因此搬进 reference 或随附�
 ```bash
 git config core.hooksPath .githooks
 ```
+
+## 项目笔记
+
+- [`orchestration-policy.md`](orchestration-policy.md) —— 主会话编排策略（工具、委派默认值、迭代与冻结、等待、工件）。它是项目根目录 `AGENTS.md` 软链接的源文件，指向该软链接的 harness 加载的正是这份文件。与根目录的两份 README 一样，它是仓库文档，不是 skill。
 
 ## Star History
 

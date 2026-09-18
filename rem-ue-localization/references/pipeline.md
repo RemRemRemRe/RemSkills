@@ -133,4 +133,4 @@ can be re-run wholesale.
 | Plugin target + shipped data | the plugin (`.uplugin` + `Content/Localization`) |
 | Project target (game/editor text, asset text) | the project's localization settings and dashboard |
 | Gather configs for a plugin target | hand-written; the engine's dashboard manages project targets only |
-| Translation content | the `.po` files; the manifest is an input for external pipelines (see `rem-ue-localization` §7) |
+| Translation content | the `.po` files; the manifest is an input for external pipelines (see `rem-ue-localization` §8) |

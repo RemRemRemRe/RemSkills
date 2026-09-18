@@ -27,7 +27,7 @@ location — live in the local overlay: `rem-local` →
 |---|---|
 | Editor-visible text: details-panel categories, tooltips, display names, notifications | Log / assert / cvar text — developer-facing English (`rem-observability-and-profiling`) |
 | Text data plumbing: targets, gather configs, `.po`, `.locres` | Asset-content translation as a design task |
-| Making a language switch verifiable | Vendor / TMS contracts — see §7 for the escalation threshold |
+| Making a language switch verifiable | Vendor / TMS contracts — see §8 for the escalation threshold |
 
 ## 2. The lookup model
 
@@ -75,7 +75,7 @@ Rules:
    plugin's data invisible — silently, with no error anywhere.
 2. **Ship `.locres` + `.locmeta`; treat `.manifest`/`.archive` as regenerable
    intermediates** — commit them only when an external pipeline consumes the manifest as
-   its source of truth (§7).
+   its source of truth (§8).
 3. **Use culture tags the engine ships data for** — script subtags such as `zh-Hans`, not
    legacy forms such as `zh-CN` — and always name a native culture.
 4. **Verify the culture actually resolves** before blaming the data: the command line
@@ -118,7 +118,45 @@ Config format, per-stage keys, commands and the runtime loading mechanics:
 | Never judge a `.locres` by a whole-file text scan | Keys and values mix encodings inside the file; decoding it as one blob produces false negatives — parse it or ask the runtime |
 | Conflicts resolve by load order, not by "latest wins" | Equal-priority resources keep the first loaded (game → editor → engine → plugin), so engine and project translations are not shadowed by a plugin's untranslated entries |
 
-## 6. Verification
+## 6. Committing the data
+
+The engine loads `.locres` / `.locmeta` at runtime, so the compiled data has to reach
+whoever consumes the plugin. Two shapes are valid — pick by how it is delivered:
+
+| Delivery | Shape |
+|---|---|
+| Consumers clone the repository, or take an archive of it (zip, download) | commit the compiled data — they cannot run the pipeline themselves |
+| Consumers get a package built where the engine is available (marketplace upload, CI artifact) | **do not commit it**: the repository keeps `.po` + configs, and the packaging step generates the data (a release-checklist line, plus the generated paths in `.gitignore`) |
+
+The `.po` is always committed: it is the source of truth and the review surface. When the
+compiled data *is* committed, keep the repository reviewable:
+
+| Artifact | Commit shape | Why |
+|---|---|---|
+| `.po` (and gather configs) | with the change that produced them, as text | it is the source of truth and the only reviewable diff of a translation change |
+| `.locres` / `.locmeta` | **one data-only commit per translation update** | binaries cannot be diffed or merged; keeping them out of every other commit leaves the binary with no history of its own |
+| `.manifest` / `.archive` | not committed (regenerated) unless an external pipeline consumes the manifest | pipeline intermediates (see §3.2) |
+
+Rules:
+
+1. **Keep the binary out of the working commits.** Stage by exact path and add the data
+   commit last; a binary that changes in several commits of one update cannot be reviewed,
+   and it makes rebases and merges unresolvable.
+2. **Resolve a translation conflict by regenerating, not by merging.** Re-run the pipeline
+   for the affected cultures and commit the result as the data commit.
+3. **Retro-fit the shape before pushing, not after.** An un-pushed range that scattered the
+   binary can be rebuilt: drop the binary path from every commit (`git rm --cached`) and
+   add one data commit — following `rem-rewrite-commit-history` (its rebuild recipe, its
+   tree-identity check and its no-pruning rule). If the decision is "do not commit it"
+   (§6 above), the same rebuild drops the data commit instead, and the generated paths move
+   to `.gitignore`.
+4. **Mark the binaries as generated** in `.gitattributes` (`-diff linguist-generated`) so a
+   reviewer is pointed at the `.po` diff instead of "binary file changed".
+5. **A packaging-time generation is a release step, not free**: whoever builds the drop must
+   run the pipeline (engine + the plugin at its expected path) before packaging, or the
+   package ships English.
+
+## 7. Verification
 
 | Level | How |
 |---|---|
@@ -126,7 +164,7 @@ Config format, per-stage keys, commands and the runtime loading mechanics:
 | Runtime | An automation spec that switches the culture and asserts through the same entry points the editor uses: `FObjectEditorUtils::GetCategoryText` for categories, the live display-string lookup for tooltips/display names/source strings. A culture switch reloads every text source (plugin targets included) and refreshes the live table, so no restart is needed |
 | Visual | Switch the editor's language preference and look at the panel — the shortest path to "does it really show" |
 
-## 7. Tooling escalation
+## 8. Tooling escalation
 
 | Stage | Tooling | Escalate when |
 |---|---|---|
@@ -165,5 +203,6 @@ Before shipping a localization change:
 - [ ] Categories translated as whole `|` paths; no translation equal to its source
 - [ ] Logs, asserts and cvars left in English
 - [ ] `.po` edits single-line/escaped; import and compile re-run after editing
+- [ ] Compiled `.locres`/`.locmeta` either committed deliberately (one data-only commit per update, marked generated) or generated by the packaging step — the `.po` is the diff a reviewer reads
 - [ ] Verified at data level and/or by a culture-switching spec, through the editor's own lookup entry points
 - [ ] Compile and the project's test suite run after the change

@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# Per-skill local overlay: machine-local values, shipped as symlinks to a private repo.
+# This single pattern is load-bearing twice: git ignores the dir, and the harness skill loader
+# reads .gitignore too, so a stray SKILL.md inside it can never be discovered. Do not narrow it.
+**/local/

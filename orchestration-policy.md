@@ -20,9 +20,13 @@ loaded into every session under this directory.
 ## Delegation defaults
 - Execution-heavy work goes to a subagent; the main session keeps the decisions and
   the ledger. Write self-contained briefs - never rely on inherited context.
-- Write-capable stages run in the background; read-only analysis runs in the
-  foreground when the next decision depends on it. Reads may run in parallel;
-  writes serialize per file.
+- Subagents default to the background; pass `run_in_background: false` only when the
+  parent needs the result in the same turn and has nothing else to do. Reads may run
+  in parallel; writes serialize per file.
+- Profiles carry no fixed turn cap. Set `max_turns` per call only when a runaway is
+  plausible, and treat it as a kill switch: the run gets one wrap-up turn and is then
+  aborted (still reported as completed), so read the run directory instead of assuming
+  a report exists.
 - Verify a run's outcome from its run directory (`report.md`) or the child session's
   final message - not by waiting.
 

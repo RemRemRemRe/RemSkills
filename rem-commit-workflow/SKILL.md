@@ -71,6 +71,12 @@ Before building, prove the change set's tests are complete. The methodology —
 change-to-case mapping, the five-point criteria, regression-first for fixes —
 is owned by `rem-test-completeness`; this section only states the gate rules.
 
+**Iteration vs. freeze.** During the iteration phase the author compiles the
+affected target only and records test intent — one `trigger -> assertion` line
+per code change in `<run-dir>/test-intent.md`. The gate itself runs **once at
+the freeze point**, on the accumulated change set, before the single build +
+suite run.
+
 - **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
   `Fixed` / `Improvement` commits). Skip only with a stated reason: pure
   refactor with no semantic change, docs, formatting, naming, config-only.

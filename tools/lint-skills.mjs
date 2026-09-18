@@ -13,9 +13,13 @@
 // (README, LICENSE, .github/, .githooks/, tools/). Nothing is exempt — a file
 // that ships, ships to everyone — except the allowlist itself, which is the
 // reference data for the name check (rem-public-skill-generalization §3.2a).
-import { readFileSync, readdirSync, statSync, existsSync } from "fs";
-import { join, dirname, relative } from "path";
+// A `local/` directory is never shipped content: it is the per-skill overlay of
+// machine-local values, git-ignored and linked in from a private repository, so
+// every walker skips it and three guards keep it that way (checkLocalOverlay).
+import { readFileSync, readdirSync, statSync, lstatSync, existsSync } from "fs";
+import { join, basename, dirname, relative } from "path";
 import { fileURLToPath } from "url";
+import { execFileSync } from "child_process";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const AS_JSON = process.argv.includes("--json");
@@ -91,6 +95,8 @@ const KNOWN_NAMES = new Set([
 const REM_NAME_RE = /\b[EUFAIST]?Rem[A-Z][A-Za-z0-9_]*\b/g;
 /** Findings reported per file before the list is truncated. */
 const MAX_FINDINGS_PER_FILE = 8;
+/** The per-skill overlay directory name: machine-local values, never shipped content. */
+const LOCAL_DIR = "local";
 const TRIGGER_RE = /\buse (when|whenever|this|it)\b|\bwhen(?:ever)? (?:you|a |the |writing|reviewing|creating|updating|committing|syncing|adapting|auditing|adding|changing|deciding)\b/i;
 const DATE_RE = /last verified|since ue \d|verified \d{4}-\d{2}/i;
 const ENGINE_API_RE = /Engine\/Source|#include\s+"[A-Za-z]+\//;
@@ -106,7 +112,9 @@ function scannedFiles(dir) {
   while (stack.length > 0) {
     const current = stack.pop();
     for (const entry of readdirSync(current, { withFileTypes: true })) {
-      if (entry.name === ".git") continue;
+      // `local/` is the per-skill overlay: git-ignored, linked from a private
+      // repository, and empty of shipped content — never lint or measure it.
+      if (entry.name === ".git" || (entry.isDirectory() && entry.name === LOCAL_DIR)) continue;
       const full = join(current, entry.name);
       if (entry.isDirectory()) stack.push(full);
       else if (!isBinary(full)) files.push(full);
@@ -308,14 +316,14 @@ function reportContentFindings(issues, files, base) {
     // A `references/…` path that resolves neither here nor at the repository root is an
     // ambiguous cross-skill pointer: a reader resolves it against its own skill first, so
     // name the owning skill instead. Two explicit exemptions — a path with a placeholder or
-    // glob (`references/<this-skill>.md`, `tools/**`) is documentation, and the local-overlay
-    // form (`rem-local` → …) points outside the repository.
-    for (const hit of body.matchAll(/(?:^|[\s`(])((?:references|tools)\/[\w.<>*-]+)/gm)) {
+    // glob (`references/<this-skill>.md`, `tools/**`) is documentation, and a `local/…` path
+    // is the per-skill overlay: a clone without the private repository legitimately lacks
+    // the link, so a local pointer must never be reported as a broken reference.
+    for (const hit of body.matchAll(/(?:^|[\s`(])((?:references|tools|local)\/[\w.<>*-]+)/gm)) {
       const ref = hit[1];
       if (/[<>*]/.test(ref)) continue;
+      if (hasLocalSegment(ref)) continue;
       if (existsSync(join(base, ref)) || existsSync(join(ROOT, ref))) continue;
-      const before = body.slice(Math.max(0, hit.index - 40), hit.index);
-      if (/rem-local`\s*(?:\u2192|->)\s*$/.test(before)) continue;
       findings.push(
         `${where}:${lineOf(body, hit.index)}: "${ref}" does not resolve here — qualify it with the owning skill (\`<skill>/${ref}\`)`
       );
@@ -324,12 +332,83 @@ function reportContentFindings(issues, files, base) {
     // name hides until someone needs the file.
     for (const hit of body.matchAll(/(?:^|[\s`(])([a-z0-9-]+\/(?:references|tools)\/[\w.\/-]+)/gm)) {
       const ref = hit[1];
+      if (hasLocalSegment(ref)) continue;
       if (existsSync(join(ROOT, ref))) continue;
       findings.push(`${where}:${lineOf(body, hit.index)}: "${ref}" does not exist from the repository root`);
     }
     for (const finding of findings.slice(0, MAX_FINDINGS_PER_FILE)) fail(issues, finding);
     if (findings.length > MAX_FINDINGS_PER_FILE) {
       fail(issues, `${where}: ${findings.length - MAX_FINDINGS_PER_FILE} more finding(s) suppressed`);
+    }
+  }
+}
+
+/** Does a repository-relative path contain a `local/` segment? */
+function hasLocalSegment(path) {
+  return path.split(/[\\/]/).includes(LOCAL_DIR);
+}
+
+/** Every file below a `local/` directory; real subdirectories are followed, symlinked ones are not. */
+function localOverlayFiles(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory() && !entry.isSymbolicLink()) files.push(...localOverlayFiles(full));
+    else files.push(full);
+  }
+  return files;
+}
+
+/** One file under `local/` must be a symlink whose target resolves — never a regular file. */
+function checkLocalOverlayFile(issues, file) {
+  const where = relative(ROOT, file).replace(/\\/g, "/");
+  if (basename(file) === "SKILL.md") {
+    fail(issues, `"${where}" is a stray SKILL.md — the harness would load it as a skill; only a top-level <skill>/SKILL.md ships`);
+  }
+  if (!lstatSync(file).isSymbolicLink()) {
+    fail(issues, `"${where}" is a regular file — every file under local/ is a symlink into the private repository, never content of this repo`);
+  } else if (!existsSync(file)) {
+    fail(issues, `"${where}" is a broken symlink — its target does not resolve; recreate the link into the private repository`);
+  }
+}
+
+/**
+ * The per-skill `local/` overlay guards. The overlay holds machine-local values, ships
+ * nowhere, and is linked in from a private repository, so three failures must be loud:
+ * a `local/` path that git tracks, a file there that is not a resolving symlink, and a
+ * `SKILL.md` outside a top-level skill folder (the harness would discover it as a skill).
+ */
+function checkLocalOverlay(issues) {
+  let tracked;
+  try {
+    tracked = execFileSync("git", ["ls-files", "-z"], { cwd: ROOT, encoding: "utf8" });
+  } catch (error) {
+    fail(issues, `git ls-files failed (${error.message.trim()}) — the tracked-${LOCAL_DIR} guard cannot run`);
+  }
+  for (const path of (tracked ?? "").split("\0").filter(Boolean)) {
+    if (hasLocalSegment(path)) {
+      fail(issues, `"${path}" is tracked by git — files under a local/ directory are machine-local values, never committed here`);
+    }
+  }
+
+  const stack = [ROOT];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      if (entry.name === ".git" || entry.name === "node_modules") continue;
+      const full = join(current, entry.name);
+      if (entry.isDirectory() && entry.name === LOCAL_DIR) {
+        for (const file of localOverlayFiles(full)) checkLocalOverlayFile(issues, file);
+        continue;
+      }
+      if (entry.isDirectory()) {
+        stack.push(full);
+        continue;
+      }
+      const where = relative(ROOT, full).replace(/\\/g, "/");
+      if (entry.name === "SKILL.md" && !/^[^/]+\/SKILL\.md$/.test(where)) {
+        fail(issues, `"${where}" is a stray SKILL.md — the harness would load it as a skill; only a top-level <skill>/SKILL.md ships`);
+      }
     }
   }
 }
@@ -346,6 +425,7 @@ function repoFiles() {
     const current = stack.pop();
     for (const entry of readdirSync(current, { withFileTypes: true })) {
       if (entry.name === ".git" || entry.name === "node_modules") continue;
+      if (entry.isDirectory() && entry.name === LOCAL_DIR) continue;
       const full = join(current, entry.name);
       const rel = relative(ROOT, full).replace(/\\/g, "/");
       if (entry.isDirectory()) {
@@ -431,6 +511,7 @@ const results = skills.map((name) => lintSkill(name, join(ROOT, name)));
 const repoFileList = repoFiles();
 const repoIssues = [];
 reportContentFindings(repoIssues, repoFileList, ROOT);
+checkLocalOverlay(repoIssues);
 const repoChars = repoFileList.reduce((sum, file) => sum + readText(file).length, 0);
 results.push({ name: "(repository)", size: repoChars, refFiles: 0, refChars: 0, issues: repoIssues });
 

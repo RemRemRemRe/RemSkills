@@ -51,6 +51,14 @@ multi-sentence paragraph body is a review smell.
 - One logical change per commit. Split a mixed commit (rename + bug fix, class
   filter + module tidy) into one commit per reason-to-change. Intermediate
   commits do not need to compile — the split serves review and maintenance.
+- **A cross-repository change is one unit.** When one repository removes an API
+  and other repositories migrate its call sites, the halves commit **together**,
+  and whatever pins the versions (a submodule pointer, a lock file) moves in the
+  same batch — staged by exact path so unrelated dirty entries stay out.
+- **A file the change set commits carries its pre-existing defects into that
+  set.** A defect found inside a file already being committed belongs to the
+  change under review — fix it under this same gate, or record it explicitly. It
+  is not "pre-existing" to a reviewer reading the commit.
 - Comments are English, never Chinese.
 - **Unified format pass before committing.** Edited files are reformatted so the
   code matches the solution code style — use the Rider MCP `reformat_file` tool

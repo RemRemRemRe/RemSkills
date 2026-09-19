@@ -44,6 +44,7 @@ extended examples live in `references/` — load them when writing that kind of 
 | `references/language-features.md` | `auto`, `const`/`constexpr`, `if constexpr`, concepts — rules with worked examples |
 | `references/design.md` | SOLID, zero-overhead table, move semantics |
 | `references/modules.md` | Module/plugin skeleton, `.uplugin` fields, export macro |
+| `references/dll-boundaries.md` | Exporting a class template's **instantiation** across a module boundary; export-macro placement, C4910 / C2908 / C2766, verifying against the binary's export/import tables |
 | `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage and pitfalls |
 | `references/pitfalls.md` | Reviewing code against verified pitfalls: UPROPERTY-able types and preprocessor-block limits, struct-copy transient semantics, assertion-macro includes, weak-pointer operators, actor-constructor limits, test-world driving |
 | `references/tests.md` | Writing spec tests, test USTRUCT headers, or build/run commands for the test module; assertion pitfalls, reflection round-trip pitfalls, shared helper gotchas, dependency hygiene |
@@ -97,22 +98,9 @@ What `RemSharedModuleRules.Apply` configures:
 
 ### Empty shell modules
 
-Some engine plugins are now empty shells whose real headers moved into the
-engine's own modules. **Do not list shell modules in `Build.cs` dependencies** —
-their types resolve through the module that absorbed them (verified 2026-08):
-
-- **StructUtils** — merged into `CoreUObject` in the current engine version
-  (`CoreUObject/Public/StructUtils/` hosts `InstancedStruct.h`, `StructView.h`,
-  `PropertyBag.h`, `InstancedStructContainer.h`, ...). The StructUtils plugin
-  module only contains `StructUtilsModule.h`. Listing `"StructUtils"` produces
-  the UBT warning `Plugin 'X' does not list plugin 'StructUtils' as a
-  dependency`; the correct fix is to **remove the dependency**, not to add the
-  plugin listing. Include `StructUtils/...` headers with only `CoreUObject`
-  in the dependency list.
-
-Rule of thumb: when a dependency only triggers "does not list plugin ..."
-warnings for a module whose headers you can see inside another module you
-already depend on, drop the dependency instead of listing the plugin.
+Engine plugins whose real headers moved into another module must not be listed
+in `Build.cs` — **drop the dependency** instead (the `StructUtils` case and the
+rule of thumb: `references/modules.md`).
 
 ---
 
@@ -565,6 +553,8 @@ Worked shapes and the `REM_NO_ASSERTION` misuse: `references/macros-logging.md`
 
 Dependencies: every module declares **each** dependency it uses in its own `Build.cs`; nothing is inherited transitively; default to and stay in `PrivateDependencyModuleNames` — `PublicDependencyModuleNames` is only for dependencies that are part of the public contract.
 
+**A class template crossing the boundary exports its *instantiation*, not the template.** The class template stays undecorated; the owning `.cpp` writes `template class MYMODULE_API TFoo<FBar>;` and every consumer header writes an undecorated `extern template class TFoo<FBar>;`. A `dllexport` on the template itself makes consumers unable to emit their own instantiation (unresolved member symbols) and `extern template` on it is rejected with C4910. Recipe, the ordering constraint (C2908/C2766) and the rule "verify with the binary, never with intent": `references/dll-boundaries.md`.
+
 Skeleton and examples: `references/modules.md`.
 
 ---
@@ -686,6 +676,7 @@ skill-writing conventions used across all RemSkills.
 - Language features: [references/language-features.md](references/language-features.md)
 - Design & zero-overhead: [references/design.md](references/design.md)
 - Module & plugin conventions: [references/modules.md](references/modules.md)
+- DLL boundaries & template instantiation: [references/dll-boundaries.md](references/dll-boundaries.md)
 - Macro & logging signatures: [references/macros-logging.md](references/macros-logging.md)
 - Verified pitfalls: [references/pitfalls.md](references/pitfalls.md)
 - Rider diagnostics: [references/rider-diagnostics.md](references/rider-diagnostics.md)

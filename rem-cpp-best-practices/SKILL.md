@@ -583,7 +583,7 @@ Placement table, templates and run commands: `references/tests.md`.
 
 Run IDE diagnostics on every changed file **before committing**: `get_file_problems` (ERROR/WARNING only) and `lint_files` (all severities). HINT severities never arrive through MCP, so declaration/member ordering is checked manually — and **MCP silence is not proof the file is clean**: in a C project context the "can be made const" family and spell-checker typos are HINT-level and do not arrive at all, while both MCP calls return only unrelated ERRORs. Sweep the whole module's `Source/` when the change touches a plugin, not just the diff files.
 
-Known analysis false positives (Rider reports errors the compiler accepts): strong-alias construction, UTF-8 `%s` format arguments, alias-type copy constructions. Triage rule: an ERROR that looks like a missing include, unresolved alias or failed template substitution **in a file that compiles** is a Rider analysis bug — cross-check with the build before touching the code.
+Known analysis false positives (Rider reports problems the compiler accepts): UTF-8 `%s` format arguments. Triage rule: an ERROR that looks like a missing include, unresolved alias or failed template substitution **in a file that compiles** is a Rider analysis bug — cross-check with the build before touching the code.
 
 Full catalogue with the real cases: `references/rider-diagnostics.md`.
 

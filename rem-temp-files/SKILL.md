@@ -32,6 +32,12 @@ project's run/artifact directory — its own convention).
 - Temp may vanish between commands; keep a durable copy of a result the task
   must not lose.
 - State the temp path whenever it holds evidence (a patch, a log).
+- The rule binds executors too: a delegated run's build/test output, copies of
+  engine or tool logs and generated message files go to its run directory (or to
+  temp when they only bridge two commands) — never into the working tree, and
+  never into a path handed to a command as its output. Ignored paths count: a
+  git-ignored scratch file still pollutes the tree and stays invisible to
+  `git status`.
 
 ## Checklist
 
@@ -39,4 +45,5 @@ project's run/artifact directory — its own convention).
 - [ ] One unique subdirectory per task, so parallel runs cannot collide
 - [ ] Temporary git worktrees removed; no registration left behind
 - [ ] Durable artifacts (reports, logs to review later) live in the project's artifact directory, not temp
+- [ ] Nothing scratchy sits in the repository tree, ignored paths included — the run's own output is in its run directory, not the repo root
 - [ ] The temp path is stated where it holds evidence

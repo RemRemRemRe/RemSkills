@@ -18,15 +18,34 @@ constraints, acceptance criteria and pointers; push raw material (diffs, logs, f
 bodies) into subagents and run directories. The project's short hard rules live in its
 agent context file, which points here for the procedure.
 
+## Talking to the user
+
+Every reply and every subagent report the operator reads is written for a person, not for the
+harness: the operator's own language, plain words, no jargon and no coined shorthand ("verification
+run", not "VR"; "test scope", not "scope"), and any term the operator did not introduce explained
+the first time it appears. A claim without context is unusable - say what changed, why it matters,
+what it affects and what happens next, prefer numbers, file paths and quoted evidence to adjectives,
+keep it to about a screenful, and point at the run directory for detail. The hard rule lives in
+`orchestration-policy.md`; this section is the procedure's restatement of it.
+
 ## Delegation
 
 - **Delegate execution, keep decisions.** A unit whose raw output exceeds ~10k tokens, or
   whose process is open-ended (build/fix loops, debugging, batch refactors, repo-wide
   search), belongs to a subagent. Small, high-coupling steps stay in the main session - the
   brief/report fixed cost makes delegation a net loss there.
+- **Check feasibility before dispatch.** Any brief item that crosses a module boundary, a
+  DLL/ABI boundary, a lifecycle order or a build configuration gets a one-line feasibility
+  check by the parent against the design record *before* it is delegated; an item that
+  actually needs a design decision is split out as a decision, not handed to an executor.
 - **Briefs are self-contained.** Objective / scope (allowed + forbidden) / constraints /
   acceptance / report pointer. Never rely on inherited context; a subagent that cannot
   start without it is a brief defect.
+- **Briefs are a template plus a delta.** The boilerplate - forbidden actions, scope, build
+  command, report shape - is the standing template in `references/brief-templates.md`; a
+  brief repeats only what this round changes.
+- **Quote the expected working set.** The brief pastes the expected `git status --short`
+  output verbatim instead of a counted total: a wrong count forces an avoidable round trip.
 - **Background by default.** Pass `run_in_background: false` only when the next decision
   needs the result in the same turn and nothing else can run meanwhile. Parallelism comes
   from issuing several Agent calls in one message, not from the background flag.
@@ -58,16 +77,33 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
    no suite run, no docs sweep.
 2. **Freeze review** - one review pass over the accumulated diff produces the case plan:
    the existing-case index plus the missing or updated cases.
-3. **Test authoring** - write the cases from that plan. Expectation bookkeeping in a test
-   framework (how many times a message is recorded, which record a pattern claims) is usually only
-   knowable by executing, so one *targeted* run of the new spec is allowed at this step and is
-   labelled calibration, not evidence. Evidence: a wrong declaration turned into a red gate, a
-   resumed authoring round and a second full build plus suite.
+3. **Test authoring** - write the cases from that plan. Whichever executor writes new or changed
+   cases ends its round with one *targeted* run of that spec, reported as **calibration**, never as
+   gate evidence - the one-run-at-freeze rule governs the *suite*, not this run. Expectation
+   bookkeeping (how many times a message is recorded, which record a pattern claims), capture
+   devices, counters, "always passes" assertions and identifier collisions are only visible by
+   executing, so a compile-only test round pushes them into the freeze and costs a red gate plus
+   extra rounds. Evidence: a wrong declaration turned into a red gate, a resumed authoring round and
+   a second full build plus suite.
 4. **Verify** - one build plus one suite run, at the scope decided up front, on the frozen tree.
 5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
    re-running. A bug fix proves its regression case by temporarily reverting the fix at the
    freeze point.
+
+Three rules bind that sequence:
+
+- **Review test deliverables before the freeze.** When the round's deliverable is tests, run the
+  focused review of the new/changed test files before the freeze gate, in parallel with the
+  calibration run. The dominant defect class there - an assertion that passes for the wrong reason -
+  is invisible to the compiler and to a compile-only round.
+- **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
+  test-infrastructure refactors belong to separate units, because one red gate re-verifies every
+  change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in
+  the round, minor and elegance findings go to a backlog list.
+- **The freeze brief states the expectation.** Give the expected case count (the previous run's
+  count plus the new cases), name any case whose signal needs runtime observation, and require the
+  executor to report superseded runs explicitly.
 
 ## Waiting
 
@@ -85,8 +121,20 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
   what a later reader needs — `brief.md` (parent), `state.md`, `test-intent.md`, the
   authoritative logs and `report.md` (executor, append-only); the final message stays a
   bounded summary with pointers.
+- **One authoritative log per stage.** A superseded run's logs move out of the run directory
+  with a "superseded" marker; the run directory holds the logs the report cites.
 - `resume` continues the same child session and the same run directory: append to
   `state.md`, never create a new run dir.
+
+## Environment quirks
+
+Process-level invocation quirks belong to the project's build/test overlay (`rem-commit-workflow`,
+`local/build-test-and-commit.md`, which lists the commands), not to this skill - so the skill stays
+portable and the values sit next to the commands they change. Two shapes recur: invoking a Windows
+batch builder from a POSIX shell needs its path conversion disabled (a quoted
+`-project="…"`/`-ExecCmds="…"` line arrives with literal backslashes and fails at argument parsing),
+and a file must be re-read after a formatter run because a stale editor buffer can overwrite it from
+older content. The brief points at the overlay file; it never copies the commands into itself.
 
 ## Checklist
 
@@ -98,3 +146,11 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
+- [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
+- [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch
+- [ ] A test-authoring round ended with one targeted calibration run, reported as calibration rather than gate evidence
+- [ ] Test deliverables got their focused review before the freeze gate
+- [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
+- [ ] The freeze brief stated the expected case count, the cases needing runtime observation, and the superseded-run requirement
+- [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker
+- [ ] Operator-facing text was plain, context-bearing and free of coined shorthand

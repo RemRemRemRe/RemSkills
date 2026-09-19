@@ -14,5 +14,4 @@ sequencing work.
   the build + suite run, docs and commits happen once, at the freeze point.
 - **Prefer events over polling.** Never use `get_subagent_result(wait: true)` as a blocking
   wait and never sleep-poll - read the run directory instead.
-- **Pass an explicit `subagent_type`.** The built-in `explore` / `plan` / `general-purpose`
-  names are disabled in this project; use the project profiles.
+- **Always pass an explicit `subagent_type`** - the built-in names are disabled.

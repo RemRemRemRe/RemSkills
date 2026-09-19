@@ -65,32 +65,25 @@ noise. Fix the root cause or ignore the context — and check which compiler the
 build actually uses before "fixing" C semantics: a Makefile with `CC = g++`
 compiles `.c` files as C++, so C99 `inline`/default-argument rules do not apply.
 
-### Known Rider analysis false positives (verified 2026-08)
+### Known Rider analysis false positives (verified 2026-08, re-verified 2026-09 on Rider 2026.2.2)
 
-`lint_files` / `get_file_problems` sometimes report **ERRORs that the build
-does not reproduce** — the code compiles fine. Do not "fix" these without
-checking against the compiler:
+`lint_files` / `get_file_problems` sometimes report **problems the build does
+not reproduce** — the code compiles fine. Do not "fix" these without checking
+against the compiler:
 
-- **Strong-alias construction** (`strong_alias` wrapper types) — constructing
-  an alias from a related enum/value is reported as `No viable constructor` /
-  `does not satisfy concept strong::is_alias` / `Substitution failed`:
-  e.g. `Rem::Enum::EExcludeSelf{Rem::Enum::EYesOrNo::Yes}`, or a struct alias
-  over `Rem::Struct::TScopedStructContainer<>*` constructed from a container
-  pointer. Rider fails to resolve the alias concept constraint; the compiler
-  accepts it.
-- **UTF-8 `%s` format arguments** — `FUtf8String::Printf("%s", Utf8StringVar)`
-  and `UE_LOGF(..., "%s", Utf8Builder)` are reported as "Cannot print value of
-  type const char8_t* ... with format specifier %s". UE 5.x explicitly supports
-  UTF8CHAR strings as `%s` arguments (`Utf8String.h` header comment: "the string
-  still supports UTF8CHAR strings as arguments, e.g. FUtf8String::Printf("Name:
-  %s", Utf8Name)"; `LogMacros.h`: "Prefer UE_LOGF because its ASCII or UTF-8
-  format strings"). Rider does not know the `%s` overload accepts char8_t.
-- **Alias-type copy constructions** — e.g. `TSoftClassPtr` reported as
-  "Cannot resolve symbol" / "Cannot substitute template argument", or
-  `SListView<TWeakObjectPtr<UWidget>>` reported as "Type ... is incomplete",
-  when the types are typedef/alias aliases Rider's analysis fails to resolve.
-  (Observed in `RemWidgetComponentEditorSetting.h` and
-  `RemComponentBasedWidgetDetails.cpp`.)
+- **UTF-8 `%s` format arguments** (WARNING) — `FUtf8String::Printf("%s",
+  Utf8StringVar)` and `UE_LOGF(..., "%s", Utf8Builder)` are reported as
+  "Cannot print value of type const char8_t* that implies specifier %p with
+  format specifier %s that implies type const char*". UE 5.x explicitly
+  supports UTF8CHAR strings as `%s` arguments (`Utf8String.h` header comment:
+  "the string still supports UTF8CHAR strings as arguments, e.g.
+  FUtf8String::Printf("Name: %s", Utf8Name)"; `LogMacros.h`: "Prefer UE_LOGF
+  because its ASCII or UTF-8 format strings"). Rider does not know the `%s`
+  overload accepts char8_t. Live cases (UE 5.8.3 / Rider 2026.2.2):
+  `RemAlsMacros.cpp:79,84` (`UE_LOGF(..., "%s", *EnsureBuilder)`) and a file in
+  a non-public plugin (`FUtf8String::Printf("%s.Completed",
+  *...ToUtf8String())`) — only `lint_files` reports them;
+  `get_file_problems` returns clean for both files.
 - Triage rule: an ERROR that looks like a missing include, unresolved alias,
   or failed template substitution in a file that **compiles** (the build
   passed) is a Rider analysis bug, not a real defect. Cross-check with the

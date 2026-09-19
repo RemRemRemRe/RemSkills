@@ -25,6 +25,7 @@
     "RemCommonTest": "https://github.com/RemRemRemRe/RemCommon (Source/RemCommonTest)",
     "RemCommonTestModule": "https://github.com/RemRemRemRe/RemCommon (Source/RemCommonTest/Private/RemCommonTestModule.cpp)",
     "RemMacroUtilities": "https://github.com/RemRemRemRe/RemCommon (Public/Macro/RemMacroUtilities.h)",
+    "RemAlsMacros": "https://github.com/RemRemRemRe/RemCommon (Public/Macro/RemAlsMacros.h)",
     "RemAssertionMacros": "https://github.com/RemRemRemRe/RemCommon (Public/Macro/RemAssertionMacros.h)",
     "RemPrivateMemberAccessor": "https://github.com/RemRemRemRe/RemCommon (Public/Macro/RemPrivateMemberAccessor.h)",
     "RemFloatDoubleConversionMacros": "https://github.com/RemRemRemRe/RemCommon (Source/RemCommon/Public/Macro/RemFloatDoubleConversionMacros.h)",

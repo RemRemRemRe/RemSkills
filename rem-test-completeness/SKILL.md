@@ -33,12 +33,10 @@ Do NOT use for: running tests or builds (`rem-commit-workflow`), generating
 test trees (`rem-bdd-test-tree`), spec style / module placement / build commands
 (`rem-cpp-best-practices/references/tests.md` §16).
 
-**Iteration vs. freeze.** This gate runs at the freeze point, once against the
-accumulated change set — not per code change. During iteration the author
-records intent lines (`<run-dir>/test-intent.md`, `trigger -> assertion`)
-instead of writing specs; the red/green proof for a bug fix happens at the
-freeze point by temporarily reverting the fix (§2), with no change to the
-method itself.
+**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; this gate
+runs once, at the freeze point. Iteration records intent lines
+(`<run-dir>/test-intent.md`) instead of specs; a bug fix proves its regression case
+by reverting the fix (§2).
 
 ## The Gate Contract
 

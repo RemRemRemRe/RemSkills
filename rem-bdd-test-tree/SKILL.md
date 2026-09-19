@@ -30,9 +30,9 @@ with any Python 3).
 
 Do NOT use for: running tests, fixing test failures, writing new tests.
 
-**Iteration vs. freeze.** The tree is regenerated at the freeze point — not per
-code change — and feeds the review profile's case plan (existing-case index +
-gaps). Adding or renaming test modules forces regeneration.
+**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; the tree is
+regenerated at the freeze point and feeds the review case plan. Adding or renaming
+test modules forces regeneration.
 
 ## Usage
 

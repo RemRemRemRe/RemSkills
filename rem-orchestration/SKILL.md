@@ -64,15 +64,18 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
 
 ## Artifacts
 
-- `<cwd>/.agents/runs/<run-id>/` holds `brief.md` (parent), `state.md`,
-  `test-intent.md`, raw logs and `report.md` (executor, append-only). Raw output goes to
-  disk; the final message stays a bounded summary with pointers.
+- **Temp first** (`rem-temp-files`): one-shot generators, patches, message files and
+  superseded logs stay in a unique temp dir. `<cwd>/.agents/runs/<run-id>/` receives only
+  what a later reader needs — `brief.md` (parent), `state.md`, `test-intent.md`, the
+  authoritative logs and `report.md` (executor, append-only); the final message stays a
+  bounded summary with pointers.
 - `resume` continues the same child session and the same run directory: append to
   `state.md`, never create a new run dir.
 
 ## Checklist
 
 - [ ] Decisions, constraints and acceptance criteria stayed in the main session; raw material went to executors and run dirs
+- [ ] Run dirs hold only what a later reader needs — one-off generators, patches and message files stayed in temp (`rem-temp-files`)
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point

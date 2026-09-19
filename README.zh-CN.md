@@ -54,7 +54,7 @@
 **环境约束**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用磁盘扫描器（`rg`、`grep`、`find`、`fd`、ripgrep、findstr），所有文本搜索走项目的 MCP 服务器（Rider MCP）；这些工具已由配置从 agent 工具集中移除
-- [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件、一次性 clone、临时 git worktree 放系统 TEMP 目录，绝不落在项目树
+- [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件默认放系统 TEMP 目录；只有后续读者需要的才持久化到 run/artifact 目录，绝不落工作树
 
 ## 日常参考工作流
 

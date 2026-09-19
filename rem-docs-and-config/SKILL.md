@@ -61,10 +61,10 @@ The obligation is per **artifact**, not per file changed: a one-line default
 change still updates the config reference, because that is the only place a
 reader looks for the default.
 
-**Iteration vs. freeze.** External docs (module doc, subsystem doc, config
-reference) are batched once per iteration in the freeze docs pass, not written
-per change. Code-embedded obligations — public API doc comments, tooltips, cvar
-help strings — still ship with the change that triggers them.
+**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; external docs
+(module doc, subsystem doc, config reference) are batched in the freeze docs pass. The
+code-embedded obligations — API comments, tooltips, cvar help — still ship with the
+change that triggers them.
 
 ## 3. Writing a technical doc
 

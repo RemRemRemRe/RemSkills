@@ -16,16 +16,12 @@ metadata:
 
 ## Local overlay
 
-Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
-symlinks into a private repository that tracks them - never committed here. Files this skill reads
-when present:
+`local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
+them, never committed here; they win over `references/` and the rules below, and carry values only
+(the model is owned by `rem-public-skill-generalization`). Files read when present:
 
 - `local/build-test-and-commit.md` - build/headless-test commands, commit-convention snapshot, project inventory and sweep notes
 - `local/CommitConventionHelper.json` - commit-type config snapshot
-
-A file in `local/` takes precedence over `references/` and over the generic rules below; this
-`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
-configuration only. When `local/` is absent, follow the generic rules.
 
 ## Commit message
 
@@ -83,11 +79,9 @@ Before building, prove the change set's tests are complete. The methodology —
 change-to-case mapping, the five-point criteria, regression-first for fixes —
 is owned by `rem-test-completeness`; this section only states the gate rules.
 
-**Iteration vs. freeze.** During the iteration phase the author compiles the
-affected target only and records test intent — one `trigger -> assertion` line
-per code change in `<run-dir>/test-intent.md`. The gate itself runs **once at
-the freeze point**, on the accumulated change set, before the single build +
-suite run.
+**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; this gate
+runs **once at the freeze point**, on the accumulated change set, before the
+single build + suite run.
 
 - **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
   `Fixed` / `Improvement` commits). Skip only with a stated reason: pure

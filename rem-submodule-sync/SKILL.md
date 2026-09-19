@@ -23,15 +23,11 @@ commit before Verify passed.
 
 ## Local overlay
 
-Machine-local values for this skill live in `local/` next to this file: git-ignored, created as
-symlinks into a private repository that tracks them - never committed here. Files this skill reads
-when present:
+`local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
+them, never committed here; they win over `references/` and the rules below, and carry values only
+(the model is owned by `rem-public-skill-generalization`). Files read when present:
 
 - `local/update-preferences.md` - update preferences, build verification, project pitfalls
-
-A file in `local/` takes precedence over `references/` and over the generic rules below; this
-`SKILL.md` stays the only source of the skill's instructions, and local files carry values or
-configuration only. When `local/` is absent, follow the generic rules.
 
 ---
 

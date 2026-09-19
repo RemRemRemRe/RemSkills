@@ -120,7 +120,8 @@ specific public type's API uses the real type name.
   avoid; adding a local adaptation therefore costs no always-on context. A file
   in `local/` takes precedence over `references/` and the generic rules, while
   `SKILL.md` stays the single source of the skill's instructions and the local
-  files carry values or configuration only. A project-specific **rulebook**
+  files carry values or configuration only; a clone without the private
+  repository has no `local/` and falls back to the generic rules. A project-specific **rulebook**
   (rules, not values) stays a skill instead: the split is public/private *and*
   rules/values. The pointer to the overlay is a **body** sentence, never a
   description line — a sentence every adapted skill repeats is duplicated

@@ -309,7 +309,7 @@ the root/base toward the leaves, never upward:
   tests; the BDD specs test the Rem wrapper/integration only.
 - **Empty shell modules** — `StructUtils` merged into CoreUObject, so listing it
   produces a "does not list plugin" warning; the fix is to **remove** the
-  dependency, not to add the plugin listing (owned by `SKILL.md` §1).
+  dependency, not to add the plugin listing (owned by `references/modules.md`).
 
 ## 12. Template headers need instantiation
 
@@ -318,6 +318,48 @@ A header-only template with no in-repo consumer compiles nothing — errors
 missing includes) stay latent until first instantiation. Every template header
 shipped in the repo must be instantiated by tests; this is the primary purpose
 of the test module.
+
+## 13. Capture devices and the dev-only config matrix (verified 2026-09)
+
+### The capture device must declare itself multi-threaded
+
+A test capture device sees its lines **synchronously only while it is
+unbuffered**. The engine's log redirector delivers a **buffered** device its
+output asynchronously, on a dedicated log thread, so a device that does not
+report itself safe for multiple threads loses lines or races against the case's
+assertion phase — even though the writing call already returned. Declare the
+device multi-threaded (the engine's own automation test output device does)
+before trusting it to capture everything the scope produced.
+
+Two ordering facts of the same mechanism:
+
+- **Arm the capture after the backlog replay.** The redirector replays buffered
+  backlog first; arming before the replay counts lines the case did not produce.
+  Arm after the replay, then run the assertion scope.
+- **The ensure-report path has its own handler-scope pattern.** An `ensure`
+  report does not travel the ordinary log-redirector route, so a capture device
+  alone never sees it — use the handler-scope pattern that mechanism documents.
+
+### The dev-only config matrix
+
+A case that asserts a development-only report must be compiled out wherever
+that report cannot exist, or it goes red in a configuration that is working as
+designed. One condition per report kind:
+
+| Report kind | Condition the case needs |
+|---|---|
+| `ensure` report | `DO_ENSURE` |
+| log report | the logging-enabled condition (the `NO_LOGGING` switch the engine's log macros derive from) |
+| the mechanism's own development-only blocks | the development-only macro (`REM_WITH_DEVELOPMENT_ONLY_CODE`, `SKILL.md` §14) |
+
+`UE_BUILD_TEST` is the trap: it is a **middle configuration** — ensures and
+logging are off while the non-shipping guards are still compiled in. A bare
+`#if <dev-only macro>` therefore compiles such a case in there and turns it red,
+although the configuration is correct.
+
+Guard **per case**, not per file: the counter cases and the behaviour case need
+different conditions, so one file-level guard both hides cases that could run and
+keeps cases that cannot.
 
 BDD spec style, the test-USTRUCT namespace rules and the build/run
 configuration are stated once each: style and the namespace rules in §1–§2 +

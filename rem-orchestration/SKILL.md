@@ -86,10 +86,16 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
    extra rounds. Evidence: a wrong declaration turned into a red gate, a resumed authoring round and
    a second full build plus suite.
 4. **Verify** - one build plus one suite run, at the scope decided up front, on the frozen tree.
+   A build that reports "target is up to date" (**0 actions**) is **not** compiler evidence: nothing
+   compiled. When that happens, take the compile evidence from the round that actually compiled the
+   tree (name it in the brief), or require a forced rebuild; the suite run still stands.
 5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
    re-running. A bug fix proves its regression case by temporarily reverting the fix at the
-   freeze point.
+   freeze point. A change to the tree **after** the freeze needs a re-run that covers the new
+   bytes; a delta that is provably inert (comments only) may be exempted when a calibration run
+   covers the one changed spec — and the exemption's reasoning is stated in the brief, never
+   left implicit.
 
 Three rules bind that sequence:
 
@@ -143,6 +149,8 @@ older content. The brief points at the overlay file; it never copies the command
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
+- [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree
+- [ ] A post-freeze tree change got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof

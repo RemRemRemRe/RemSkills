@@ -117,6 +117,31 @@ gate (UE coverage support is limited).
 - **Order of writing is free** — the gate checks completeness, not chronology.
   TDD (red-green-refactor) is optional and recommended for new features.
 
+## 3b. Self-Validating Cases
+
+Authoring rules that keep a case able to fail. A case that cannot go red is not
+evidence, however green it looks (the review side asks the same question per
+case).
+
+- **An assertion nobody can falsify is not a test.** For every case ask: which
+  one-line regression makes this line fail? No answer means the case measures
+  nothing — rewrite the assertion or drop the case.
+- **A measuring instrument proves itself first.** Before asserting "zero
+  reports", produce one report inside the same scope and assert "exactly one";
+  only then assert the zero. A broken counter turns every zero-assertion into a
+  false green — the baseline is what proves the counter counts.
+- **A reworded message must fail loudly.** A counter that filters by message
+  text keys on a string that occurs **once** in the tree, so a rename breaks the
+  case instead of silently matching nothing. A filter string shared with
+  production code turns a rename into a silent pass.
+- **A case owns its keys.** When a case registers into a shared registry, do not
+  reuse a key a production registration holds for the whole process — that
+  registration injects its own report into the case's scope. Use a test-owned
+  key, and record any dependency on a production entry declining.
+- **Check a helper's own test before using the helper.** A `contains`-style
+  assertion passes on a broken implementation; if the helper's own test is that
+  weak, strengthen it in the same change, then use it.
+
 ## 4. Skip Conditions (explicit exceptions)
 
 The gate is mandatory only for **behavior-affecting** changes (logic in
@@ -151,6 +176,7 @@ Before declaring a change set complete:
 - [ ] Criterion 3: no placeholder assertions
 - [ ] Criterion 4: layered review L1/L2 clean (`rem-bdd-test-tree`)
 - [ ] Criterion 5: mutation spot check goes red on core logic
+- [ ] Cases are self-validating: falsifiable assertion, a baseline before any zero assertion, a case-owned registry key, and an adequate test for any helper used (§3b)
 - [ ] Skip used? Reason stated
 - [ ] Missing cases written in BDD spec style (`rem-cpp-best-practices/references/tests.md` §16)
 

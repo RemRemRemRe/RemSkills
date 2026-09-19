@@ -84,6 +84,13 @@ change that triggers them.
 - **No code snapshots.** Show the shape of an API, not a copy of its
   implementation — snapshots rot silently (same reasoning as the placeholder
   rules in `rem-public-skill-generalization`).
+- **Verify a mechanism claim by measurement, not by intent.** A claim about a
+  mechanism's property — how many copies of code exist, what crosses a
+  boundary, what is shared — is a claim about the **built artifact**, so the
+  review checks the claim against a measurement (the binary's export/import
+  tables, an instantiation count, a log), never against the design. Without a
+  measurement the doc states the intent and marks the property unverified; the
+  recipe for reading a boundary is `rem-cpp-best-practices/references/dll-boundaries.md`.
 - **Delete, don't deprecate.** A stale doc that says "this is no longer used"
   costs a reader more than a missing doc.
 
@@ -128,6 +135,7 @@ Before declaring a documentation/config change (or reviewing one) done:
 - [ ] §3 — technical docs are per subsystem, lead with the contract, and state the invariants
 - [ ] §3 — volatile facts carry "Last verified: YYYY-MM"
 - [ ] §3 — no code snapshots; the doc describes the API shape, not a copy of it
+- [ ] §3 — mechanism-property claims (copies, boundary crossing, sharing) are backed by a measurement, not by the design's intent
 - [ ] §3 — superseded docs were deleted, not flagged as deprecated
 - [ ] §4 — every new/changed config value documents purpose, default, range, scope and when it applies
 - [ ] §4 — defaults are the safe value and are stated

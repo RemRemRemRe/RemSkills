@@ -197,11 +197,16 @@ struct FExample
 - **No namespace closing comments** — `} // namespace Rem` is unnecessary; modern IDEs
   show the enclosing scope on hover / breadcrumb. Close with bare `}`.
 
-### Comment discipline — concise, non-repetitive, consistent
+### Comment discipline — minimal, non-repetitive, never a substitute for a clear name
 
 
-Comments explain **why**, not **what** — the code already states what it does:
+**The default is no comment.** Self-explanatory code is the goal, so a comment
+has to earn its place — most facts are carried better by a name, a type, a named
+constant or a smaller function. Fix the code first; write the comment only when
+the code genuinely cannot say it:
 
+- **Why, not what** — the reason a choice was made, or the invariant that must
+  hold. The code already states what it does.
 - **Concise** — one short comment per concept. A comment that restates the code
   (`// Get the component` above `GetComponent();`) adds noise; delete it.
 - **Non-repetitive** — the same fact is stated once, at its most useful spot
@@ -209,8 +214,32 @@ Comments explain **why**, not **what** — the code already states what it does:
   do not duplicate a doc comment inside the implementation.
 - **Consistent** — the same term always names the same concept within a file and
   across a module; comment format follows the rules above everywhere.
-- Prefer explaining *why* a choice was made or *what invariant* must hold — the
-  knowledge the code itself cannot express.
+
+Two kinds of comment are good in their own right, not as a last resort:
+
+- **A non-obvious reason** — something a reader would otherwise take for a
+  mistake: a deliberate asymmetry, an engine constraint, an order dependency.
+- **An overview comment** — a short block at the top of a file, a type or a
+  section of a long `.cpp` stating what it is for and how to read it. This is the
+  one place where a summary beats detail: it orients the reader without restating
+  any line below it — and it is a summary, not a licence to then comment each
+  line.
+
+```cpp
+// PREFER — overview: orients the reader; nothing below it is narrated.
+/** Resolved view of FBar, valid until the next FBar::Invalidate. */
+struct FBaz { ... };
+
+// PREFER — the reason, which the code itself cannot express.
+// Release FBaz before FBar — the reverse order trips an engine constraint.
+
+// AVOID — narration; the name should have carried it.
+// Get the qux
+UQux* Qux = GetQux();   // may be null
+```
+
+A comment added to explain code that a rename would have explained is a review
+finding against the code, not a note to keep.
 
 ### Doxygen keyword usage
 

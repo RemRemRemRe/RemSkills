@@ -47,6 +47,10 @@
 - [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — 发布规则：占位符、逐 skill 的 `local/` overlay、推送前 checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — 将会话中可复用的知识点沉淀到新文档，或对现有文档 / skill 进行改进与补充
 
+**主会话编排**
+
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代/冻结点节奏、run 目录与等待纪律
+
 **环境约束**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用磁盘扫描器（`rg`、`grep`、`find`、`fd`、ripgrep、findstr），所有文本搜索走项目的 MCP 服务器（Rider MCP）；这些工具已由配置从 agent 工具集中移除
@@ -126,7 +130,7 @@ git config core.hooksPath .githooks
 
 ## 项目笔记
 
-- [`orchestration-policy.md`](orchestration-policy.md) —— 主会话编排策略（工具、委派默认值、迭代与冻结、等待、工件）。它是项目根目录 `AGENTS.md` 软链接的源文件，指向该软链接的 harness 加载的正是这份文件。与根目录的两份 README 一样，它是仓库文档，不是 skill。
+- [`orchestration-policy.md`](orchestration-policy.md) —— 主会话的**常驻硬规则**（禁扫盘、委派默认值、只编译的迭代、事件驱动等待）；其背后的流程在 `rem-orchestration` 技能里。它是项目根目录 `AGENTS.md` 软链接的源文件，指向该软链接的 harness 加载的正是这份文件。与根目录的两份 README 一样，它是仓库文档，不是 skill。
 
 ## Star History
 

@@ -49,6 +49,10 @@ both files in the same change.
 - [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — publication rules: placeholders, per-skill `local/` overlays, pre-push checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — distill reusable knowledge from a session into new docs or amendments to existing docs/skills
 
+**Main-session orchestration**
+
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the iteration/freeze cadence, run-directory and waiting discipline for the main session
+
 **Environment constraints**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — always loaded: disk scanners (`rg`, `grep`, `find`, `fd`, ripgrep, findstr) are banned, all text search goes through the project's MCP server (Rider MCP); the tools are removed from agent toolsets by configuration
@@ -138,11 +142,12 @@ git config core.hooksPath .githooks
 
 ## Project Notes
 
-- [`orchestration-policy.md`](orchestration-policy.md) — the main-session
-  orchestration policy (tools, delegation defaults, iteration & freeze, waiting,
-  artifacts). It is the source of the project-root `AGENTS.md` symlink, so a
-  harness pointed at that symlink loads exactly this file. Like the root READMEs,
-  it is repository documentation, not a skill.
+- [`orchestration-policy.md`](orchestration-policy.md) — the project's always-on
+  hard rules for the main session (scanning ban, delegation defaults, code-only
+  iteration, event-driven waiting); the procedure behind them is the
+  `rem-orchestration` skill. It is the source of the project-root `AGENTS.md`
+  symlink, so a harness pointed at that symlink loads exactly this file. Like the
+  root READMEs, it is repository documentation, not a skill.
 
 ## Star History
 

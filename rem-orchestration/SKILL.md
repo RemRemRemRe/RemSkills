@@ -30,7 +30,19 @@ agent context file, which points here for the procedure.
 - **Background by default.** Pass `run_in_background: false` only when the next decision
   needs the result in the same turn and nothing else can run meanwhile. Parallelism comes
   from issuing several Agent calls in one message, not from the background flag.
-- **Writes serialize, reads parallelize.** Never run two writers over the same file.
+- **Writes serialize, reads parallelize.** Never run two writers over the same file. A running
+  writer blocks only the files it owns, so documentation that is not a build input, the next
+  stage's brief, a disjoint repository and read-only analysis of finished material all proceed
+  alongside it; only a read of a *frozen* tree (the verification of a change set) must wait for
+  every writer to stop.
+- **Mechanical sweeps are scripted, not hand-edited.** Past roughly 50 sites of one repeated
+  change, derive the explicit file list first (page the search until the set is complete; a
+  silently truncated result is the classic failure), transform with a script that preserves bytes
+  outside the change, prove it by inverting the transform and diffing, have the executor validate
+  the staged diff file by file, and have the review cover the non-mechanical sites exactly plus a
+  sample of the mechanical ones. Evidence: one run spent its whole budget on a 126-site sweep
+  before making a single edit, while the scripted version of the same shape finished 232 sites in
+  one pass.
 - **No profile turn cap.** `max_turns` is a per-call kill switch: at the limit the child
   gets one wrap-up turn and is then aborted (the run is still reported as completed), so
   read the run directory instead of assuming a report exists.
@@ -46,7 +58,11 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
    no suite run, no docs sweep.
 2. **Freeze review** - one review pass over the accumulated diff produces the case plan:
    the existing-case index plus the missing or updated cases.
-3. **Test authoring** - write the cases from that plan.
+3. **Test authoring** - write the cases from that plan. Expectation bookkeeping in a test
+   framework (how many times a message is recorded, which record a pattern claims) is usually only
+   knowable by executing, so one *targeted* run of the new spec is allowed at this step and is
+   labelled calibration, not evidence. Evidence: a wrong declaration turned into a red gate, a
+   resumed authoring round and a second full build plus suite.
 4. **Verify** - one build plus one suite run, at the scope decided up front, on the frozen tree.
 5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
@@ -80,3 +96,5 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
+- [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
+- [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof

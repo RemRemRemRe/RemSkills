@@ -10,6 +10,9 @@ sequencing work.
 - **Delegate execution.** The main session keeps decisions and the ledger; subagents get
   self-contained briefs, default to the background, and never inherit context. Profiles
   carry no turn cap - `max_turns` is a per-call kill switch.
+- **Nothing scratch in the repository.** Temp files, throwaway clones and worktrees go to the
+  OS temp dir, a run's own output to its run directory (`rem-temp-files`); never into the
+  working tree, ignored paths included.
 - **Iteration is code-only.** Compile the affected target and record test intent; specs,
   the build + suite run, docs and commits happen once, at the freeze point.
 - **Prefer events over polling.** Never use `get_subagent_result(wait: true)` as a blocking

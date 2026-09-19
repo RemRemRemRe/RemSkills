@@ -157,6 +157,17 @@ implementation details (helper classes, private free functions) stay unexported.
 Spaces (4-width) provide consistent rendering across all editors, diffs, and code
 review tools. No tab-width disagreement between team members.
 
+### Why comments are minimized
+
+A comment is a second copy of the intent, and it drifts: nothing fails when it goes
+stale. Self-explanatory code — full-word names (naming rules above), one
+responsibility per function, named constants — carries the same information with no
+second place to update, so the default is no comment, and a comment that narrates
+the line it sits on is deleted. Two kinds earn their place: a reason the code cannot
+state (a deliberate asymmetry, an engine constraint, an order dependency), and an
+overview comment stating a file's, type's or section's purpose and reading order —
+the summary a reader needs before the detail, which no single line expresses.
+
 ### Why data members before function members
 
 Placing data before functions in type declarations gives readers immediate context

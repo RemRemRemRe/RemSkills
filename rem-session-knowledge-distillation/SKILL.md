@@ -140,6 +140,7 @@ Before finishing a distillation pass:
 - [ ] Sources cited for facts; "verified YYYY-MM" dates present
 - [ ] No stale content left behind (outdated rules removed, not flagged)
 - [ ] Workarounds carry a lifecycle annotation (label, failure signal, iteration path) per `rem-write-better-skill` §10.5
+- [ ] Session scratch left no trace: one-shot generators, patches and message files swept, the tree free of them per `rem-temp-files`
 - [ ] The distillation committed per the repo's workflow (or handed to the user to commit)
 
 ## Cross-references
@@ -147,3 +148,4 @@ Before finishing a distillation pass:
 - `rem-write-better-skill` — writing conventions, structure, checklist contract, workaround lifecycle
 - `rem-public-skill-generalization` — what may appear in public content and how to generalize
 - `rem-commit-workflow` — committing the distilled knowledge
+- `rem-temp-files` — where a session's scratch and intermediates belong

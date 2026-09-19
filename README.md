@@ -56,7 +56,7 @@ both files in the same change.
 **Environment constraints**
 
 - [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — always loaded: disk scanners (`rg`, `grep`, `find`, `fd`, ripgrep, findstr) are banned, all text search goes through the project's MCP server (Rider MCP); the tools are removed from agent toolsets by configuration
-- [`rem-temp-files`](rem-temp-files/SKILL.md) — always loaded: scratch files, throwaway clones and temporary git worktrees go to the OS temp directory, never the project tree
+- [`rem-temp-files`](rem-temp-files/SKILL.md) — always loaded: scratch goes to the OS temp directory; only files a later reader needs persist into the run/artifact directory, never the working tree
 
 ## Daily Reference Workflow
 

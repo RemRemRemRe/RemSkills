@@ -15,14 +15,15 @@ metadata:
 
 **Disk-scanning text searchers — `rg`, `grep`, `find`, `fd`, `ripgrep`,
 `findstr`, and any editor "search in files" equivalent — are banned.** They are
-unbounded recursive content searches over huge trees, and are removed from the
-agent toolsets by configuration, so their absence is expected. Never invoke
-them — not through a tool, not through a shell.
+unbounded recursive content searches, removed from the agent toolsets by
+configuration — their absence is expected. Never invoke them, through a tool or
+a shell.
 
 Use **Rider MCP** only: `search_symbol` / find-usages first, then a bounded
 `search_text` / `search_regex` / `search_file` (`maxResults` + a path or glob);
-`get_file_problems` for diagnostics. Command map: `ue-code-authoring` ("Tool
-split" table); degraded-mode notes: `ue-live-debugging`.
+`get_file_problems` for diagnostics. Empty results, over-escaping and result
+caps are traps — `references/search-mechanics.md`. Command map:
+`ue-code-authoring` ("Tool split" table); degraded-mode notes: `ue-live-debugging`.
 
 ## When Rider MCP is unavailable
 
@@ -40,6 +41,6 @@ whose paths are explicit.
 ## Aggregates (main session)
 
 Counts and sizes may come from a bounded script over an **explicit path list**
-— never a scan from a drive root or home directory. Say which substitution was
-used, so the reader knows the evidence came from a targeted read. The description
-states the ban itself — it is in context every session.
+— never a scan from a drive root or home directory. State the substitution used,
+so the evidence's origin is visible. The description states the ban itself — it
+is in context every session.

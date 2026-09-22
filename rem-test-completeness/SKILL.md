@@ -129,7 +129,13 @@ case).
 - **A measuring instrument proves itself first.** Before asserting "zero
   reports", produce one report inside the same scope and assert "exactly one";
   only then assert the zero. A broken counter turns every zero-assertion into a
-  false green — the baseline is what proves the counter counts.
+  false green — the baseline is what proves the counter counts. Instance (verified
+  2026-09): two cases asserting "no callback fires" stayed green after the
+  listener-registration line this very change was about had been deleted (the
+  count was 0 either way); driving one same-parameter callback through an external
+  removal path first (assert exactly one) and then through the path under test
+  (assert still one) made both mutants — registration deleted, removal broken — go
+  red.
 - **A reworded message must fail loudly.** A counter that filters by message
   text keys on a string that occurs **once** in the tree, so a rename breaks the
   case instead of silently matching nothing. A filter string shared with

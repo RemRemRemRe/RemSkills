@@ -81,6 +81,27 @@ multi-sentence paragraph body is a review smell.
 - Reshaping the history of un-pushed commits (amend, fixup, squash, reorder,
   drop) belongs to `rem-rewrite-commit-history`.
 
+### Staging part of a file (mixed ownership)
+
+When one file holds both this change and someone else's in-progress work, stage **hunks, not the
+file**:
+
+1. Build a patch that contains only this change's hunks and apply it to the index:
+   `git apply --cached <patch>` (the porcelain equivalent is the interactive `git add -p`).
+2. Verify all three before committing:
+   - the staged content contains **zero** occurrences of a token unique to the other work
+     (`git diff --cached` searched for that token);
+   - the other work is still in the working tree and **unstaged** (`git diff` still shows it;
+     `git status --short` still reports the file modified);
+   - when the file is a gitlink, the staged gitlink equals the submodule's HEAD.
+3. **Stop condition.** If the two changes interleave in the same region and no subset of hunks yields
+   a compilable intermediate state, **commit them as one** and state the proof in the commit body
+   ("cannot be split without a non-compilable intermediate state: <why>") instead of forcing a split.
+
+A plumbing path such as `git apply --cached` bypasses the index's filters, so on a host that
+normalizes line endings also check the staged blob's line endings (the porcelain path handles them;
+the host-specific detail is in the `local/` overlay).
+
 ## Test completeness gate
 
 Before building, prove the change set's tests are complete. The methodology —
@@ -260,6 +281,7 @@ Before committing:
 - [ ] Every edited file went through the Rider MCP `reformat_file` pass
 - [ ] Long `UPROPERTY` `meta`/`EditCondition` literals survived the reformat intact
 - [ ] Staged by exact path (no `git add -A`); `git show --stat` verified the file list after any amend; a message fed via `-F` was BOM-free
+- [ ] A file shared with another's work was staged hunk-wise: the other work stayed unstaged, the staged content carried none of its tokens, and the gitlink matched the submodule HEAD — or the split was merged with the non-compilable-intermediate proof stated
 - [ ] Un-pushed history folded per `rem-rewrite-commit-history`, not left as follow-up noise
 - [ ] Each module's dependencies declared per `rem-cpp-best-practices` §15
 - [ ] Test-completeness gate run for behavior-affecting changes, or skipped with a stated reason

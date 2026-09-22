@@ -21,7 +21,8 @@ Fixed in every role template:
 - **Report shape** — the role's fixed label lines below, no more than 40 lines, written in plain
   language for a human operator (no coined abbreviations; a term the operator did not introduce is
   explained the first time it appears). Full detail goes to `<run-dir>/report.md`; the final message
-  is a summary plus pointers.
+  is a summary plus pointers. A read-only profile has no write tool, so its brief asks for `inline`:
+  the final message **is** the report and the parent persists it.
 - **Run directory** — `<cwd>/.agents/runs/<run-id>/`; the executor appends to `state.md` and never
   creates a new run dir on `resume`.
 
@@ -57,9 +58,10 @@ Role clauses:
   round with one targeted run of that spec and report it as **calibration**, never as gate evidence;
   the suite still runs once, at the freeze. A compile-only test round leaves capture devices,
   counters, "always passes" assertions and identifier collisions to be discovered at the gate.
-- **Freeze expectation checklist** (when the brief is a freeze brief): the expected case count
-  (previous run + new cases), the new spec's own case count, the cases whose verdict needs runtime
-  observation, and superseded logs moved out of the run directory with a marker.
+- **Freeze expectation checklist** (when the brief is a freeze brief): a per-prefix table — one row
+  per prefix in the filter, each with the previous run's count and the expected new cases — plus the
+  new spec's own case count, the cases whose verdict needs runtime observation, and superseded logs
+  moved out of the run directory with a marker.
 - **Report labels.** `RESULT / CHANGES / DEVIATIONS / EVIDENCE / FORMAT / RISKS / NEXT / DETAIL`.
 
 ## Verifier (build & test)
@@ -81,7 +83,7 @@ and reports it honestly.
 - delta over the standing template: <the case-plan pointer or tree state if it differs>
 
 ## ACCEPTANCE
-- [ ] expected case count <N> observed, <failing case names or "none">
+- [ ] expected case count <N> per prefix observed and reconciled, <failing case names or "none">
 - [ ] log cited by path
 
 ## REPORT
@@ -90,9 +92,15 @@ and reports it honestly.
 
 Role clauses:
 
-- **Freeze expectation checklist.** State the expected case count the brief supplies next to the
-  observed one, name any case whose verdict needs runtime observation, and say explicitly when an
-  earlier run's evidence was discarded as superseded (and why).
+- **Freeze expectation checklist.** Reconcile the runner's prefix counts against the brief's table,
+  one row per prefix — never a single hand-counted total. For every difference, list the incremental
+  case names and attribute each (this change / coexisting work-in-progress / undetermined). Name any
+  case whose verdict needs runtime observation, and say explicitly when an earlier run's evidence was
+  discarded as superseded (and why).
+- **A 0-action build is not compile evidence.** When the build reports "target is up to date" (0
+  actions), nothing compiled: cite the round the brief names as the one that actually compiled the
+  tree and corroborate it with the artifact's hash or mtime, or force a rebuild. The suite run still
+  stands.
 - **Persist one authoritative log per stage**; a superseded copy leaves the run directory with a
   `superseded` marker.
 - **Report labels.** `RESULT / BUILD / TESTS / EVIDENCE / MECHANICAL_FIXES / SUPERSEDED / RISKS /
@@ -127,6 +135,10 @@ Role clauses:
 - **Test-deliverable rounds** (the deliverable is tests): give a per-case non-vacuity verdict — would
   this case fail if the behaviour regressed? That is the finding class the round needs; an assertion
   that passes for the wrong reason is invisible to the compiler.
+- **Cap the scope and state the priority.** A read-only audit has no write tool, so its report is
+  the final message (`inline`) and the parent persists it. Name the files and dimensions that matter
+  most and their order: a broad heavy audit is interrupted before it reports and has to be narrowed
+  and re-dispatched.
 - **Report labels.** `RESULT / SCOPE_REVIEWED / DIMENSIONS / FINDINGS / VERDICT / TEST_PLAN /
   NOT_COVERED / EVIDENCE / NEXT / DETAIL`.
 

@@ -54,6 +54,11 @@ keep it to about a screenful, and point at the run directory for detail. The har
   stage's brief, a disjoint repository and read-only analysis of finished material all proceed
   alongside it; only a read of a *frozen* tree (the verification of a change set) must wait for
   every writer to stop.
+- **A read-only profile reports inline; the parent persists it.** Review, recon and grill profiles run
+  without a write tool, so a brief that requires a report file produces none — ask for the report in
+  the final message and let the parent write it into the run directory. Cap such a brief's scope and
+  priority (which files and dimensions matter most, and in what order): a broad heavy audit gets
+  interrupted before it produces findings and has to be narrowed and re-dispatched.
 - **Mechanical sweeps are scripted, not hand-edited.** Past roughly 50 sites of one repeated
   change, derive the explicit file list first (page the search until the set is complete; a
   silently truncated result is the classic failure), transform with a script that preserves bytes
@@ -88,7 +93,8 @@ Iteration is code-only; the expensive gates run once, at the freeze point.
 4. **Verify** - one build plus one suite run, at the scope decided up front, on the frozen tree.
    A build that reports "target is up to date" (**0 actions**) is **not** compiler evidence: nothing
    compiled. When that happens, take the compile evidence from the round that actually compiled the
-   tree (name it in the brief), or require a forced rebuild; the suite run still stands.
+   tree (name it in the brief) and corroborate it with the artifact's hash or mtime, or require a
+   forced rebuild; the suite run still stands.
 5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
    re-running. A bug fix proves its regression case by temporarily reverting the fix at the
@@ -107,9 +113,14 @@ Three rules bind that sequence:
   test-infrastructure refactors belong to separate units, because one red gate re-verifies every
   change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in
   the round, minor and elegance findings go to a backlog list.
-- **The freeze brief states the expectation.** Give the expected case count (the previous run's
-  count plus the new cases), name any case whose signal needs runtime observation, and require the
-  executor to report superseded runs explicitly.
+- **The freeze brief states the expectation per prefix.** Give a table with one row per prefix in the
+  run's filter: the previous run's count and the expected new cases for that prefix. Never hand-count
+  a single total for the whole filter — the runner's `Found N` is the count, reported per prefix. The
+  executor reconciles it per prefix and, on a mismatch, lists the incremental case names and
+  attributes each (this change / coexisting work-in-progress / undetermined). Name any case whose
+  signal needs runtime observation, and require the executor to report superseded runs explicitly.
+  Evidence: one session's hand-computed total disagreed with the run four times and each miss cost a
+  clarification round.
 
 ## Waiting
 
@@ -149,7 +160,7 @@ older content. The brief points at the overlay file; it never copies the command
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
-- [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree
+- [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
 - [ ] A post-freeze tree change got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
@@ -159,6 +170,7 @@ older content. The brief points at the overlay file; it never copies the command
 - [ ] A test-authoring round ended with one targeted calibration run, reported as calibration rather than gate evidence
 - [ ] Test deliverables got their focused review before the freeze gate
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
-- [ ] The freeze brief stated the expected case count, the cases needing runtime observation, and the superseded-run requirement
+- [ ] The freeze brief gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
+- [ ] Read-only profiles (review/recon/grill) reported inline, with a capped scope and priority; the parent persisted the report
 - [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker
 - [ ] Operator-facing text was plain, context-bearing and free of coined shorthand

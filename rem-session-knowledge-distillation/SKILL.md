@@ -141,6 +141,8 @@ Before finishing a distillation pass:
 - [ ] No stale content left behind (outdated rules removed, not flagged)
 - [ ] Workarounds carry a lifecycle annotation (label, failure signal, iteration path) per `rem-write-better-skill` §10.5
 - [ ] Session scratch left no trace: one-shot generators, patches and message files swept, the tree free of them per `rem-temp-files`
+- [ ] Operational facts found in the session (toolchain / harness behaviour) were routed to their local overlay home — never left only in the conversation
+- [ ] A multi-unit session left a unit/commit ledger (per-unit gate evidence + commit hash + run-dir pointer) in a local document or run directory, not inside a skill
 - [ ] The distillation committed per the repo's workflow (or handed to the user to commit)
 
 ## Cross-references

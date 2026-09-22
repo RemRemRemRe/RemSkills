@@ -122,7 +122,11 @@ this is the collection's rule, owned here.
    change, that diff must be **exactly that change and nothing else**. State
    which of the two you expect *before* looking — the two cases need opposite
    expectations, and a copied invariant hides a loss or invents one (worked
-   example: `references/rebuild-playbook.md` §2). Then run the
+   example: `references/rebuild-playbook.md` §2). When the rewrite also
+   **edits messages**, tree identity is necessary but not sufficient: compare
+   each new commit's message to the reviewed mapping (`git log -1 --format=%B
+   <new>` against the mapping file), and state that the mapping was the
+   reviewed artifact. Then run the
    project's build + tests once on the final state (see `rem-commit-workflow`).
    Intermediate commits need not compile; the final state must. For a
    multi-repo batch: per-repo tree identity plus one integration test run
@@ -158,4 +162,4 @@ Before rewriting history:
 
 - `rem-commit-workflow` — commit-message convention, one-logical-change, split
   at commit time, build/test validation of the final state
-- `rem-public-skill-generalization` — this skill is public; keep it generalized
+- `rem-public-material-generalization` — this skill is public; keep it generalized

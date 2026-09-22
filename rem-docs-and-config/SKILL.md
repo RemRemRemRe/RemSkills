@@ -83,7 +83,7 @@ change that triggers them.
   engine version, an external service or a tool.
 - **No code snapshots.** Show the shape of an API, not a copy of its
   implementation — snapshots rot silently (same reasoning as the placeholder
-  rules in `rem-public-skill-generalization`).
+  rules in `rem-public-material-generalization`).
 - **Verify a mechanism claim by measurement, not by intent.** A claim about a
   mechanism's property — how many copies of code exist, what crosses a
   boundary, what is shared — is a claim about the **built artifact**, so the

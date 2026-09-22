@@ -44,7 +44,7 @@
 **Skill 元技能**
 
 - [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — 本集合的 skill 编写约定
-- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — 发布规则：占位符、逐 skill 的 `local/` overlay、推送前 checklist
+- [`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md) — 所有公开材料的发布规则：占位符、提交信息与历史泄漏、逐 skill 的 `local/` overlay、推送前 checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — 将会话中可复用的知识点沉淀到新文档，或对现有文档 / skill 进行改进与补充
 
 **主会话编排**
@@ -74,7 +74,7 @@
   - 同步 / 推送子模块 — `rem-submodule-sync`、`rem-submodule-push`
 - **扩展与维护**
   - 多引擎版本适配 — `rem-ue-plugin-adapter`
-  - 编写 / 发布 skill — `rem-write-better-skill`、`rem-public-skill-generalization`
+  - 编写 / 发布 skill — `rem-write-better-skill`、`rem-public-material-generalization`
   - 沉淀会话知识 — `rem-session-knowledge-distillation`
 
 ## 安装
@@ -99,7 +99,7 @@
 skill 的 git 忽略 `local/` overlay 中：以符号链接指向私有仓库中的跟踪文件，绝不提交到
 公开仓库。`RemSkillsPrivate` 保存仅本地使用的 skill 与跟踪的 overlay 值；参数化工具的
 skill 把值放在外部逐插件配置中。规则单一归属
-[`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md)。
+[`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md)。
 
 ## Skill lint
 

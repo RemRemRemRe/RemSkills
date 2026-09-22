@@ -1,56 +1,65 @@
 ---
-name: rem-public-skill-generalization
+name: rem-public-material-generalization
 description: >
-  Publication rules for the RemSkills collection: why public/open-source skill
-  content must be generalized, what keeps real names, and how — placeholder
-  types and paths, external configs, the per-skill git-ignored `local/` overlay
-  that carries machine-local values, link-based reference docs, and a pre-push
-  verification checklist. Use when creating, editing, or publishing any skill,
-  or when a skill needs project-specific facts without leaking them.
+  Publication rules for every public material — skills, docs, source code,
+  commit messages, pull requests and release notes: why public content must be
+  generalized, what keeps real names, how project-specific facts live in an
+  ignored `local/` overlay, and the pre-push checklist that covers the whole
+  outgoing history. Use when creating or publishing a skill, writing public
+  docs or commit messages, or when a public library must not leak the project
+  that consumes it.
 metadata:
   category: meta
   trigger: manual
 ---
 
-# Public-Skill Generalization
+# Public-Material Generalization
 
 This skill is the **single owner** of the generalization rules for the RemSkills
 collection (per `rem-write-better-skill` §11, a rule lives in exactly one skill —
-copies drift). It was extracted from `rem-write-better-skill` §3a/§6/§8.5.
-Apply it to every skill before it is pushed to a public repository.
+copies drift). It was extracted from `rem-write-better-skill` §3a/§6/§8.5, and
+covers **every material that becomes public** — a skill, a README, a source file
+and its comments, a commit message, a pull request or release note, a shipped
+sample. Apply it before the material is pushed to a public repository.
 
-A skill in the public `RemSkills` repo is **visible to anyone, forever**. The
-rules below decide what a public skill may say.
+Anything in the public `RemSkills` repo, in a public library, in its docs and in
+its history is **visible to anyone, forever**. The rules below decide what public
+material may say.
 
 ---
 
 ## 1. Why generalize
 
-- **A public skill is permanent and public.** Real project names, paths, and
+- **Public material is permanent and public.** Real project names, paths, and
   internal decisions leak private information: repository layout, module
   structure, unreleased features, tooling choices.
 - **Machine paths are meaningless elsewhere.** A literal home or drive path
   means nothing to a reader on another machine, and it goes stale as projects
   move.
-- **Real names rot.** Type/module/plugin names change as the codebase evolves;
-  a skill that names them reads as wrong a year later.
+- **Real names rot.** Type/module/plugin names change as the codebase evolves; a
+  skill, doc or comment that names them reads as wrong a year later.
+- **A public library's history is public too.** Commit messages and the pull-request
+  text around them are fetched, mirrored and quoted; a leak there cannot be
+  recalled by editing a file.
 
 ## 2. Goals
 
-- Public skills carry **generic knowledge + generic workflow** only.
-- Nothing in a public skill can be traced to a specific machine, project, or
-  private decision.
-- Project-specific facts live **outside** the public skill: in external configs
-  (tool-parameterized skills) or in the skill's **local overlay** — a `local/`
-  directory next to `SKILL.md`, git-ignored and created as symlinks into a
-  private repository that tracks the values.
+- Public material carries **generic knowledge + generic workflow** only.
+- Nothing public can be traced to a specific machine, project, or private
+  decision.
+- Project-specific facts live **outside** public material: in external configs
+  (tool-parameterized skills) or in the owning skill's **local overlay** — a
+  `local/` directory next to `SKILL.md`, git-ignored and created as symlinks into
+  a private repository that tracks the values.
 - The private value files carry a **machine-local note** so a reader knows they
-  are never copied into a public repo, and the public repo's `**/local/`
-  ignore pattern is never narrowed, so a stray `git add -A` cannot ship them.
+  are never copied into a public repo, and the public repo's `**/local/` ignore
+  pattern is never narrowed, so a stray `git add -A` cannot ship them.
 
 ## 3. Scope
 
 ### 3.1 What must be generalized (non-public content)
+
+The fact types are the same whatever the artifact:
 
 | Category | Example |
 |---|---|
@@ -60,6 +69,24 @@ rules below decide what a public skill may say.
 | Project plugin inventory | **non-public by default** (ADR-001): real third-party names only when the plugin is verified public AND the mention adds reader value — the project's *use* of it is still project fact |
 | Private decisions | disabled-plugins lists, dependency policy, dev-config choices |
 | Private type / convention names | `Foo::Math::Modulo` → placeholder |
+
+The same rules reach every material that ships, not only skill prose:
+
+| Artifact | What leaks | What to write instead |
+|---|---|---|
+| Source code & comments | a real module / plugin / target / type / asset name; a pointer to a private issue or doc; a machine path in a comment, a default value or a debug string; a comment that names the internal project or a ticket only the project can see | the construct's shape and the invariant it upholds, with an engine or public-repo citation; a `<placeholder>` for a value the host project supplies |
+| Docs / README | the consuming project's layout, inventory and decisions; a local log or tool name; an example taken from real data | the mechanism and the decision in generic terms; a synthetic example; `<placeholder>` paths and `<ProjectName>` |
+| Commit messages | the consumer project or editor-target name; a local log / run file name; a machine or drive path; the private module or test-prefix inventory; an internal sweep or campaign name; a raw evidence block (action or case counts, per-module breakdowns, warning counts, exit codes) | the scope and the reason in generic terms — one bullet per change and at most one short verification line; the raw evidence stays in the run / CI record, and the message discipline itself is owned by `rem-commit-workflow` |
+| Pull request & release text | the same identifiers as a commit message plus the surrounding narrative — a raw evidence block repeated in the PR body, a consumer-project reference, a local run / log file name | the scope and the decision in generic terms; the evidence stays in the run / CI record, which the PR links rather than restates |
+| Shipped samples, configs, fixtures | a real value pasted into a template (host, account, test prefix, plugin list); a fixture captured from the project's data | placeholder-only values; a synthetic fixture; the real value in the owning skill's `local/` overlay |
+| Published history | any of the above, already fetched and mirrored — editing a file no longer removes it | the scan runs **before push**; a leak that is already published is handled as below |
+
+**History is public material.** The scan happens **before push**, because a push
+is the point of no return: once someone has fetched the commits they cannot be
+recalled. A leak that is already published is therefore fixed forward by default;
+rewriting published history is a separate, explicit call with its own
+instructions (`rem-rewrite-commit-history`), never a tidy-up appended to another
+task.
 
 ### 3.2 What keeps real names (public content)
 
@@ -132,6 +159,14 @@ specific public type's API uses the real type name.
   a tracked symlink (a link's target path leaks the machine layout) and no
   skip-worktree tricks. Refresh by copying the source file over the tracked
   value in the private repository; document that procedure in the skill.
+- **Commit messages** — a private term list cannot live in a public file, so the
+  scan reads it from the owning skill's overlay: run
+  `node tools/lint-commit-messages.mjs --repo <repo> --range <remote>/<branch>..HEAD`
+  before pushing a public repository's branch. The checker combines generic
+  machine-path shapes with every term in `local/forbidden-commit-terms.txt`, the
+  overlay file this skill points at (default input; the private repository tracks
+  it). Cite the checker here — never paste the term file or its contents into a
+  public file.
 - **Conversation-only disclosure** — concrete names may be stated in chat when
   needed; they never enter public files.
 - **Name allowlist** — the mechanical half of the rule:
@@ -150,7 +185,7 @@ specific public type's API uses the real type name.
 
 ## 5. Verification (pre-push checklist)
 
-The checklist is the contract — run it before pushing any skill:
+The checklist is the contract — run it before pushing any public material:
 
 - [ ] No machine paths — drive-letter paths, posix and macOS home paths (enforced by `tools/lint-skills.mjs`)
 - [ ] The collection lint passes before pushing — `node tools/lint-skills.mjs`; the run obligation and the tool itself are owned by `rem-write-better-skill` §8
@@ -159,7 +194,9 @@ The checklist is the contract — run it before pushing any skill:
 - [ ] Names verified **anonymously** (`git -c credential.helper= -c core.askPass= ls-remote --heads <repo>`) — an authenticated lookup resolves private repositories and proves nothing
 - [ ] Catalogue citations name a public path or the case's shape, never a private file ("observed in `<private-file>`")
 - [ ] Leak and name checks cover every non-binary file that ships — the skill's own files (`SKILL.md`, `references/**`, `tools/**`) and the repository-level files; only the allowlist and the git-ignored `local/**` are exempt
-- [ ] A leak that is already pushed is fixed forward (public history is permanent; rewriting it is a separate, deliberate call — `rem-rewrite-commit-history`)
+- [ ] Outgoing commit messages scanned before a public push — `node tools/lint-commit-messages.mjs --repo <repo> --range <remote>/<branch>..HEAD` reports nothing (private terms come from the skill's `local/forbidden-commit-terms.txt`)
+- [ ] Shipped code, docs, configs, fixtures and PR/release text follow the same rules as skill files (placeholder-only)
+- [ ] A published leak is fixed forward by default; rewriting published history is a separate, deliberate call (`rem-rewrite-commit-history`)
 - [ ] No project plugin inventory; third-party names only if verified public AND the mention adds value
 - [ ] Placeholders are meaningless (no domain hints) — see `rem-write-better-skill` §3
 - [ ] Generic paths use `<placeholder>` syntax
@@ -175,7 +212,10 @@ The checklist is the contract — run it before pushing any skill:
 ## Cross-references
 
 - `rem-write-better-skill` — placeholder-type style (§3), structure & checklist conventions
+- `rem-commit-workflow` — commit-message body discipline (bullets, one verification line, no local identifiers)
+- `rem-rewrite-commit-history` — reshaping un-pushed history; the separate call that published-history rewriting requires
 - `rem-ue-plugin-adapter` — external-config pattern (per-plugin `local.json`, `--config`)
 - `RemSkillsPrivate` — the private repository that tracks the overlay values each skill links into `local/`
 - `tools/public-names.json` — the Rem-family name allowlist consumed by `tools/lint-skills.mjs`
+- `tools/lint-commit-messages.mjs` — the outgoing-commit-message leak checker
 - ADR-001 — project plugin inventory is non-public by default

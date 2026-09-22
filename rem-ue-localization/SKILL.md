@@ -20,7 +20,7 @@ Last verified: 2026-09, UE 5.8. Engine paths are relative to the engine root.
 
 `local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
 them, never committed here; they win over `references/` and the rules below, and carry values only
-(the model is owned by `rem-public-skill-generalization`). Files read when present:
+(the model is owned by `rem-public-material-generalization`). Files read when present:
 
 - `local/project-localization.md` - real paths, verified commands, pilot results, project trade-offs
 

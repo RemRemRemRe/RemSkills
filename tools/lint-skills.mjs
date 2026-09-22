@@ -4,7 +4,7 @@
 //   node tools/lint-skills.mjs --json     # machine-readable output
 //
 // Enforces the conventions owned by rem-write-better-skill and
-// rem-public-skill-generalization: frontmatter shape, name/folder match,
+// rem-public-material-generalization: frontmatter shape, name/folder match,
 // description trigger, closing checklist, size budget, leak patterns, and the
 // Rem-family name allowlist.
 //
@@ -12,7 +12,7 @@
 // own files (SKILL.md, references/, tools/) and the repository-level files
 // (README, LICENSE, .github/, .githooks/, tools/). Nothing is exempt — a file
 // that ships, ships to everyone — except the allowlist itself, which is the
-// reference data for the name check (rem-public-skill-generalization §3.2a).
+// reference data for the name check (rem-public-material-generalization §3.2).
 // A `local/` directory is never shipped content: it is the per-skill overlay of
 // machine-local values, git-ignored and linked in from a private repository, so
 // every walker skips it and three guards keep it that way (checkLocalOverlay).
@@ -50,7 +50,7 @@ function skillFrontmatterBlock(source) {
 /** Allowed frontmatter values. */
 const CATEGORIES = new Set(["meta", "workflow"]);
 const TRIGGERS = new Set(["manual", "always"]);
-/** Patterns that must never appear in a public skill (see rem-public-skill-generalization). */
+/** Patterns that must never appear in a public skill (see rem-public-material-generalization). */
 const LEAK_PATTERNS = [
   { re: /(?:^|[\s("'`\[])[A-Za-z]:[\\/]/m, what: "drive-letter path" },
   { re: /(?:^|[\s("'`\[])\/home\//m, what: "posix home path" },
@@ -302,12 +302,12 @@ function reportContentFindings(issues, files, base) {
     }
     for (const [name, index] of seen) {
       findings.push(
-        `${where}:${lineOf(body, index)}: unverified Rem-family name "${name}" — give it a public source in tools/public-names.json or generalize it (rem-public-skill-generalization §3.2)`,
+        `${where}:${lineOf(body, index)}: unverified Rem-family name "${name}" — give it a public source in tools/public-names.json or generalize it (rem-public-material-generalization §3.2)`,
       );
     }
     // A `.md` other than SKILL.md that carries skill frontmatter is loaded as a skill
     // by the harness: it pays an always-on description and defeats the reference-file
-    // pattern (rem-public-skill-generalization §4).
+    // pattern (rem-public-material-generalization §4).
     if (!/SKILL\.md$/.test(file) && skillFrontmatterBlock(body)) {
       findings.push(
         `${where}:1: skill frontmatter in a non-SKILL.md file — the harness loads it as a skill, so its description stays in context on every request`

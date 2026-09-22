@@ -46,7 +46,7 @@ both files in the same change.
 **Skill meta**
 
 - [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — writing conventions for this collection
-- [`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md) — publication rules: placeholders, per-skill `local/` overlays, pre-push checklist
+- [`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md) — publication rules for every public material: placeholders, commit-message and history leaks, per-skill `local/` overlays, pre-push checklist
 - [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — distill reusable knowledge from a session into new docs or amendments to existing docs/skills
 
 **Main-session orchestration**
@@ -76,7 +76,7 @@ both files in the same change.
   - Sync / push submodules — `rem-submodule-sync`, `rem-submodule-push`
 - **Extend & maintain**
   - Adapt to multiple engine versions — `rem-ue-plugin-adapter`
-  - Write / publish a skill — `rem-write-better-skill`, `rem-public-skill-generalization`
+  - Write / publish a skill — `rem-write-better-skill`, `rem-public-material-generalization`
   - Distill session knowledge — `rem-session-knowledge-distillation`
 
 ## Installation
@@ -108,7 +108,7 @@ or internal decisions. Machine-local values live in each skill's git-ignored
 them, never committed here. `RemSkillsPrivate` keeps local-only skills and the
 tracked overlay values; tool-parameterized skills keep their values in external
 per-plugin configs. The rules are owned by
-[`rem-public-skill-generalization`](rem-public-skill-generalization/SKILL.md).
+[`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md).
 
 ## Skill lint
 

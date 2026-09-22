@@ -25,7 +25,7 @@ them into the knowledge base so the next session starts where this one ended.
 The skill owns *what to keep, where to put it, and how to write it* — not the
 content itself. Writing conventions for skills live in
 `rem-write-better-skill`; public-content rules live in
-`rem-public-skill-generalization`. Apply those whenever the destination is a
+`rem-public-material-generalization`. Apply those whenever the destination is a
 skill or any public document.
 
 ## When to run
@@ -66,7 +66,7 @@ recurring knowledge is owned by `rem-write-better-skill` §9.
    templates) and following the destination's own conventions.
 5. **Verify** — the checklist (§Checklist) plus the destination's own
    checklist (for a skill: its closing checklist and
-   `rem-public-skill-generalization`).
+   `rem-public-material-generalization`).
 
 ## Classification
 
@@ -135,7 +135,7 @@ Before finishing a distillation pass:
 - [ ] Each item classified (type + generality); session-specific items dropped
 - [ ] Destination per the table: amended the existing home when one exists (single ownership); a new doc only for a coherent new topic
 - [ ] Entries follow the type templates (pitfall = symptom/cause/fix/verification; rule correction applied per `rem-write-better-skill` §10)
-- [ ] Public content generalized per `rem-public-skill-generalization` (placeholders, no machine paths, no project inventory; real names only when verified public + cited)
+- [ ] Public content generalized per `rem-public-material-generalization` (placeholders, no machine paths, no project inventory; real names only when verified public + cited)
 - [ ] The destination's own conventions followed (a skill follows `rem-write-better-skill`)
 - [ ] Sources cited for facts; "verified YYYY-MM" dates present
 - [ ] No stale content left behind (outdated rules removed, not flagged)
@@ -148,6 +148,6 @@ Before finishing a distillation pass:
 ## Cross-references
 
 - `rem-write-better-skill` — writing conventions, structure, checklist contract, workaround lifecycle
-- `rem-public-skill-generalization` — what may appear in public content and how to generalize
+- `rem-public-material-generalization` — what may appear in public content and how to generalize
 - `rem-commit-workflow` — committing the distilled knowledge
 - `rem-temp-files` — where a session's scratch and intermediates belong

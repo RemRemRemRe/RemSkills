@@ -5,7 +5,7 @@ description: >
   agents). Covers frontmatter format, file structure, placeholder types, self-contained
   examples, exception handling, citations, table formatting, and checklist validation.
   Use when creating a new skill or updating an existing one. Publication/generalization
-  rules live in `rem-public-skill-generalization`.
+  rules live in `rem-public-material-generalization`.
 metadata:
   category: meta
   trigger: manual
@@ -42,7 +42,7 @@ metadata:
 | Field | Convention |
 |-------|-----------|
 | `name` | Lowercase kebab-case, matching the folder name |
-| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it. Must use generic placeholders — no project-specific names, local paths, or machine-dependent values (see §3 and `rem-public-skill-generalization`). |
+| `description` | Use `>` for multi-line text (joins lines with spaces); describe what the skill covers AND when to trigger it. Must use generic placeholders — no project-specific names, local paths, or machine-dependent values (see §3 and `rem-public-material-generalization`). |
 | `category` | `meta` (default) or `workflow` — a workflow skill drives a procedure; a meta skill carries rules |
 | `trigger` | `manual` (default, loaded on demand) or `always` — `always` means the constraint must also be stated **in the description**: harnesses keep only names + descriptions in context and load `SKILL.md` on demand (progressive disclosure — verified 2026-09 in pi, whose docs state only descriptions are always in context), so the description is the surface guaranteed to be present. Keep such a file under 2 KB |
 
@@ -146,7 +146,7 @@ to stand on its own structural merit.
 ### 3a. Generic Placeholder Paths and Names
 
 Generic placeholder paths/names, the public-content rules, and the
-public/private skill split are owned by `rem-public-skill-generalization`
+public/private skill split are owned by `rem-public-material-generalization`
 (§3 scope, §4 methods). This section no longer restates them — see that skill.
 
 ---
@@ -223,7 +223,7 @@ Bad: "Convention says to always use `TObjectPtr`"
 Good: "`TObjectPtr<T>` for all `UPROPERTY` UObject members (required since UE 5.1; see `UObject/Pointer.h`)"
 
 **Public content vs. generalization** — which content keeps real names and
-what must be generalized (and how) is owned by `rem-public-skill-generalization`
+what must be generalized (and how) is owned by `rem-public-material-generalization`
 (§3 scope, §4 methods). This section no longer restates those rules.
 
 ---
@@ -278,7 +278,7 @@ line — avoid multi-paragraph checklist entries.
 skill that fail silently — frontmatter shape and allowed values, `name` vs
 folder, a description that states a trigger, the closing checklist, and the
 size budget. The leak and name checks it also runs are owned by
-`rem-public-skill-generalization`.
+`rem-public-material-generalization`.
 
 **Always-on audit.** The same tool answers "what does this cost every request?":
 `node tools/lint-skills.mjs --discovery <root>...` lists every skill a skills root
@@ -298,7 +298,7 @@ replacement for it.
 ## 8.5 Externalize Config & Anonymize Project Data
 
 Externalizing project config and anonymizing project data is owned by
-`rem-public-skill-generalization` (§4 methods: external per-plugin configs,
+`rem-public-material-generalization` (§4 methods: external per-plugin configs,
 per-skill `local/` overlays linked from `RemSkillsPrivate`, link-based
 reference docs). This section no longer restates the rules.
 
@@ -414,11 +414,11 @@ Before publishing a new or updated skill:
 - [ ] All code examples use completely meaningless placeholder types (`FFoo` / `FBar`, no domain hints like "Event" or "Component")
 - [ ] All file paths, plugin names, and config values in examples use generic placeholders (`<plugin-source-dir>`, `<DepA>`) — no literal machine path and no example project name
 - [ ] Every code example is self-contained (no prerequisite domain knowledge assumed)
-- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized per `rem-public-skill-generalization` (per-plugin configs, per-skill `local/` overlays, link-based reference docs)
+- [ ] No machine paths, project names, or per-project decisions inside the skill — externalized per `rem-public-material-generalization` (per-plugin configs, per-skill `local/` overlays, link-based reference docs)
 - [ ] First-use/setup instructions present (how to create the external configs; tools error out when they are missing)
 - [ ] Every rule lists exceptions explicitly where they exist
 - [ ] Sources cited for conventions that come from external authorities or specific files; dated facts carry "Since UE X.Y" or "Last verified: YYYY-MM"
-- [ ] Public-content / generalization rules per `rem-public-skill-generalization` — real names only for verified-public content (cited); everything else generalized, or moved to the private overlay (values) or a private skill (rules)
+- [ ] Public-content / generalization rules per `rem-public-material-generalization` — real names only for verified-public content (cited); everything else generalized, or moved to the private overlay (values) or a private skill (rules)
 - [ ] Reference content formatted as tables where appropriate
 - [ ] Overlapping rules have single ownership — cross-referenced, not copied
 - [ ] Closing checklist covers every rule in the body (or has a stated reason why not)

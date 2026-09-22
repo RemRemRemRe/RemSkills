@@ -18,7 +18,7 @@ metadata:
 
 `local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
 them, never committed here; they win over `references/` and the rules below, and carry values only
-(the model is owned by `rem-public-skill-generalization`). Files read when present:
+(the model is owned by `rem-public-material-generalization`). Files read when present:
 
 - `local/build-test-and-commit.md` - build/headless-test commands, commit-convention snapshot, project inventory and sweep notes
 - `local/CommitConventionHelper.json` - commit-type config snapshot
@@ -41,10 +41,27 @@ config (the local overlay keeps a snapshot of it).
 Accept the types the project's config defines. Add a body when the change
 spans several concerns or the "why" is non-obvious.
 
-**Body readability (collection rule):** a body with multiple details lists
-each change as **one bullet line** (`- <one change>`), never a long paragraph.
-One line per change keeps the diff readable and the changelog clean — a
-multi-sentence paragraph body is a review smell.
+**Body discipline (collection rule):** a body carries the *why* and the
+contracts; the diff carries the *how*.
+
+- One bullet per change (`- <one change>`), never a long paragraph — one line
+  per change keeps the history readable and the changelog clean.
+- A bullet states the final contract, invariant, measured constraint or
+  non-obvious reason. It never narrates diff mechanics ("renamed X", "added the
+  include", "moved Y") that the diff already shows.
+- **Verification is one short closing line at most**, and only for a
+  behaviour-affecting commit: `- Verified: editor DebugGame build and the full
+  automation suite are green.` No raw action/case counts, log or run file
+  names, per-module breakdowns, warning counts, exit codes or "on this exact
+  tree" — the gate's raw evidence lives in the run directory; the message says
+  only what was verified.
+- **No local identifiers**: no consumer-project or editor-target names, no
+  machine or drive paths, no private module/test-prefix inventory, no internal
+  sweep or campaign names. Describe scope generically. The leak rules are owned
+  by `rem-public-material-generalization`.
+- Keep it proportional: a body that needs more than a handful of bullets is
+  usually restating the diff or a document — that detail belongs in the code
+  comment, the reference doc or the pull request; the body keeps the decisions.
 
 ## Commit hygiene
 
@@ -239,7 +256,7 @@ Stage 2 — prune by symbol, then decide:
 
 `commit` and `push` are not two halves of one act. A commit is local and freely
 rewritable; a push is public, and once fetched it cannot be taken back
-(`rem-public-skill-generalization` §1 — public history is permanent, and
+(`rem-public-material-generalization` §1 — public history is permanent, and
 rewriting what is already published is a separate, deliberate call).
 
 - **Never infer authorization to publish.** An approval of the work — "go
@@ -276,6 +293,7 @@ Before committing:
 
 - [ ] Message follows `Type: short desc` with a type from the project's config
 - [ ] Body lists each change as one bullet line — no multi-sentence paragraphs
+- [ ] Body carries decisions, not evidence dumps — at most one short verification line, no local identifiers
 - [ ] One logical change per commit; a mixed commit was split per reason-to-change
 - [ ] Comments in the diff are English
 - [ ] Every edited file went through the Rider MCP `reformat_file` pass

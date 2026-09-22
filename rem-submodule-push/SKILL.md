@@ -30,7 +30,7 @@ once they may.
 
 `local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
 them, never committed here; they win over `references/` and the rules below, and carry values only
-(the model is owned by `rem-public-skill-generalization`). Files read when present:
+(the model is owned by `rem-public-material-generalization`). Files read when present:
 
 - `local/repositories-and-ownership.md` - repositories, accounts, ownership, no-push exceptions
 

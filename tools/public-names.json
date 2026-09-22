@@ -1,7 +1,7 @@
 {
   "$comment": [
     "Rem-family names a public skill may state verbatim — the allowlist behind the",
-    "Rem-family name check in lint-skills.mjs (rem-public-skill-generalization §3.2).",
+    "Rem-family name check in lint-skills.mjs (rem-public-material-generalization §3.2).",
     "Every entry needs a publicly verifiable source. Verify ANONYMOUSLY, because a stored",
     "credential silently resolves a private repository:",
     "  git -c credential.helper= -c core.askPass= ls-remote --heads <repo>",
@@ -17,7 +17,7 @@
   "publicNames": {
     "RemRemRemRe": "https://github.com/RemRemRemRe",
     "RemSkills": "this collection",
-    "RemSkillsPrivate": "the collection's private repo: local-only skills + the tracked overlay values (rem-public-skill-generalization §3.3)",
+    "RemSkillsPrivate": "the collection's private repo: local-only skills + the tracked overlay values (rem-public-material-generalization §3.3)",
 
     "RemCommon": "https://github.com/RemRemRemRe/RemCommon",
     "RemCommonModule": "https://github.com/RemRemRemRe/RemCommon (the IRemCommonModule interface)",

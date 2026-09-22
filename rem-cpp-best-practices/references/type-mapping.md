@@ -11,8 +11,8 @@ Rules of thumb live in the main SKILL.md; this file holds the complete tables.
 | Context | Type to use |
 |---------|-------------|
 | `UPROPERTY` member | `TObjectPtr<UObject>` |
-| Function parameter | `UObject*` (raw pointer) |
-| Function return | `UObject*` (raw pointer) |
+| Function parameter | `TNotNull<UObject*>` / `TNotNull<const UObject*>` — null is not allowed by default |
+| Function return | `TNotNull<UObject*>` for the non-null contract; bare `UObject*` only for the nullable half (`TryGet*`) |
 | Local variable | `auto* Ptr = ...` |
 | Weak reference (UPROPERTY) | `TWeakObjectPtr<UObject>` |
 | Soft reference (UPROPERTY) | `TSoftObjectPtr<UObject>` |

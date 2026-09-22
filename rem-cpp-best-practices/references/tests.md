@@ -361,6 +361,24 @@ Guard **per case**, not per file: the counter cases and the behaviour case need
 different conditions, so one file-level guard both hides cases that could run and
 keeps cases that cannot.
 
+## 14. Tick-order prerequisites: observe with a probe, not with spawn order (verified 2026-09)
+
+A tick prerequisite is a claim about **tick order**, and nothing static shows it.
+
+- **Engine semantics** — `AController::AddPawnTickDependency(Pawn)` calls
+  `Pawn->PrimaryActorTick.AddPrerequisite(Controller, Controller->PrimaryActorTick)`, and a
+  prerequisite tick function runs **first**: the **controller ticks before the pawn**, contrary to the
+  naive reading of the method name (verified in the engine source and at runtime).
+- **How to test it** — spawn a probe actor that also ticks and records "how many times the other side
+  had ticked when I ticked"; assert on those counts. Pin the baseline order with explicit tick groups
+  rather than spawn order (`Pawn->PrimaryActorTick.TickGroup = TG_PrePhysics;`,
+  `Controller->PrimaryActorTick.TickGroup = TG_DuringPhysics;`). Never depend on spawn order or on
+  `TSet` iteration order, and do not route the assertion through a query API a behaviour change could
+  also pass.
+- **Falsification** — replacing the `Add` call with a no-op turns two assertions red; replacing the
+  matching `Remove` with a no-op turns the other two red; restoring both returns the suite green.
+  Produce that four-way red/green before trusting the probe.
+
 BDD spec style, the test-USTRUCT namespace rules and the build/run
 configuration are stated once each: style and the namespace rules in §1–§2 +
 `SKILL.md` §16, the DebugGame configuration and the headless run command in §4

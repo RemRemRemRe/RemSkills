@@ -172,6 +172,8 @@ UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `
 
 `Rem::TNotNull<T>` expresses non-null semantics: `*NotNull` on `TNotNull<const T*>` yields the **value** reference, no pointer arithmetic (MSVC selects the deleted `operator bool` — convert to a raw pointer first), and it cannot hold `nullptr` (a walk that terminates on null uses a raw pointer). Never `NULL` or `0`.
 
+**Scope — every reference, parameter *or* return.** A `&` to a UObject/interface (or to an object-like container) is a `TNotNull` candidate; the API prefers pointer semantics over reference semantics. Only value semantics keep the reference — a value type passed by reference to avoid a copy (`FVector`, `FGameplayTag`, `TConstArrayView`, enums), and signatures fixed by reflection or the engine (`UFUNCTION`, `BlueprintImplementableEvent`, engine virtual overrides). A non-null getter is named `Get*` and returns `TNotNull`; the nullable half of the pair is `TryGet*` returning a raw pointer; a `Get*Ref` name is the pre-conversion form.
+
 Express that contract in the **type**, not by wrapping at the call site: `TNotNull`'s pointer
 constructor is implicit (`explicit(!TIsImplicitlyConstructible_V<T, ArgTypes...>)`), so
 `return Pointer;` into a `TNotNull<T*>` return type needs no helper and runs the same null check.
@@ -531,7 +533,7 @@ preconditions. Capture `[&]` for full access to the enclosing scope.
 An accessor pair splits by contract:
 
 - **`Get` is the checked primitive** — assertion plus the direct read: no validity
-  branch, no recovery path (`TNotNull<T*>` or a reference).
+  branch, no recovery path (`TNotNull<T*>`; never a reference or a raw pointer).
 - **`TryGet` reports the invalid value** — guard, then delegate to `Get`, so there is
   one read path and one assertion.
 - Never the reverse (`Get` = assert + `TryGet`): the checked path would pay a validity
@@ -597,6 +599,7 @@ Before committing any C++ file:
 - [ ] Designer-facing properties that need explanation carry a `ToolTip` or a `/** */` doc comment (§10)
 - [ ] No specifier text or preprocessor line sits in a comment next to a declaration or inside its specifier list (UHT turns it into the tooltip — §4)
 - [ ] `TObjectPtr<T>` (not raw `T*`) for all UPROPERTY UObject members; UPROPERTY types are UPROPERTY-able (`TWeakInterfacePtr` is not — keep it non-UPROPERTY); assertion macros include their header; weak pointers use `.IsValid()` — see `references/pitfalls.md`
+- [ ] U-object/interface **references** are `TNotNull` — parameter *and* return (`const X&` → `TNotNull<const X*>`, `X&` → `TNotNull<X*>`); only value semantics keep a reference; non-null getters are named `Get*`, nullable ones `TryGet*`, and no `Get*Ref` name survives a conversion
 - [ ] Bitfields only when they actually save memory under alignment rules
 - [ ] Scalar width matches the value's role (§12): no authoritative world position or accumulated world state in an `f` type (`FVector3f`/`FRotator3f`/`FTransform3f`); tuning parameters, angles and dimensionless values may use the `f` variant
 - [ ] A narrow position array is a re-based local array with one `double` origin per chunk — not a world-position array stored narrow (`references/scalar-width.md` §7)

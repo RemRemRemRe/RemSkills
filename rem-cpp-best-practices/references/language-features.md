@@ -418,8 +418,8 @@ if constexpr (CHasGetWorld<T>) { ... }
 | Context | Type to use |
 |---------|-------------|
 | `UPROPERTY` member | `TObjectPtr<UObject>` |
-| Function parameter | `UObject*` (raw pointer) |
-| Function return | `UObject*` (raw pointer) |
+| Function parameter | `TNotNull<UObject*>` / `TNotNull<const UObject*>` — null is not allowed by default |
+| Function return | `TNotNull<UObject*>` for the non-null contract; bare `UObject*` only for the nullable half (`TryGet*`) |
 | Local variable | `auto* Ptr = ...` |
 | Weak reference (UPROPERTY) | `TWeakObjectPtr<UObject>` |
 | Soft reference (UPROPERTY) | `TSoftObjectPtr<UObject>` |
@@ -433,6 +433,24 @@ not leak `TScriptInterface` into C++-first signatures. Full examples incl.
 `const` UObject pointers: `references/type-mapping.md`.
 
 ### `TNotNull` for non-null semantics
+
+**Where it applies: every reference, parameter *or* return.** A reference to a
+UObject/interface (or to an object-like container) is an indirection like a
+pointer, so it is a `TNotNull` candidate — the goal is pointer semantics in the
+API, not reference semantics. Two things are *not* candidates: value semantics
+(a value type passed by reference to avoid a copy — `FVector`, `FGameplayTag`,
+`TConstArrayView`, enums) and signatures the reflection/engine layer fixes
+(`UFUNCTION`, `BlueprintImplementableEvent`, engine virtual overrides).
+
+```cpp
+// Reference in, pointer semantics out:
+TNotNull<const UMyAsset*> Resolve(const UMyAsset& Source);   // not `const UMyAsset& Resolve(...)`
+
+// Non-null getter: TNotNull return, `Get*` name (no `Ref` suffix):
+TNotNull<UMyComponent*> GetComponent();
+UMyComponent* TryGetComponent();      // the nullable half of the pair
+UMyComponent& GetComponentRef();      // pre-conversion form — convert when touched
+```
 
 Wrap raw pointers when null is logically impossible:
 
@@ -475,6 +493,11 @@ auto* End = Metadata + Chunk->MetadataNum;
 null link must use a raw pointer variable (`FChunk* Chunk = Tail;` + `Chunk =
 Chunk->Prev;`), not a `TNotNull`. Assigning `nullptr` into a `TNotNull`
 triggers `UE::Core::Private::ReportNotNullPtr()` (fatal in non-shipping builds).
+The exact configuration behavior of that guarantee — the check lives under
+`DO_CHECK`, not under the wrapper macro, and `UE_ENABLE_NOTNULL_WRAPPER` off
+degrades `TNotNull<T>` to `T` — plus the contract it puts on a strict `Get*`
+accessor is in `references/pitfalls.md` (`TNotNull`'s non-null guarantee is a
+development-only check).
 
 ### Never `NULL` or `0`
 

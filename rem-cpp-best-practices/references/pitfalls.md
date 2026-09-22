@@ -141,6 +141,35 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Applies to** � MSVC 19.5x (UE 5.8); `const auto*` and `auto* const` differ by one word and a
   whole error message.
 
+## `TNotNull` (engine wrapper)
+
+### `TNotNull`'s non-null guarantee is a development-only check (verified 2026-09)
+
+- **Symptom** — one accessor behaves differently per configuration: a strict getter (assert the
+  contract, then read straight through) **terminates the process** in a development build when a
+  caller violates the precondition, yet returns a **silent null** in `Test`/`Shipping`. At the call
+  site the opposite surprise: `auto* P = MakeNotNull(...)` fails to deduce while
+  `SomeRawApi(NotNull)` compiles.
+- **Cause** — engine `Core/Public/Misc/NotNull.h` + `Core/Private/Misc/NotNull.cpp`: the pointer
+  check is compiled under **`DO_CHECK`**, and `ReportNotNullPtr()` is
+  `UE_LOGF(LogCore, Fatal, "Null assigned to TNotNull")` — fatal, not assert-and-continue. The
+  wrapper itself is governed by a different switch, **`UE_ENABLE_NOTNULL_WRAPPER = (UE_BUILD_DEBUG
+  || UE_BUILD_DEVELOPMENT)`**; where that is off, `template <typename T> using TNotNull = T;`, so the
+  type *and its guarantee* disappear together. The two switches are independent: the check belongs to
+  `DO_CHECK`, not to the wrapper macro.
+- **Call-site facts** — the wrapper has a deliberate implicit `operator T*() const` ("for
+  compatibility with non-TNotNull APIs"), so a `TNotNull<T*>` argument feeds any API expecting a raw
+  pointer or reference; `auto*` still cannot deduce through it (C3535) — use bare `auto` or the
+  explicit type. `operator bool` is deleted and comparison against `nullptr` is deleted (a
+  `static_assert` also rejects it), so test/compare via `&*` or against a raw pointer.
+- **Fix** — treat non-null as a **contract, not a runtime guard**: 1) state it in the declaration
+  comment; 2) a path that may legitimately be absent gets the Shipping-surviving guard (`RemEnsure*`,
+  or an `ensure`) or the nullable `TryGet*` half — never a `RemCheck*`; 3) never put an "assert +
+  direct read" strict accessor on a path callers can violate.
+- **Verification** — read from the engine header and implementation above; the per-configuration
+  difference follows directly from the `DO_CHECK` scope and the `UE_ENABLE_NOTNULL_WRAPPER` alias.
+- **Applies to** — UE 5.8.
+
 ## Test-world driving
 
 ### `SetTimerForNextTick` fires on the tick AFTER the registration tick (verified 2026-08)
@@ -234,6 +263,27 @@ Rem-specific entries name Rem APIs as documented in this skill.
   **true positive**: the same shape was reported clean in a neighbouring header that also lacked the
   complete type, so treat a single clean report as an analysis miss, not as evidence.
 - **Applies to** — UE 5.8 / MSVC 19.5x (verified 2026-09).
+
+### A reflected struct that inherits an interface makes the struct view read the UObject overload (verified 2026-09)
+
+- **Symptom** — a task whose instance data is a reflected `USTRUCT` fails at runtime in
+  `PropertyBindingUtils/Public/PropertyBindingDataView.h:155`
+  (`check(Struct->IsChildOf(UObject::StaticClass()) && ...)`) and never runs at all; the build and
+  the IDE's static analysis are clean, so nothing points at the cause.
+- **Cause** — when a `USTRUCT` inherits a `UINTERFACE`-style C++ interface, UHT marks its generated
+  class `CLASS_Interface`, which makes `TIsIInterface<T>` true for the struct type. The two
+  `FPropertyBindingDataView::GetMutable<T>` overloads are selected by exactly that trait, so the read
+  binds to the **"UObject interface"** overload and checks the `UScriptStruct` view as if it were a
+  `UClass` — the check fails.
+- **Fix** — read through the instance-data struct ref's pointer form,
+  `Context.GetInstanceDataStructRef(*this).GetPtr()`, instead of the reference-returning
+  `GetInstanceData<T>()`. `TStateTreeInstanceDataStructRef::GetPtr()` (in `StateTreeInstanceData.h`)
+  checks `DataView.GetStruct()->IsChildOf<T>()` and returns a plain `T*` cast from the raw memory, so
+  the `TIsIInterface`-selected overload is never entered. It returns null on a type mismatch (after an
+  `ensure`), so guard it with a Shipping-surviving form (`RemEnsure*`) rather than a check macro.
+- **Verification** — the trait-selected overloads and the `GetPtr()` body above; the affected task
+  went from not running at all to running once the read changed (four sites in the same task set).
+- **Applies to** — UE 5.8 (verified 2026-09).
 
 ## C++ — wrapper parameters, overloads, templates
 

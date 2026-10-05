@@ -17,25 +17,25 @@ Two primary families, separated by what they validate:
 
 Both accept 1, 2, or 3 arguments via `REM_MULTI_MACRO` overload resolution.
 The first optional argument is the **assertion macro** to fire on failure
-(defaults to `ensureAlways`). The last optional argument is the **invalid
+(defaults to `REM_ENSURE_ALWAYS`). The last optional argument is the **invalid
 handling statement** — arbitrary statements executed when the condition is
 false (typically `return;`, `return {};`, or a brace-enclosed block).
 
 **Signatures and usage:**
 
 ```cpp
-// 1 arg: condition only — fires ensureAlways, no handling
+// 1 arg: condition only — fires REM_ENSURE_ALWAYS, no handling
 RemEnsureCondition(bInitialized);
 
-// 2 args: condition + handling statement (defaults to ensureAlways)
+// 2 args: condition + handling statement (defaults to REM_ENSURE_ALWAYS)
 RemEnsureCondition(MoverComp != nullptr, return;);
 
 // 3 args: custom assertion macro + condition + handling
 RemEnsureCondition(ensure, MoverComp != nullptr, return;);
 
 // Same overloads for variable validation (uses Rem::IsValid internally):
-RemEnsureVariable(MoverComp);                         // ensureAlways, no handling
-RemEnsureVariable(MoverComp, return;);                 // ensureAlways + handling
+RemEnsureVariable(MoverComp);                         // REM_ENSURE_ALWAYS, no handling
+RemEnsureVariable(MoverComp, return;);                 // REM_ENSURE_ALWAYS + handling
 RemEnsureVariable(check, MoverComp, return;);          // check() + handling
 ```
 
@@ -60,17 +60,19 @@ on the hot path. `RemEnsureVariable` delegates to `RemEnsureCondition`.
 ## 2. `RemCheckCondition` / `RemCheckVariable`
 
 Currently **aliases** for `RemEnsure*` when `DISABLE_CHECK_MACRO` is `false`
-(the default). They share identical signatures and behavior.
+(the development case). They share identical signatures and behavior where
+active.
 
-The intended semantic distinction:
-- `RemCheck*` — developer-error checks, intended to be stripped in shipping
-  (gated by `DISABLE_CHECK_MACRO` in the future)
+The semantic distinction:
+- `RemCheck*` — developer-error checks; in Shipping the guard, its condition
+  **and** its handling statement are stripped together (`DISABLE_CHECK_MACRO`
+  derives from `UE_BUILD_SHIPPING`)
 - `RemEnsure*` — runtime-possible states, always active
 
 | Setting | Effect |
 |---------|--------|
-| `DISABLE_CHECK_MACRO = false` (default) | `RemCheck*` is identical to `RemEnsure*` |
-| `DISABLE_CHECK_MACRO = true` | `RemCheck*` compiles to nothing |
+| `DISABLE_CHECK_MACRO = false` (development) | `RemCheck*` is identical to `RemEnsure*` |
+| `DISABLE_CHECK_MACRO = true` (Shipping) | `RemCheck*` compiles to nothing — condition and handling go with it |
 
 **Usage:**
 
@@ -175,11 +177,16 @@ statement vanish together**. Three consequences decide where a guard belongs:
 |-------|--------|
 | `REM_LET_IT_CRASH` | Strips all invalid handling statements — failures become fatal |
 | `REM_DISABLE_ASSERTION` | Disables the assertion self-test (`REM_ASSER_CONDITION_EVALUATED`) |
-| `DISABLE_CHECK_MACRO` | Strips `RemCheck*` macros entirely |
+| `DISABLE_CHECK_MACRO` | Strips `RemCheck*` macros and their handling (derives from `UE_BUILD_SHIPPING`) |
 | `NO_LOGGING` | Strips all `REM_LOG_*` macros (see section 4) |
 | `REM_NO_ASSERTION` | Readability placeholder — no diagnostic, no handling |
 | `REM_NO_HANDLING` | Readability placeholder — diagnostic only, no handling |
 | `REM_NO_ASSERTION_OR_HANDLING(Condition)` | Readability: assert only, no handling, explicit condition |
+
+Config switches must be **overridable**: a hard `#define X 1` makes the `#else`
+branch unreachable and untestable. Write `#ifndef X / #define X 1 / #endif` so
+the disabled branch can be compiled, and prove it with a dedicated test
+translation unit that defines the switch to `0`.
 
 ## 4. Log macros — `REM_LOG_ROLE` / `REM_LOG_FUNCTION` / `REM_LOG_ROLE_FUNCTION`
 

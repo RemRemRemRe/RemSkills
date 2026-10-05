@@ -58,6 +58,7 @@ UE_INLINE_GENERATED_CPP_BY_NAME(MyClass)
 | `generated.h` before types | Must be included **before** any `UCLASS`/`USTRUCT` declaration (UHT requirement); forward declarations come after all includes |
 | Own header first | In `.cpp`, matching header is the first `#include` |
 | IWYU | Include every header directly used; do not rely on transitive includes |
+| Incomplete type | Prefer a **forward declaration**; `#include` only when the complete type is needed (project rule) |
 | Empty line separators | Separate groups with empty lines for readability |
 | `.inl` for templates | Heavy template implementations go in `FileName.inl` alongside the header. The `.h` stays minimal; callers `#include` the `.inl` directly when they need the template. Do NOT auto-include `.inl` from `.h` — it forces heavier transitive dependencies on every consumer of the `.h`. |
 

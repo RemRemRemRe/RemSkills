@@ -42,7 +42,7 @@ extended examples live in `references/` — load them when writing that kind of 
 | `references/naming-formatting.md` | Naming and formatting detail: namespace layout, extended examples, member ordering, `ThisClass` alias |
 | `references/file-layout.md` | Header/source layout examples and the include rules |
 | `references/language-features.md` | `auto`, `const`/`constexpr`, `if constexpr`, concepts — rules with worked examples |
-| `references/design.md` | SOLID, zero-overhead table, move semantics |
+| `references/design.md` | SOLID, elegance proxies, zero-overhead table, move semantics |
 | `references/modules.md` | Module/plugin skeleton, `.uplugin` fields, export macro |
 | `references/dll-boundaries.md` | Exporting a class template's **instantiation** across a module boundary; export-macro placement, C4910 / C2908 / C2766, verifying against the binary's export/import tables |
 | `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage and pitfalls |
@@ -179,6 +179,11 @@ constructor is implicit (`explicit(!TIsImplicitlyConstructible_V<T, ArgTypes...>
 `return Pointer;` into a `TNotNull<T*>` return type needs no helper and runs the same null check.
 `MakeNotNull` is for the cases where *deduction* matters: it keeps the pointee's constness and
 unwraps a `TObjectPtr`.
+
+**Rename/wrapper migration: delete the old name, do not leave a forwarding alias.** An alias
+silences the residual sites; deleting it makes the compiler enumerate them, so completeness is
+proved by the build — the only errors left are wrapper-specific (`TNotNull` member access `.` →
+`->`, non-const reference binding).
 
 Examples and the full table: `references/language-features.md`.
 
@@ -318,6 +323,7 @@ Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Fiv
 - `TArray::Add` for existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - `FUtf8String` is the primary string type; `FString` only when the engine API demands it
 - No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
+- **Handle/registration tokens that are never a container index** use `unsigned` with `0` = invalid — not `int32` + `INDEX_NONE` (that sentinel belongs to container indices); precedents: `FTargetingRequestHandle`/`FPrimitiveComponentId`/`FDelegateHandle`. Never add unreachable sentinel-skip code.
 
 Complete tables (judgment calls, string priority, Add vs Emplace):
 `references/type-mapping.md`.
@@ -397,23 +403,8 @@ Zero-overhead rules and move semantics: `references/design.md`.
 
 ### Elegance — objective proxies
 
-"Elegant" is not reviewable as stated, so it is checked through proxies a
-reviewer can point at. A review may raise **at most three** elegance findings
-per change, each naming the concrete alternative — anything beyond that is
-taste, not a defect, and must not be reported.
-
-| Proxy | The finding looks like |
-|---|---|
-| Minimal surface | An exported/public member no caller uses; a `public` that could be `private`; a non-`const` method that never mutates |
-| Names reveal intent | A name that describes the mechanism instead of the concept (`ProcessData` for what is really "apply damage") |
-| No hidden side effects | A getter that mutates; a constructor that touches the world; a query that allocates unbounded |
-| No dead weight | Dead code, commented-out code, unused parameters, unreferenced helpers, `#if 0` blocks |
-| No premature abstraction | A base class / interface / template with exactly one implementation and no planned second; a parameter that only ever takes one value |
-| Symmetry and consistency | Sibling methods with different shapes; one path throwing and another returning a sentinel; a new helper duplicating one that already exists (survey `RemCommon` first — §3) |
-| One reason to change | A header including unrelated subsystems; a function whose name needs "And" |
-
-Deletion is the preferred fix: a proxy that fails because the code is
-unnecessary is resolved by removing it, not by adding a layer.
+"Elegant" is not reviewable as stated; it is checked through proxies, capped at three
+findings per change — the table and the deletion rule live in `references/design.md`.
 
 ---
 

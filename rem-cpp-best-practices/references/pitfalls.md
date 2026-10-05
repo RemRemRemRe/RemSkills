@@ -127,6 +127,12 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Fix** — construct from a lambda: `TFunction<T(U)> Fn{[](U In) { ... }};`
 - **Verification** — compile.
 
+### `TArray::RemoveAllSwap` is not order-preserving (verified 2026-09)
+
+- **Fact** — `RemoveAllSwap(Pred)` moves the last element into each removed slot, so survivor order is
+  not stable; `RemoveAll` preserves it.
+- **Use** — where survivor/registration order is semantic, use `RemoveAll`.
+
 ### `const auto*` makes the pointee const, so `Cast` + `TWeakObjectPtr` will not compile (verified 2026-09)
 
 - **Symptom** � `TWeakObjectPtr<UMyType>{TypedOwner}` reports
@@ -169,6 +175,13 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Verification** — read from the engine header and implementation above; the per-configuration
   difference follows directly from the `DO_CHECK` scope and the `UE_ENABLE_NOTNULL_WRAPPER` alias.
 - **Applies to** — UE 5.8.
+
+### A reference member converted to `TNotNull` makes the struct assignable (verified 2026-09)
+
+- **Pitfall** — a reference member already deletes assignment; converting it to `TNotNull<T*>`
+  restores copy/assignment, so a resource-holding struct silently becomes copyable (a real defect:
+  duplicate regeneration on copy).
+- **Fix** — mark such a struct `UE_NONCOPYABLE` (or give it an explicit copy policy).
 
 ## Test-world driving
 
@@ -335,6 +348,26 @@ Rem-specific entries name Rem APIs as documented in this skill.
   compiled once the checks moved into the body.
 - **Applies to** — MSVC 19.5x, C++20 (verified 2026-09).
 
+### A scoped enum forward declaration needs an explicit underlying type (verified 2026-09)
+
+- **Symptom** — `enum Result;` is a real compile error: a scoped enum's opaque declaration must name
+  its underlying type.
+- **Fix** — write `enum Result : int;` (match the engine's definition when redeclaring an engine enum).
+
+### A namespace-scope name shadows an engine global inside that namespace (verified 2026-09)
+
+- **Symptom** — a new namespace-scope name that matches a `::`-global engine function (e.g. a
+  `GetDefault` declared in `namespace Rem`) silently rebinds every *unqualified* call written inside
+  that namespace: unqualified lookup finds the namespace member before the global.
+- **Fix** — rename the new symbol, or qualify the engine calls with a leading `::`.
+
+### A function-local `using` alias shadows a namespace-scope type (verified 2026-09)
+
+- **Symptom** — a local `using FHandle = ...;` inside a function trips MSVC `C4459` (declaration
+  hides global declaration) in any consumer that already has a namespace-scope `FHandle`;
+  `ShadowVariableWarningLevel = Error` promotes that to a build error.
+- **Fix** — give the local alias a distinct name.
+
 ## UHT / UBT — renaming headers and includes
 
 ### Renaming a UHT header also renames its generated include (verified 2026-09)
@@ -362,6 +395,12 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Verification** — the error appeared only after a change that forced a wide rebuild (a template
   header edit) and disappeared after reordering the includes.
 - **Applies to** — UE 5.8 (verified 2026-09).
+
+### An unused-include hint is file-local (verified 2026-09)
+
+- **Pitfall** — a lint-flagged unused include is assessed from this file alone, but the header may be
+  load-bearing for a *consumer* of this header; deleting it can break a downstream build.
+- **Rule** — mass include deletion is build-gated: remove includes only with a build behind the edit.
 
 ## API design — accessors, names, invariants
 

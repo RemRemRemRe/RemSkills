@@ -74,6 +74,9 @@ the existing `<Domain>Statics.h` + `<Domain>Statics.inl` layout (e.g.
   an existing `RemCommon` facility is a review rejection (verified 2026-08: a
   custom all/any tag-match enum was replaced by the reused
   `Rem::Enum::ELogicOperator`).
+- **A free function that can be `static` should be** — a file-local helper gets
+  internal linkage; the exception is a function that is delegate-bound or a
+  `UFUNCTION`.
 
 ### Function & member naming
 
@@ -97,6 +100,14 @@ the existing `<Domain>Statics.h` + `<Domain>Statics.inl` layout (e.g.
 - **Output params**: prefix `Out` — `void GetItems(TArray<FItem>& OutItems)`
 - **Non-const getter pair**: define both `const` and non-`const` overloads returning `auto&&`
 - **Function objects**: `Rem::Fn::FunctionName` — via `REM_FUNCTION_TO_FUNCTOR_SIMPLE`
+
+### Names must refer to something
+
+Avoid empty filler that names no concept: `Params`, `Data`, `Info`, `Value`, `Object`, `Manager`,
+`Helper`, `Utils`. A parameter struct is named after what it parameterizes (`FSpawnOptions`,
+`FMovementConfig`, not `FSpawnParams`); a helper is named after its operation (`ResolveLifetime`,
+not `LifetimeHelper`). If no specific word exists, the abstraction is usually wrong — fix that
+rather than widening the name.
 
 ### Template parameter naming
 
@@ -293,6 +304,9 @@ the grouping.
 **Enforcement:** a data member declared after any function member (constructors
 included) is a review rejection — data first in every visibility group, always.
 
+**Definition order follows declaration order** (project rule): an out-of-line
+definition in the `.cpp` appears in the same order as its declaration in the `.h`.
+
 ### Namespace indentation
 
 
@@ -349,6 +363,9 @@ Note: the project `.DotSettings` enable `INT_ALIGN_EQ`, `INT_ALIGN_COMMENTS`,
 `INT_ALIGN_DECLARATION_NAMES`, and `INT_ALIGN_DESIGNATED_INITIALIZERS` — so
 assignment groups, trailing comments, and designated initializers ARE aligned.
 Format with Rider and keep what it produces; never hand-align beyond that.
+
+**Prefer designated initializers** for aggregate initialization (project style);
+the formatter aligns them (`INT_ALIGN_DESIGNATED_INITIALIZERS`).
 
 **Reformat caveat — long UPROPERTY `meta` strings (verified 2026-08):** the
 Rider reformatter can line-wrap a long `meta = (EditCondition = "...")` string

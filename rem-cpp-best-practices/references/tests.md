@@ -203,6 +203,8 @@ Third-party editor plugins that crash under `-nullrhi` may need
   `EXCEPTION_ACCESS_VIOLATION` in the log otherwise.
 - Run the binary matching the built configuration; mismatches silently load
   stale modules.
+- `ensure` cannot prompt or hang a headless run: `bPromptForRemoteDebugOnEnsure`
+  defaults false and the path also returns under `FApp::IsUnattended()`.
 
 ## 5. Assertion pitfalls (verified 2026-08)
 
@@ -213,6 +215,13 @@ Third-party editor plugins that crash under `-nullrhi` may need
 | `TestEqual` on `enum class` | No enum overload | `static_cast<int32>(...)` both sides |
 | `TestEqual` on `TSubclassOf` / `TObjectPtr` wrappers | No overload | `TestTrue(A == B)` (wrapper `==` exists) |
 | `TestTrue(TEXT("..."), true)` | Placeholder assertion — reviewer should flag it | Never write one; assert a real condition |
+
+### Expected-error declarations (verified 2026-09)
+
+The editor records each `ensure` report **twice** — the macro's own `LogOutputDevice` line *and*
+`FUnrealEdMisc::OnEnsureFailed` mirroring the same message into `EnsureFailed` — so a pattern that
+expects one occurrence fails. Declare `Occurrences = 0` ("one or more, unbounded") and give each
+pattern a **case-unique token**: an `It`-scoped pattern silently shadows a longer one.
 
 ## 6. Reflection round-trip pitfall: byte-copy aliasing (verified 2026-08)
 
@@ -318,6 +327,11 @@ A header-only template with no in-repo consumer compiles nothing — errors
 missing includes) stay latent until first instantiation. Every template header
 shipped in the repo must be instantiated by tests; this is the primary purpose
 of the test module.
+
+A value-only assertion is not enough for a generated or forwarding API: also assert the **produced
+type** with `static_assert(std::is_same_v<std::decay_t<decltype(Macro(Args...))>, Expected>)` (use
+`std::declval` in an unevaluated context for forwarding forms — zero runtime code). A typo'd type
+and an asymmetric disabled branch both passed value-only tests.
 
 ## 13. Capture devices and the dev-only config matrix (verified 2026-09)
 

@@ -37,6 +37,11 @@ those manually (§4 member ordering). Verified 2026-08: a `const`-able
 parameter in a test header was invisible to `get_file_problems` (`errors: []`)
 and only `lint_files` reported it.
 
+**Detection only — no quick-fix tool.** Rider MCP exposes no intention/quick-fix
+action: `lint_files` detects but cannot fix (`--fix` is ignored), and
+`reformat_file` is formatting-only — it never adds `virtual`, `const` or an
+access specifier, so those findings stay manual.
+
 **WARNING-tier visibility issues are also only caught reliably by a sweep of
 files the reformat did not touch.** The reformat pass lints only the files it
 changed; pre-existing findings in untouched files (e.g. module impl classes
@@ -44,6 +49,11 @@ whose `StartupModule`/`ShutdownModule` overrides lack `public:` — the default
 class access is private, so the override visibility narrows from the public
 base) stay silent until a full `lint_files` sweep. Sweep the whole module's
 `Source/` when the change set touches a plugin, not just the diff files.
+
+A visibility **widening** is not a defect: raising a derived access specifier
+(`protected` → `public`) is legitimate and may be exactly what an external
+caller needs — only a **narrowing** below the base is. Check external callers
+before "aligning" a member to its base; a blind alignment broke a build.
 
 ### MCP silence is not proof the file is clean
 
@@ -93,6 +103,9 @@ against the compiler:
 
 More families confirmed as noise on this codebase - do not "fix" them:
 
+- **Strong-alias construction** (`strong_alias` wrapper types): constructing an alias from a
+  related enum/value is reported as `No viable constructor` / `does not satisfy concept
+  strong::is_alias` / `Substitution failed`, although the copy compiles fine.
 - **Redundant `typename`** on a dependent nested type: **not a false positive since C++20** — P0634R3
   makes the prefix optional wherever only a type can appear (a leading return type, a parameter, a
   template argument, an alias RHS), which is exactly where this hint fires. It is still *required*

@@ -48,6 +48,21 @@ metadata:
 
 ---
 
+## 1.5 What a Skill Stores
+
+Store what a future session cannot re-derive cheaply:
+
+- **Preferences and house style** — what this project does where several alternatives are defensible.
+- **Decisions and their reasons** — including the rejected alternative, so it is not relitigated.
+- **Tool metadata** — signatures, config values, invocation shapes, and what a tool cannot do.
+- **Non-obvious knowledge** — cross-platform or version compatibility, misleading or silent tool
+  behaviour, false positives, and workarounds that outlive the bug.
+
+**Omit what the tooling reports and fixes on its own**: a compiler/IDE diagnostic with an obvious fix,
+language basics, standard-library rules. The message is in front of the author exactly when it
+matters; repeating it dilutes the skill. When a diagnostic is misleading, record the triage — what it
+really means — not the error text.
+
 ## 2. File & Directory Structure
 
 ```

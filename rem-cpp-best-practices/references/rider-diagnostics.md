@@ -103,9 +103,6 @@ against the compiler:
 
 More families confirmed as noise on this codebase - do not "fix" them:
 
-- **Strong-alias construction** (`strong_alias` wrapper types): constructing an alias from a
-  related enum/value is reported as `No viable constructor` / `does not satisfy concept
-  strong::is_alias` / `Substitution failed`, although the copy compiles fine.
 - **Redundant `typename`** on a dependent nested type: **not a false positive since C++20** — P0634R3
   makes the prefix optional wherever only a type can appear (a leading return type, a parameter, a
   template argument, an alias RHS), which is exactly where this hint fires. It is still *required*

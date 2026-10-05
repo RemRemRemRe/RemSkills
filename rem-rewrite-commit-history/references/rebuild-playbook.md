@@ -54,6 +54,17 @@ Recipe (on a disposable branch, per the Execute step in `../SKILL.md`):
    entered (e.g. `git filter-branch --tree-filter` deleting the junk
    lines), not by a later cleanup commit.
 
+**Group folding (regrouping adjacent commits only).** When the reshape only regroups adjacent
+commits — no reordering, no content merge — build each new commit from
+`git commit-tree <group-tip>^{tree}` with the group's author/date: conflict-free and editor-free,
+and only the tip hash changes. Stage each file *inside* the loop (one `git add` of all files lets
+the first fixup swallow everything and the later commits fail as empty). Verify with
+`git diff <old-tip> <new-tip>` empty.
+
+**Interleaved topics → rebuild by artifact, not contiguous ranges.** When history is not
+topic-contiguous, rebuild with one commit per artifact, dated by each artifact's first appearance;
+accepted cost: the intermediate evolution is unrecoverable from `git log -p`.
+
 ## 2. Operational tips (verified 2026-08)
 - Non-interactive autosquash: `GIT_SEQUENCE_EDITOR=: git rebase -i
   --autosquash` accepts the generated todo without an editor.
@@ -151,3 +162,7 @@ Recipe (on a disposable branch, per the Execute step in `../SKILL.md`):
   Cosmetic: `git status --ignore-submodules=untracked` confirms the
   gitlink itself is clean; `git update-index --refresh` does not always
   clear it.
+- **Concurrent writers (verified 2026-09):** detect the race before
+  committing — a last diff check is not enough. Split with `git reset --hard
+  <parent>` + `git checkout <OLD> -- <paths>` and prove content invariance
+  by `^{tree}` equality.

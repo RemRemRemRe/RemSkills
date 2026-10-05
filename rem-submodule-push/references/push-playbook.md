@@ -21,6 +21,10 @@ Fix: before any push, run `git status --short` in the parent and require zero
 `M`/`Mm` lines under submodule paths; or `git submodule status` and require no
 `+` prefix. This is axis 3 and it is not optional.
 
+**A gitlink value is a snapshot, not a pointer to "latest".** Advancing a lagging gitlink carries
+that submodule's whole commit backlog into the parent commit and the next push — state it in the
+parent commit body and expect the push to exceed this change set.
+
 ## Non-fast-forward: same-topic commits, different hashes
 
 Two forks in this session were rejected with `[rejected] ... (non-fast-forward)`.
@@ -99,6 +103,13 @@ with no push target is excluded from all counts, not pushed.
 Also note `git push --recurse-submodules=check` skips submodules that have no
 remote at all — the missing-target case must be handled by the audit, not by
 `check`.
+
+## Fork branch tracking `upstream/*` — `git status` counts against the wrong remote
+
+A fork's local branch can track `upstream/<branch>` instead of `origin/<branch>`, so `git status`
+reports ahead/behind against the author's repo — an `ahead N` that `origin` does not have. Verify
+against the actual push target: `git log origin/<branch>..HEAD`, and `git ls-remote` for the
+authoritative ref. Never trust the status line on a fork.
 
 ## Success-line detection
 

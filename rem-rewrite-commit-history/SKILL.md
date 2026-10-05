@@ -41,8 +41,13 @@ feed automated changelog / release-note generation (see `rem-commit-workflow`
 - **No force-push.** If a remote branch must be corrected and you are the only
   author, prefer a corrective commit or a new branch; `force-with-lease` only
   as a last resort and never on shared branches.
-- **The reflog is the safety net**: `git reflog` recovers anything for ~90
-  days. `git rebase --abort` bails out of a messy interactive session.
+- **Back up the pre-rewrite tip with an explicit ref before any rewrite**
+  (mandatory when the reflog is absent or has been pruned): a named backup
+  branch/tag persists until deleted, while the reflog expires. `reflog expire`
+  empties the stash *stack* metadata although the objects survive (recoverable by
+  SHA only). Never push backup refs — `git push --all --tags` would re-publish the
+  old history — and delete them only after the rewrite is verified/pushed.
+  `git rebase --abort` bails out of a messy interactive session.
 - **Never prune as part of a rewrite.** `git reflog expire`, `git gc --prune=now`,
   `filter-branch` / `filter-repo` cleanup, and deleting a branch, tag or stash that is the
   only reference to un-pushed work are irreversible and buy nothing here: the range check
@@ -134,6 +139,11 @@ this is the collection's rule, owned here.
    Path-stripping needs a **history-level check** in addition: `git log
    --oneline -- <paths>` must be empty — tree identity alone misses files
    added and removed within the range.
+   **Tags after a rewrite**: tags still point at discarded commits — re-map each
+   old→new and confirm by tree content (subject/date alone is not proof); move them
+   before deleting the backup refs; push with an explicit `--tags` (lightweight tags
+   are missed by `--follow-tags`). Stale `refs/remotes/origin/*` keep reporting
+   "behind N" and hold old objects alive.
 
 ## Boundaries
 
@@ -155,6 +165,7 @@ Before rewriting history:
 - [ ] Net-zero: add-then-remove pairs never enter the range; file history audited (`git log -p <base>..HEAD -- <file>`) for junk that entered and left
 - [ ] Uncommitted changes preserved as a patch file before any `reset --hard`-style finalize (stashes get wiped)
 - [ ] No pruning ran as part of the rewrite (`reflog expire`, `gc --prune=now`, deleting the last reference to un-pushed work) — the reflog stays the recovery net
+- [ ] Pre-rewrite tip backed up by an explicit `safety/...` ref (mandatory without a reflog); backup refs never pushed, deleted only after verification
 - [ ] Content delta is the one intended: empty for a pure rewrite, exactly the intended change when the rewrite carries edits; per-commit checks done during the rebuild (conflict markers, touched-file diffs)
 - [ ] Build + tests run once on the final state (see `rem-commit-workflow`)
 

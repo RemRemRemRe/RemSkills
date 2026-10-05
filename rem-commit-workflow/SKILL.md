@@ -41,6 +41,12 @@ config (the local overlay keeps a snapshot of it).
 Accept the types the project's config defines. Add a body when the change
 spans several concerns or the "why" is non-obvious.
 
+Separate the subject and body with a blank line — without one `git log --oneline`
+merges the two lines; after rewording an un-pushed HEAD, confirm `^{tree}` is unchanged.
+
+Generated release notes read only the commit **subject** (`%s`, not `%b`), and an
+annotated tag's own message suppresses them — use a lightweight tag to get them.
+
 **Body discipline (collection rule):** a body carries the *why* and the
 contracts; the diff carries the *how*.
 
@@ -67,7 +73,8 @@ contracts; the diff carries the *how*.
 
 - One logical change per commit. Split a mixed commit (rename + bug fix, class
   filter + module tidy) into one commit per reason-to-change. Intermediate
-  commits do not need to compile — the split serves review and maintenance.
+  commits do not need to compile — but order the split so every intermediate
+  staged tree still passes the repository's own gate (lint/size budget), not
 - **A cross-repository change is one unit.** When one repository removes an API
   and other repositories migrate its call sites, the halves commit **together**,
   and whatever pins the versions (a submodule pointer, a lock file) moves in the
@@ -90,6 +97,15 @@ contracts; the diff carries the *how*.
   `git commit --amend`, verify the commit's file list (`git show --stat`)
   before finalizing — a stray working-tree change swept in by `-A`/amend is
   hard to untangle afterwards (hit in practice).
+- **`.gitignore` patterns match at any depth unless anchored.** `NAME` ignores a
+  same-named file in every directory (case-insensitively on Windows); write `/NAME` for
+  a root-only entry. `git check-ignore` skips already-tracked paths — add `--no-index`
+  to ask about them.
+- **Force and verify the executable bit for committed scripts.** On a host with
+  `core.fileMode=false` (Windows), `git add` records mode `100644`, so a Linux/macOS
+  consumer cannot `./<script>`; a `rm --cached` + re-add rebuild silently drops `100755`
+  too. Set it explicitly (`git add --chmod=+x <path>`, or plumbing `--cacheinfo 100755`)
+  and check `git ls-tree`; only `git diff --summary` shows the mode change.
 - **Feeding a commit message from a file**: write that file BOM-free.
   PowerShell's `Set-Content -Encoding utf8` prepends a UTF-8 BOM and
   `git commit -F` passes it through, so the subject silently starts with an
@@ -118,6 +134,11 @@ file**:
 A plumbing path such as `git apply --cached` bypasses the index's filters, so on a host that
 normalizes line endings also check the staged blob's line endings (the porcelain path handles them;
 the host-specific detail is in the `local/` overlay).
+
+To stage a constructed blob **without writing the working tree** (a concurrent writer owns the
+file), use `git hash-object -w --path=<path>` (applies the clean filter, stores LF) plus
+`git update-index --cacheinfo`; verify the staged blob has zero CR and the worktree hash is
+unchanged. (The `git apply --cached` recipe above writes a temporary file.)
 
 ## Test completeness gate
 
@@ -225,10 +246,13 @@ Stage 2 — prune by symbol, then decide:
   shared runtime code, a serialized/ABI-visible shape, or a config/macro other modules read at
   runtime.
 - A change that **cannot** alter behaviour needs **no test run at all** - a pure code rename, a
-  comment-only or formatting change. The evidence is then the build plus a search showing zero stale
-  references to the old name, and the review carries the two conditions a compiler does not check:
-  every reference moved in the same change, and the new name does **not** already exist in those
-  scopes (a collision silently re-resolves overloads, overrides or concept satisfaction).
+  comment-only or formatting change. A documentation/comment-only edit that cannot change compiled
+  tokens needs **no build** either; keep the build when it touches a header whose doc comment becomes
+  tooltip/metadata (UHT/UBT processes it - that is data, not prose) or any compiled token. For a
+  rename the evidence is the build plus a search showing zero stale references to the old name, and
+  the review carries the two conditions a compiler does not check: every reference moved in the same
+  change, and the new name does **not** already exist in those scopes (a collision silently
+  re-resolves overloads, overrides or concept satisfaction).
 - The exemption does not apply when the *name is data*: a reflected or serialized name (a
   `UPROPERTY`/`UFUNCTION` name, a class name assets reference), a config key, a cvar, a stat id.
   Renaming those is a behaviour change - run the scope that can reach them.
@@ -280,6 +304,8 @@ rewriting what is already published is a separate, deliberate call).
   recalled. Run such an act only under its own explicit instruction, never as a tidy-up
   appended to another task; when a cleanup or an upload looks tempting but was not asked
   for, describe it and ask.
+- **Never delete and re-push a release tag** to retrigger a failed workflow — re-run the
+  failed CI run from the Actions page instead.
 - **State what will be published before publishing it.** A branch's first push
   publishes its whole history, not only the commits just made: check
   `git ls-remote --heads origin` against `git log origin/<branch> --oneline`
@@ -305,7 +331,7 @@ Before committing:
 - [ ] Test-completeness gate run for behavior-affecting changes, or skipped with a stated reason
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
-- [ ] Build succeeded with the project's editor development configuration
+- [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)
 - [ ] Test scope: candidates enumerated from the module graph (`tools/scope.py`), pruned by a search of the changed names, every dropped candidate given a reason
 - [ ] Headless tests run with the project's filter at that scope; red/green judged from the project log, not the console output
 - [ ] Every irreversible act carries its own explicit instruction — push **or upload**, force-push, deleting a branch/tag, pruning (`reflog expire` / `gc --prune`), publishing — never inferred from an approval of the commit work

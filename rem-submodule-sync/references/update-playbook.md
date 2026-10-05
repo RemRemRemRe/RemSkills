@@ -12,6 +12,13 @@ Modern git checkouts a submodule with `.git` as a **file** containing
 "NOT INITIALIZED". Probe with `-e` (existence), or check
 `git -C "$d" rev-parse --git-dir` succeeds.
 
+### A local `.git/info/exclude` shadows `.gitignore` in `git check-ignore -v`
+
+A local exclude entry silently shadows the repository's `.gitignore` in `git check-ignore -v` —
+remove it before checking whether the repo rule actually works. Note the submodule's real git dir
+is `<superproject>/.git/modules/<name>` (the `.git` file points there), so that is where its
+`info/exclude` lives.
+
 ### Default branch is not `main`
 
 Resolve it per remote, never assume:

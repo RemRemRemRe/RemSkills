@@ -117,15 +117,6 @@ decltype(auto) GetDefaultRef();
 
 For simple cases, return type on the same line is fine.
 
-### `return {}` for default values
-
-```cpp
-return {};   // returns default-constructed T
-return false;
-return nullptr;
-return FString{};
-```
-
 ### `{}` vs `()` initialization
 
 Always use uniform initialization `{}` for default member values. Prefer
@@ -274,15 +265,6 @@ void Process(int32 Value, FString Name);
 void Process(const int32 Value, const FString Name)
 {
     // Value and Name are local copies; const prevents accidental mutation
-}
-```
-
-### `const auto&` for range-for
-
-```cpp
-for (const auto& Component : Components)
-{
-    Component.Tick(DeltaTime);
 }
 ```
 
@@ -498,10 +480,6 @@ The exact configuration behavior of that guarantee — the check lives under
 degrades `TNotNull<T>` to `T` — plus the contract it puts on a strict `Get*`
 accessor is in `references/pitfalls.md` (`TNotNull`'s non-null guarantee is a
 development-only check).
-
-### Never `NULL` or `0`
-
-Only `nullptr` for null pointer constants. `NULL` is an integer in C++.
 
 ### Type casting — `static_cast` only
 

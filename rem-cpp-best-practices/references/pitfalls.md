@@ -120,13 +120,6 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Verification** — compile; the guarded method runs without dereferencing
   null.
 
-### `TFunction` has no `CreateLambda` (verified 2026-08)
-
-- **Symptom** — `C2039: 'CreateLambda': is not a member of 'TFunction<...>'`.
-- **Cause** — `TFunction` is std::function-like and has no static factory.
-- **Fix** — construct from a lambda: `TFunction<T(U)> Fn{[](U In) { ... }};`
-- **Verification** — compile.
-
 ### `TArray::RemoveAllSwap` is not order-preserving (verified 2026-09)
 
 - **Fact** — `RemoveAllSwap(Pred)` moves the last element into each removed slot, so survivor order is
@@ -348,25 +341,12 @@ Rem-specific entries name Rem APIs as documented in this skill.
   compiled once the checks moved into the body.
 - **Applies to** — MSVC 19.5x, C++20 (verified 2026-09).
 
-### A scoped enum forward declaration needs an explicit underlying type (verified 2026-09)
-
-- **Symptom** — `enum Result;` is a real compile error: a scoped enum's opaque declaration must name
-  its underlying type.
-- **Fix** — write `enum Result : int;` (match the engine's definition when redeclaring an engine enum).
-
 ### A namespace-scope name shadows an engine global inside that namespace (verified 2026-09)
 
 - **Symptom** — a new namespace-scope name that matches a `::`-global engine function (e.g. a
   `GetDefault` declared in `namespace Rem`) silently rebinds every *unqualified* call written inside
   that namespace: unqualified lookup finds the namespace member before the global.
 - **Fix** — rename the new symbol, or qualify the engine calls with a leading `::`.
-
-### A function-local `using` alias shadows a namespace-scope type (verified 2026-09)
-
-- **Symptom** — a local `using FHandle = ...;` inside a function trips MSVC `C4459` (declaration
-  hides global declaration) in any consumer that already has a namespace-scope `FHandle`;
-  `ShadowVariableWarningLevel = Error` promotes that to a build error.
-- **Fix** — give the local alias a distinct name.
 
 ## UHT / UBT — renaming headers and includes
 

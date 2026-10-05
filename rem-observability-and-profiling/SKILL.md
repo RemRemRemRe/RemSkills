@@ -160,6 +160,9 @@ Rules:
 
 Headers and full signatures: `references/api-tables.md`.
 
+Measuring the tagged code — fair A/B setup, dataset design, noise handling and
+the mutation probe — is in `references/benchmarking.md`.
+
 ### When a tag is required
 
 - Any per-frame system: tag the tick/update entry point.
@@ -209,3 +212,4 @@ Before declaring an instrumentation change (or reviewing one) done:
 - [ ] §5 — every per-frame entry point, data-dependent loop and async task carries a profiling tag
 - [ ] §5 — cycle stats are registered in a declared stat group, not ad hoc
 - [ ] §5 — no dynamic-name tag inside a loop; no tag inside a >1k-iteration loop body
+- [ ] §5 — a benchmark cited as evidence follows `references/benchmarking.md` (fair A/B, structural assertions, mutation probe)

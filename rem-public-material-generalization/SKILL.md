@@ -152,7 +152,10 @@ specific public type's API uses the real type name.
   (rules, not values) stays a skill instead: the split is public/private *and*
   rules/values. The pointer to the overlay is a **body** sentence, never a
   description line — a sentence every adapted skill repeats is duplicated
-  always-on text (`rem-write-better-skill` §11).
+  always-on text (`rem-write-better-skill` §11). Do **not** hide the overlay
+  skill from model invocation (`disable-model-invocation`): the public skill's
+  "see `X`" pointer resolves only because the system prompt lists `X` with its
+  `<location>` path — hidden, the name is unaddressable.
 - **Live project configs** — a snapshot of a live project config (e.g. the
   commit-convention JSON) is a value: it lives in the private overlay, and the
   public repo gets only the ignored `local/` symlink. Never a committed copy or
@@ -195,6 +198,8 @@ The checklist is the contract — run it before pushing any public material:
 - [ ] Catalogue citations name a public path or the case's shape, never a private file ("observed in `<private-file>`")
 - [ ] Leak and name checks cover every non-binary file that ships — the skill's own files (`SKILL.md`, `references/**`, `tools/**`) and the repository-level files; only the allowlist and the git-ignored `local/**` are exempt
 - [ ] Outgoing commit messages scanned before a public push — `node tools/lint-commit-messages.mjs --repo <repo> --range <remote>/<branch>..HEAD` reports nothing (private terms come from the skill's `local/forbidden-commit-terms.txt`)
+- [ ] Leak audit covers three surfaces, not two: the working tree, the outgoing commit messages, and the file contents at **every** outgoing commit (`git log -S<term>` per private identifier across the range) — a leak fixed at HEAD but present in the commit that introduced it is still published
+- [ ] Before allowlisting a public name, prove the cited revision is the published one: the local `origin/<branch>` SHA equals the anonymous remote SHA, and the cited line numbers exist in the published file
 - [ ] Shipped code, docs, configs, fixtures and PR/release text follow the same rules as skill files (placeholder-only)
 - [ ] A published leak is fixed forward by default; rewriting published history is a separate, deliberate call (`rem-rewrite-commit-history`)
 - [ ] No project plugin inventory; third-party names only if verified public AND the mention adds value

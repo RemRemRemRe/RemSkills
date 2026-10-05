@@ -89,6 +89,10 @@ and nothing reports either:
 - **Broken section references.** A `<file> §Section` pointer to content that
   moved neither follows that content nor errors. After a split, re-resolve every
   `§` reference in both the main file and the reference by hand.
+- **Duplicated content.** A split that *appends* the moved detail leaves both
+  copies — silent alongside the other two. Scan the whole skill for duplicate
+  headings and blocks, and fix it **in the commit that introduced it**: a
+  duplicated real name is a duplicated leak.
 
 Also check what the move *leaves behind*: a `SKILL.md` section whose body was
 entirely detail becomes a stub. Keep it only when the heading is a useful
@@ -121,6 +125,9 @@ before trusting it.
 do it. Exempt it explicitly, by name and with the reason, rather than letting the
 check report the one correct case as a defect: a check that goes red where the
 content is right gets waived, and then deleted.
+- **One implementation only.** A second, ad-hoc implementation of an authoritative
+  check is itself a defect source — a probe that re-derived the lint produced 91
+  false positives from its own path bug. Trust the tool, and delete the probe.
 
 ---
 
@@ -201,6 +208,11 @@ descriptions, no translated sentences inline. Technical terms — commands, type
 names, plugin names, config values, warning keywords such as `PRIVATE` — stay
 as they are; that is vocabulary, not language mixing. Frontmatter
 `description` follows the same rule.
+
+Token cost is not a reason to switch language: the same content costs **1.16×**
+(`o200k_base`) / **1.65×** (`cl100k_base`) the tokens in Chinese as in English.
+Write English and optimize *structure* — the always-on description and the
+references — not the language.
 
 Language-switch links are navigation vocabulary: the label is written in the
 **target language** — the English README links to the Chinese doc as `中文版`,
@@ -288,8 +300,12 @@ carries skill frontmatter. Run it over both roots after adding or adapting a ski
 **Run it before committing a skill change**, and never let a failing run reach
 the remote: the repo's `pre-push` hook (`.githooks/pre-push`, installed with
 `git config core.hooksPath .githooks`) runs it again before anything leaves the
-machine. Errors must be fixed; a warning is either fixed or explained in the
-commit message. When the tool is absent (skills copied outside this collection),
+machine. A hook must derive its repo root from its own path
+(`root=$(cd "$(dirname "$0")/.." && pwd)`), never `git rev-parse --show-toplevel`
+— that follows the caller's cwd and checks the wrong repo when the hook is run
+manually. On a public repository the gate belongs **before push, not in CI**: CI
+runs post-hoc, after the leak is already published. Errors must be fixed; a
+warning is either fixed or explained in the commit message. When the tool is absent (skills copied outside this collection),
 apply this checklist manually — the lint is the mechanical half of it, not a
 replacement for it.
 
@@ -399,6 +415,13 @@ Two corollaries the same measurement makes visible:
   like detail may be the only surface a differently-worded request ever hits.
   Cut duplication, not coverage — and collect the phrasings users actually use
   before cutting anything.
+
+**Config is the enforcement surface, docs the decision surface.** Do not restate
+in prose what configuration already guarantees — the config cannot drift from
+itself, the prose copy can. State only what config cannot: the bypass, the
+degradation path, the failure semantics. A set of near-identical policy blocks
+that each repeated a config-derived rule collapsed to one line keeping exactly
+those three.
 
 ## Checklist
 

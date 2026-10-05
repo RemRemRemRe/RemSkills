@@ -14,7 +14,7 @@ metadata:
 
 # UE Localization
 
-Last verified: 2026-09, UE 5.8. Engine paths are relative to the engine root.
+Last verified: 2026-10, UE 5.8. Engine paths are relative to the engine root.
 
 ## Local overlay
 
@@ -164,7 +164,10 @@ Rules:
 | Level | How |
 |---|---|
 | Data | Parse the compiled `.locres` and assert the expected namespace+key carries the translation. A small reader following `FTextLocalizationResource::LoadFromArchive` is enough — validate it against an engine-shipped `.locres` first |
-| Runtime | An automation spec that switches the culture and asserts through the same entry points the editor uses: `FObjectEditorUtils::GetCategoryText` for categories, the live display-string lookup for tooltips/display names/source strings. A culture switch reloads every text source (plugin targets included) and refreshes the live table, so no restart is needed |
+| Runtime | An automation spec that switches the culture and asserts through the same entry points the editor uses: `FObjectEditorUtils::GetCategoryText` for categories, the live display-string lookup for tooltips/display names/source strings. A culture switch refreshes the live table, but **only** after text-localization init (an earlier `SetCurrentCulture` is ignored), **synchronously by default** (wait for async when `Localization.AsyncLoadLocalizationDataOnLanguageChange=1`), and **only for targets actually gathered** (`Game`-policy targets load in an editor/commandlet run only if forced) — no restart is needed once those hold |
+
+Refresh entry points for the spec: `RefreshResources()`, `WaitForAsyncTasks()`,
+`UpdateFromLocalizationResource()`, `EnableGameLocalizationPreview()`.
 | Visual | Switch the editor's language preference and look at the panel — the shortest path to "does it really show" |
 
 ## 8. Tooling escalation

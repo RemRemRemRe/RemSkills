@@ -1,6 +1,6 @@
 # Localization Pipeline Details
 
-Companion to `rem-ue-localization` §4. Last verified: 2026-09, UE 5.8.
+Companion to `rem-ue-localization` §4. Last verified: 2026-10, UE 5.8.
 
 ## 1. Config format
 
@@ -122,9 +122,17 @@ can be re-run wholesale.
 | A plugin's data is registered only when its descriptor has `LocalizationTargets`; the path is `<plugin>/Content/Localization/<Name>` | `Runtime/Projects/Private/PluginManager.cpp` |
 | Loaded file layout is `<path>/<Culture>/<Target>.locres` (plus an optional platform subfolder); `<path>/<Target>.locmeta` records the native culture and native `.locres` | `Runtime/Core/Private/Internationalization/LocalizationResourceTextSource.cpp` |
 | Plugin data joins the load as *additional* paths, after game → editor → engine | same file; broadcast by `FCoreDelegates::GatherAdditionalLocResPathsCallback` |
-| Editor-visible metadata resolves through the live display-string table, which a culture change refreshes after reloading every text source | `Runtime/Core/Private/Internationalization/TextLocalizationManager.cpp` |
+| Editor-visible metadata resolves through the live display-string table, which a culture change refreshes only under the conditions below | `Runtime/Core/Private/Internationalization/TextLocalizationManager.cpp` |
 | Loading policies: `Editor`/`ToolTips` are editor-only; `Always`/`Game` are the only ones staged into packaged builds; `PropertyNames` is gated by an editor preference | `Runtime/Projects/Public/LocalizationDescriptor.h` |
 | Conflicts keep the first entry at equal priority, so a plugin cannot shadow an engine or project translation | `Runtime/Core/Private/Internationalization/TextLocalizationResource.cpp` |
+
+**Culture-switch refresh, precisely.** `SetCurrentCulture` before text-localization
+init is ignored; the refresh is synchronous by default; with
+`Localization.AsyncLoadLocalizationDataOnLanguageChange=1` it is async (wait via
+`WaitForAsyncTasks()`); only gathered targets refresh, and a `Game`-policy target
+loads in an editor/commandlet run only when forced. Explicit entry points:
+`RefreshResources()`, `WaitForAsyncTasks()`, `UpdateFromLocalizationResource()`,
+`EnableGameLocalizationPreview()`.
 
 ## 5. Who defines what
 

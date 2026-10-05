@@ -152,6 +152,17 @@ batch builder from a POSIX shell needs its path conversion disabled (a quoted
 `-project="…"`/`-ExecCmds="…"` line arrives with literal backslashes and fails at argument parsing),
 and a file must be re-read after a formatter run because a stale editor buffer can overwrite it from
 older content. The brief points at the overlay file; it never copies the commands into itself.
+Harness-level operational facts of the current installation (model/MCP configuration, context
+cost) live in `local/pi-harness.md` under the same split: values there, portable rules here.
+
+Two scheduling rules are harness-general and belong here too:
+
+- **Tool calls issued in one response may run in parallel and out of order.** Never rely on the
+  order of calls within a single response - a write can be overtaken by a read or edit issued in
+  the same message. A follow-up that depends on an earlier call's result belongs in a later turn.
+- **A tool call that times out may already have executed.** Inspect the target's state before
+  retrying: the timed-out attempt can have completed (a saved file, an opened dialog), and a blind
+  retry then duplicates the effect - a duplicated multi-GB project, for example.
 
 ## Checklist
 

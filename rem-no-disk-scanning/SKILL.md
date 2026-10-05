@@ -16,7 +16,7 @@ metadata:
 **Disk-scanning text searchers — `rg`, `grep`, `find`, `fd`, `ripgrep`,
 `findstr`, and any editor "search in files" equivalent — are banned.** They are
 unbounded recursive content searches, removed from the agent toolsets by
-configuration — their absence is expected. Never invoke them, through a tool or
+configuration. Never invoke them, through a tool or
 a shell.
 
 Use **Rider MCP** only: `search_symbol` / find-usages first, then a bounded
@@ -34,13 +34,13 @@ a scanner.
 ## Exemptions
 
 The ban is on unbounded recursive content search, not on reading or filtering:
-text filtering in a pipe (`git show <file> | grep`, `git log --grep=...`), a
-single named file, a bounded directory, or a log tail; build or cleanup commands
-whose paths are explicit.
+pipe filtering (`git show <file> | grep`, `git log --grep=...`), a single named
+file, a bounded directory, a log tail; build or cleanup commands whose paths are
+explicit. Rider MCP refuses paths outside its solution root, so a bounded read
+there is the documented fallback, not a scanner.
 
 ## Aggregates (main session)
 
 Counts and sizes may come from a bounded script over an **explicit path list**
 — never a scan from a drive root or home directory. State the substitution used,
-so the evidence's origin is visible. The description states the ban itself — it
-is in context every session.
+so the evidence's origin is visible.

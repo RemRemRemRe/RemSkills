@@ -100,26 +100,6 @@ assumes no shape (not even pointer-ness); the request's meaning stays with the f
 | Move from rvalues | `void SetName(FString Name) { Name = MoveTemp(Name); }` |
 | Non-null member storage | `TNonNullPtr<T>` — `TOptional<TNotNull<T*>>` is not intrusive (16 B); never a sentinel address. `TNotNull` belongs at the API boundary (params, checked getters) |
 
-### Move semantics
-
-```cpp
-// Sink parameter pattern:
-void SetName(FString Name)
-{
-    Name_ = MoveTemp(Name);
-}
-
-// Move out of return:
-TArray<FItem> Items = GetItems();   // RVO or move, no copy
-
-// Move in generic code:
-template <typename T>
-void Store(T&& Value)
-{
-    Data = std::forward<T>(Value);   // perfect-forwarding
-}
-```
-
 ### Elegance — objective proxies
 
 "Elegant" is not reviewable as stated, so it is checked through proxies a

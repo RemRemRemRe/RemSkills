@@ -108,17 +108,11 @@ Rem-specific entries name Rem APIs as documented in this skill.
 - **Applies to** — UE 5.8, verified with `TArray<TInstancedStruct<...>>` inside a
   USTRUCT.
 
-### `TWeakObjectPtr` has no `operator bool` (verified 2026-08)
+### `TWeakObjectPtr` validity in guards (verified 2026-08)
 
-- **Symptom** — `C2280: 'TWeakObjectPtr<...>::operator bool': attempting to
-  reference a deleted function`.
-- **Cause** — `TWeakObjectPtr` deletes `operator bool`; `if (WeakPtr)` does
-  not compile.
-- **Fix** — use `.IsValid()` / `.Get()`: `if (WeakPtr.IsValid())`.
-- **Note** — `RemCheckVariable` / `RemCheckCondition` take a raw pointer; pass
-  `WeakPtr.IsValid()` as the condition, not the weak pointer itself.
-- **Verification** — compile; the guarded method runs without dereferencing
-  null.
+`RemCheckVariable` / `RemCheckCondition` take a raw pointer; pass
+`WeakPtr.IsValid()` as the condition, not the weak pointer itself. (The type
+deletes `operator bool`, so a bare `if (WeakPtr)` does not compile either.)
 
 ### `TArray::RemoveAllSwap` is not order-preserving (verified 2026-09)
 

@@ -42,7 +42,7 @@ extended examples live in `references/` — load them when writing that kind of 
 | `references/naming-formatting.md` | Naming and formatting detail: namespace layout, extended examples, member ordering, `ThisClass` alias |
 | `references/file-layout.md` | Header/source layout examples and the include rules |
 | `references/language-features.md` | `auto`, `const`/`constexpr`, `if constexpr`, concepts — rules with worked examples |
-| `references/design.md` | SOLID, elegance proxies, zero-overhead table, move semantics |
+| `references/design.md` | SOLID, elegance proxies, zero-overhead table |
 | `references/modules.md` | Module/plugin skeleton, `.uplugin` fields, export macro |
 | `references/dll-boundaries.md` | Exporting a class template's **instantiation** across a module boundary; export-macro placement, C4910 / C2908 / C2766, verifying against the binary's export/import tables |
 | `references/macros-logging.md` | Writing `REM_LOG_*` / `RemEnsure*` / `RemCheck*` calls; `REM_DEFINE_*` getter macros; `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage and pitfalls |
@@ -399,7 +399,7 @@ emplace-construction).
 
 **Single responsibility:** one thing per type and per function. **Respect levels of abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
 
-Zero-overhead rules and move semantics: `references/design.md`.
+Zero-overhead rules: `references/design.md`.
 
 ### Elegance — objective proxies
 

@@ -1,18 +1,20 @@
 ---
 name: rem-sequencer-custom-channel-section
 description: >
-  Create custom FMovieSceneChannel and UMovieSceneSection for the Unreal Sequencer editor,
-  with per-key struct editing via FSequencerKeyStructGenerator. Covers channel declaration
-  (KeyTimes/KeyValues meta), channel traits, EvaluateChannel for discrete channels, clipboard
-  override, CacheChannelProxy in sections, TSequencerChannelInterface registration, and all
-  required module dependencies. Use when building a custom Sequencer track/section whose keys
-  store complex struct data that must be individually editable in the Sequencer details panel.
-  Last verified: 2026-07, UE 5.8.
+  Create a custom FMovieSceneChannel and UMovieSceneSection for the Sequencer
+  editor, with per-key struct editing via FSequencerKeyStructGenerator. Covers
+  channel declaration (KeyTimes/KeyValues meta), channel traits,
+  EvaluateChannel for discrete channels, clipboard override, CacheChannelProxy
+  in sections, TSequencerChannelInterface registration, and required module
+  dependencies. Use when a custom Sequencer track/section stores complex
+  struct data whose keys must be individually editable in the details panel.
 metadata:
   category: meta
   trigger: manual
 ---
 # UE Sequencer — Custom Channel & Section with Per-Key Editing
+
+Last verified: 2026-07, UE 5.8.
 
 ## When to use this skill
 

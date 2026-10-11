@@ -1,16 +1,15 @@
 ---
 name: rem-cpp-best-practices
 description: >
-  Review checklist for Rem project C++ code — build/compiler settings, file & include
-  structure, naming, formatting, auto/type deduction, const correctness, pointers,
-  if constexpr, ranges, concepts, UPROPERTY specifiers and metadata completeness,
-  numeric precision (float vs double for numeric members and config values), macros,
-  STL vs UE types, SOLID & levels of abstraction, elegance proxies,
-  comment discipline, logging/assertions (runtime observability rules live in
-  `rem-observability-and-profiling`), module/plugin conventions, test modules
-  (spec style, DebugGame build), and the pre-commit checklist. Use when reviewing
-  completed code before committing, or when writing new Rem module/test code that
-  must match RemCommon conventions.
+  Review checklist for Rem project C++ code — build/compiler settings, file &
+  include structure, naming, formatting, auto/type deduction, const
+  correctness, pointers, if constexpr, ranges, concepts, UPROPERTY specifiers
+  and metadata completeness, numeric precision (float vs double), macros, STL
+  vs UE types, SOLID, elegance proxies, comment discipline, logging and
+  assertions, module/plugin conventions, test modules (spec style, DebugGame
+  build), and the pre-commit checklist. Use when reviewing completed code
+  before committing, or when writing new Rem module/test code that must match
+  RemCommon conventions.
 metadata:
   category: meta
   cpp-standard: EngineDefault

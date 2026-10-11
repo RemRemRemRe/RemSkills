@@ -1,21 +1,22 @@
 ---
 name: rem-customize-factory-asset-menu
 description: >
-  Place a custom UFactory in specific categories and sub-menus of the Content
-  Browser's "Add / New Asset" menu. Covers the two-tier category system
+  Place a custom UFactory in a category or sub-menu of the Content Browser's
+  "Add / New Asset" menu. Covers the two-tier category system
   (GetMenuCategories bitmask gate + GetAssetMenuPathsForCategory sub-path),
-  the relationship between UAssetDefinition, IAssetTypeActions, and UFactory,
-  and how to route a factory to a different top-level category than its
-  SupportedClass's default. Use when a factory isn't showing in the expected
-  menu category, needs to appear in multiple top-level categories, or when
-  GetAssetMenuPathsForCategory seems to be ignored.
-  Last verified: 2026-07, UE 5.8.
+  how UAssetDefinition, IAssetTypeActions and UFactory relate, and how to
+  route a factory to a different top-level category than its SupportedClass
+  default. Use when a factory isn't showing in the expected menu category,
+  needs to appear in several top-level categories, or when
+  GetAssetMenuPathsForCategory seems ignored.
 metadata:
   category: meta
   trigger: manual
 ---
 
 # Customize UFactory placement in the Content Browser asset menu
+
+Last verified: 2026-07, UE 5.8.
 
 ## Overview
 

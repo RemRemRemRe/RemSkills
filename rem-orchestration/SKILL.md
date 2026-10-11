@@ -116,12 +116,12 @@ no spec and no doc.
    parent persists the plan as `<run-dir>/test-plan.md` - the review profile has no write tool - and
    the brief for writing the cases points at that file.
 3. **Test authoring** - write the cases from that plan. Whichever executor writes new or changed
-   cases ends its round with one *targeted* run of that spec, reported as **calibration**, never as
+   cases ends its round with one *targeted* run of that spec, reported as a **trial run**, never as
    check evidence - the one-suite-run rule governs the *suite*, not this run. Expectation
    bookkeeping (how many times a message is recorded, which record a pattern claims), capture
    devices, counters, "always passes" assertions and identifier collisions are only visible by
    executing, so a compile-only test round pushes them into the full check and costs a failed run plus
-   extra rounds. Evidence: a wrong declaration turned into a red gate, a resumed authoring round and
+   extra rounds. Evidence: a wrong declaration turned into a failed check, a resumed authoring round and
    a second full build plus suite.
 4. **Verify** - one build plus one suite run, at the scope decided up front, on the unchanged tree.
    A build that reports "target is up to date" (**0 actions**) is **not** compiler evidence: nothing
@@ -132,7 +132,7 @@ no spec and no doc.
    did not change after verify, the commit stage checks the recorded evidence instead of
    re-running. A bug fix proves its regression case by temporarily reverting the fix inside the
    full check. A change to the tree **after** the full check needs a re-run that covers the new
-   bytes; a delta that is provably inert (comments only) may be exempted when a calibration run
+   bytes; a delta that is provably inert (comments only) may be exempted when a trial run
    covers the one changed spec — and the exemption's reasoning is stated in the brief, never
    left implicit.
 
@@ -140,10 +140,10 @@ Three rules bind that sequence:
 
 - **Review test deliverables before the full check.** When the round's deliverable is tests, run the
   focused review of the new/changed test files before the full check, in parallel with the
-  calibration run. The dominant defect class there - an assertion that passes for the wrong reason -
+  trial run. The dominant defect class there - an assertion that passes for the wrong reason -
   is invisible to the compiler and to a compile-only round.
 - **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
-  test-infrastructure refactors belong to separate units, because one red gate re-verifies every
+  test-infrastructure refactors belong to separate units, because one failed check re-verifies every
   change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in
   the round, minor and elegance findings go to a backlog list.
 - **The brief for the full check states the expectation per prefix.** Give a table with one row per prefix in the
@@ -209,13 +209,13 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Every unit that reached the full check had a settled surface (contract written, no planned change, no "for now"); work that had not settled stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
 - [ ] The case plan in the full check came from the diff with the intent file as cross-check - reconciled both ways, no intent line and no behaviour change left unmatched
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
-- [ ] A tree change after the full check got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
+- [ ] A tree change after the full check got a re-run covering the new bytes, or a stated inert-delta exemption backed by a trial run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch
-- [ ] A test-authoring round ended with one targeted calibration run, reported as calibration rather than gate evidence
+- [ ] A test-authoring round ended with one targeted trial run of that spec, reported as a trial run rather than check evidence
 - [ ] Test deliverables got their focused review before the full check
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
 - [ ] The brief for the full check gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta

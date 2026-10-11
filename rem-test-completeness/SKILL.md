@@ -6,7 +6,7 @@ description: >
   changed behavior -> one spec case per behavior), the five-point completeness
   criteria, regression-first for bug fixes, mutation spot checks on core logic,
   and reuse of the layered review from rem-bdd-test-tree. Use when a commit
-  gate asks whether a change's tests are complete, when writing tests for a
+  check asks whether a change's tests are complete, when writing tests for a
   change, or when judging whether existing tests cover a change.
 metadata:
   category: meta
@@ -17,7 +17,7 @@ metadata:
 
 This skill decides whether the tests for a change set are complete enough to
 commit — and, if not, what to write. It is the methodology behind the
-**test completeness gate** in `rem-commit-workflow`. It does not build or run
+**test completeness check** in `rem-commit-workflow`. It does not build or run
 anything (that is the commit workflow's job) and it does not generate review
 indexes (that is `rem-bdd-test-tree`).
 
@@ -25,7 +25,7 @@ indexes (that is `rem-bdd-test-tree`).
 
 | Situation | Action |
 |-----------|--------|
-| The commit gate asks whether this change's tests are complete | Run the five-point criteria (see below) |
+| The commit check asks whether this change's tests are complete | Run the five-point criteria (see below) |
 | Tests are missing for a change | Change-to-case mapping, then write in spec style per `rem-cpp-best-practices` §16 |
 | Reviewing whether existing tests cover a change | Five-point criteria + layered review L1/L2 (`rem-bdd-test-tree`) |
 
@@ -42,7 +42,7 @@ Write cases for a settled surface only: while the interface is still being shape
 stays in iteration as intent lines - a case written against a moving interface gets
 rewritten, not reused.
 
-## The Gate Contract
+## The Check Contract
 
 Called by `rem-commit-workflow` between commit hygiene and build, **once per
 change set** (not per split commit):
@@ -55,7 +55,7 @@ Change set ready
    ├─ 2. Map each behavior to a spec case (references/case-mapping-template.md)
    ├─ 3. Judge the five-point criteria
    ├─ 4. Write missing cases (BDD spec style, see §5)
-   └─ 5. Re-check criteria -> gate passes, then build
+   └─ 5. Re-check criteria -> the check passes, then build
 ```
 
 Tests must be complete **before** the build: the build and the test run happen
@@ -109,7 +109,7 @@ A fixed bug gets a regression case **bound to the fix**:
    the case does not exercise the path.
 
 Optional evidence: UE code-coverage data. Supporting evidence only — never a
-gate (UE coverage support is limited).
+check (UE coverage support is limited).
 
 ### Judgment notes
 
@@ -118,7 +118,7 @@ gate (UE coverage support is limited).
   differ: `rem-cpp-best-practices/references/tests.md` §4).
 - **Boilerplate categories** — skip deep review of them, not the tests
   themselves (category list and rationale: `rem-bdd-test-tree`).
-- **Order of writing is free** — the gate checks completeness, not chronology.
+- **Order of writing is free** — the check reads completeness, not chronology.
   TDD (red-green-refactor) is optional and recommended for new features.
 
 ## 3b. Self-Validating Cases
@@ -154,7 +154,7 @@ case).
 
 ## 4. Skip Conditions (explicit exceptions)
 
-The gate is mandatory only for **behavior-affecting** changes (logic in
+The check is mandatory only for **behavior-affecting** changes (logic in
 `New` / `Changed` / `Fixed` / `Improvement` commits). Skip with a stated reason
 when the change is:
 
@@ -192,7 +192,7 @@ Before declaring a change set complete:
 
 ## Cross-references
 
-- `rem-commit-workflow` — the gate that calls this skill; owns the scope (`§Test scope`) that decides whether a case runs at all
+- `rem-commit-workflow` — the check that calls this skill; owns the scope (`§Test scope`) that decides whether a case runs at all
 - `rem-bdd-test-tree` — test tree generation + layered review
 - `rem-cpp-best-practices/references/tests.md` — §16 spec conventions; templates & pitfalls
 - `rem-write-better-skill` — skill-writing conventions

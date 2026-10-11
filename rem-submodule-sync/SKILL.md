@@ -167,7 +167,7 @@ the change.
    submodules ...` with the touched plugins in the summary.
 5. History reshaping (amend/fixup) belongs to `rem-rewrite-commit-history`.
 6. Push is a separate workflow — see `rem-submodule-push` (three-axis audit,
-   batch push, `--recurse-submodules=check` gate). Ask before pushing anything.
+   batch push, `--recurse-submodules=check`). Ask before pushing anything.
 
 **Exit criterion:** parent commit contains only the intended gitlink updates
 (plus any agreed `.uproject` change); submodule trees are clean; uncommitted

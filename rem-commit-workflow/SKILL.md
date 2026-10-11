@@ -3,7 +3,7 @@ name: rem-commit-workflow
 description: >
   Commit local changes in a UE project and verify them — single-responsibility
   commits, English comments, reformat edited files, a pre-build test
-  completeness gate, then build and run the project's automation tests
+  completeness check, then build and run the project's automation tests
   headless. Use when committing plugin changes, splitting a mixed commit for
   review, running the project's test suite, or deciding whether commits may be
   published.
@@ -59,7 +59,7 @@ contracts; the diff carries the *how*.
   behaviour-affecting commit: `- Verified: editor DebugGame build and the full
   automation suite are green.` No raw action/case counts, log or run file
   names, per-module breakdowns, warning counts, exit codes or "on this exact
-  tree" — the gate's raw evidence lives in the run directory; the message says
+  tree" — the check's raw evidence lives in the run directory; the message says
   only what was verified.
 - **No local identifiers**: no consumer-project or editor-target names, no
   machine or drive paths, no private module/test-prefix inventory, no internal
@@ -74,20 +74,20 @@ contracts; the diff carries the *how*.
 - One logical change per commit. Split a mixed commit (rename + bug fix, class
   filter + module tidy) into one commit per reason-to-change. Intermediate
   commits do not need to compile — but order the split so every intermediate
-  staged tree still passes the repository's own gate (lint/size budget), not
+  staged tree still passes the repository's own checks (lint/size budget), not
 - **A cross-repository change is one unit.** When one repository removes an API
   and other repositories migrate its call sites, the halves commit **together**,
   and whatever pins the versions (a submodule pointer, a lock file) moves in the
   same batch — staged by exact path so unrelated dirty entries stay out.
 - **A file the change set commits carries its pre-existing defects into that
   set.** A defect found inside a file already being committed belongs to the
-  change under review — fix it under this same gate, or record it explicitly. It
+  change under review — fix it under the same check, or record it explicitly. It
   is not "pre-existing" to a reviewer reading the commit.
 - Comments are English, never Chinese.
 - **Unified format pass before committing.** Edited files are reformatted so the
   code matches the solution code style — use the Rider MCP `reformat_file` tool
   on every changed file (batched in one `mcpScript` loop). Hand-edited spacing
-  is not a substitute; the build + test gates run on the reformatted code. After
+  is not a substitute; the build + test checks run on the reformatted code. After
   a reformat, re-check long `UPROPERTY` `meta` string literals
   (`rem-cpp-best-practices` §4).
 - Stage by exact path; never `git add -A` in the project repository — leave
@@ -140,11 +140,11 @@ file), use `git hash-object -w --path=<path>` (applies the clean filter, stores 
 `git update-index --cacheinfo`; verify the staged blob has zero CR and the worktree hash is
 unchanged. (The `git apply --cached` recipe above writes a temporary file.)
 
-## Test completeness gate
+## Test completeness check
 
 Before building, prove the change set's tests are complete. The methodology —
 change-to-case mapping, the five-point criteria, regression-first for fixes —
-is owned by `rem-test-completeness`; this section only states the gate rules.
+is owned by `rem-test-completeness`; this section only states the check rules.
 
 **Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; this check
 runs **once, in the full check**, on the accumulated change set, before the
@@ -160,11 +160,11 @@ single build + suite run.
 - Regression cases bind bug fixes; spot-check core logic by temporarily
   reverting the fix (the case must fail).
 
-## Review gate
+## Review check
 
 Before building and committing a change set, run the **review sub-agent**
 (`review` type, or the project's review agent) on the changed files. It is a
-mandatory step, not optional — the test gate proves behavior, the review gate
+mandatory step, not optional — the test check proves behavior, the review check
 catches design defects, lifecycle hazards and vacuous tests that tests alone
 miss (real case 2026-08: a registration-scope clobbering defect and a
 source-lifecycle gap were only found by the review pass; the test suite was
@@ -213,13 +213,13 @@ behaviour needs no test run, with that reasoning stated rather than implied.
   is `StartsWith:<test-prefix>`, not `*`.
 - **Scope is decided first** (`Test scope` above); this command only runs it.
 - **Pick one scope up front and run it once for the evidence.** Narrower filters are for
-  iteration only; the commit gate is a single run at the authorized scope — never stack
+  iteration only; the pre-commit check is a single run at the authorized scope — never stack
   scopes (narrow, then module, then full).
 - The console prints only UBT platform validation — judge red/green from
   `<project-dir>/Saved/Logs/<ProjectName>.log` (search `Result={Fail}`; green
   ends with `**** TEST COMPLETE. EXIT CODE: 0 ****`).
 
-## Publishing is a separate gate
+## Publishing is its own step
 
 `commit` and `push` are not two halves of one act. A commit is local and freely
 rewritable; a push is public, and once fetched it cannot be taken back
@@ -271,7 +271,7 @@ Before committing:
 - [ ] A file shared with another's work was staged hunk-wise: the other work stayed unstaged, the staged content carried none of its tokens, and the gitlink matched the submodule HEAD — or the split was merged with the non-compilable-intermediate proof stated
 - [ ] Un-pushed history folded per `rem-rewrite-commit-history`, not left as follow-up noise
 - [ ] Each module's dependencies declared per `rem-cpp-best-practices` §15
-- [ ] Test-completeness gate run for behavior-affecting changes, or skipped with a stated reason
+- [ ] Test-completeness check run for behavior-affecting changes, or skipped with a stated reason
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)
@@ -282,7 +282,7 @@ Before committing:
 
 ## Cross-references
 
-- `rem-test-completeness` — the test completeness gate methodology and criteria
+- `rem-test-completeness` — the test completeness check methodology and criteria
 - `rem-rewrite-commit-history` — reshaping un-pushed commit stacks before push
 - `rem-cpp-best-practices` §16 — spec style, test module placement
 - `rem-cpp-best-practices` §15 — module/plugin dependency declaration

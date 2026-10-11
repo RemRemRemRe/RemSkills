@@ -5,7 +5,7 @@ description: >
   three-axis audit (parent unpushed commits / submodule unpushed commits /
   gitlink-to-HEAD sync), classify submodules by remote ownership, batch-push
   with explicit origin refs, use `push --recurse-submodules=check` as the
-  authoritative gate, handle non-fast-forward by rebase instead of force, and
+  authoritative check, handle non-fast-forward by rebase instead of force, and
   follow force-push discipline. Use when asked to push a project with
   submodules, or after `rem-submodule-sync` updated submodules.
 metadata:
@@ -23,7 +23,7 @@ The companion `rem-submodule-sync` covers pulling updates in; this skill
 covers pushing local work out. History-rewrite mechanics (squash, reorder,
 drop) belong to `rem-rewrite-commit-history`; this skill only sets the
 discipline around pushing rewritten history. Whether the commits may be
-published **at all** is the gate in `rem-commit-workflow` — this skill starts
+published **at all** is decided by `rem-commit-workflow` — this skill starts
 once they may.
 
 ## Local overlay
@@ -97,13 +97,13 @@ summary line is the tail.
 
 ---
 
-## 4. Parent push with the check gate
+## 4. Parent push with the gitlink check
 
 ```
 git push --recurse-submodules=check origin <branch>
 ```
 
-This is the authoritative gate: git verifies that **every gitlink commit
+This is the authoritative check: git verifies that **every gitlink commit
 recorded in the parent** is reachable on the submodule's remotes, and aborts
 listing the offenders otherwise. A green `check` means "everything the parent
 records is out there".

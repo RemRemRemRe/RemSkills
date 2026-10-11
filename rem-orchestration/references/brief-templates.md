@@ -54,10 +54,10 @@ containing the change.
 
 Role clauses:
 
-- **Calibration run.** When the work unit *is* test authoring (new or changed spec cases), end the
-  round with one targeted run of that spec and report it as **calibration**, never as gate evidence;
+- **Trial run.** When the work unit *is* test authoring (new or changed spec cases), end the
+  round with one targeted run of that spec and report it as a **trial run**, never as check evidence;
   the suite still runs once, in the full check. A compile-only test round leaves capture devices,
-  counters, "always passes" assertions and identifier collisions to be discovered at the gate.
+  counters, "always passes" assertions and identifier collisions to be discovered at the check.
 - **Expectation checklist for the full check** (when the brief covers it): a per-prefix table — one row
   per prefix in the filter, each with the previous run's count and the expected new cases — plus the
   new spec's own case count, the cases whose verdict needs runtime observation, and superseded logs
@@ -78,7 +78,7 @@ and reports it honestly.
 - forbidden: behaviour, design and test-expectation changes; writes outside the run dir
 
 ## CONSTRAINTS
-- standards: `rem-test-completeness` for the gate, `rem-commit-workflow` for the exact commands
+- standards: `rem-test-completeness` for the check, `rem-commit-workflow` for the exact commands
 - environment: the build/test overlay (`rem-commit-workflow`, `local/build-test-and-commit.md`)
 - delta over the standing template: <the case-plan pointer or tree state if it differs>
 
@@ -145,7 +145,7 @@ Role clauses:
 ## Git stage
 
 `subagent_type: <git-profile>` — mechanical git execution: commits, history rewrite, submodule sync
-and push, gated by the verified evidence.
+and push, released only with the verified evidence.
 
 ```md
 ## OBJECTIVE
@@ -162,7 +162,7 @@ and push, gated by the verified evidence.
 
 ## ACCEPTANCE
 - [ ] one commit per change unit, `Type: short desc` in English with a bullet body
-- [ ] commit gate evidence cited, or a green verify run on exactly this tree named
+- [ ] the check's evidence cited, or a green verify run on exactly this tree named
 
 ## REPORT
 - run dir: <run-id, or "create one">

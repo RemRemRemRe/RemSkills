@@ -318,7 +318,7 @@ the remote: the repo's `pre-push` hook (`.githooks/pre-push`, installed with
 machine. A hook must derive its repo root from its own path
 (`root=$(cd "$(dirname "$0")/.." && pwd)`), never `git rev-parse --show-toplevel`
 — that follows the caller's cwd and checks the wrong repo when the hook is run
-manually. On a public repository the gate belongs **before push, not in CI**: CI
+manually. On a public repository the check belongs **before push, not in CI**: CI
 runs post-hoc, after the leak is already published. Errors must be fixed; a
 warning is either fixed or explained in the commit message. When the tool is absent (skills copied outside this collection),
 apply this checklist manually — the lint is the mechanical half of it, not a

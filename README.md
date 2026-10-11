@@ -15,10 +15,10 @@ both files in the same change.
 
 **Commit & Git workflows**
 
-- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — single-responsibility commits, pre-build test completeness gate, headless build & test
+- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — single-responsibility commits, pre-build test completeness check, headless build & test
 - [`rem-rewrite-commit-history`](rem-rewrite-commit-history/SKILL.md) — reshape un-pushed commit stacks (amend / fixup / rebase -i)
 - [`rem-submodule-sync`](rem-submodule-sync/SKILL.md) — update submodules to remote latest, verify by build, commit
-- [`rem-submodule-push`](rem-submodule-push/SKILL.md) — three-axis audit + batch push with `--recurse-submodules=check` as the gate
+- [`rem-submodule-push`](rem-submodule-push/SKILL.md) — three-axis audit + batch push with `--recurse-submodules=check` as the authoritative check
 
 **C++ development conventions**
 
@@ -36,7 +36,7 @@ both files in the same change.
 
 **Testing**
 
-- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — the pre-commit gate: change-to-case mapping, five-point completeness criteria, regression-first for fixes
+- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — the pre-commit test check: change-to-case mapping, five-point completeness criteria, regression-first for fixes
 - [`rem-bdd-test-tree`](rem-bdd-test-tree/SKILL.md) — hierarchical BDD test tree (mind-map index) + layered review workflow
 
 **Multi-engine plugin adaptation**
@@ -69,9 +69,9 @@ both files in the same change.
   - UE editor / asset work — `rem-customize-factory-asset-menu`, `rem-sequencer-custom-channel-section`
   - Ship editor text in another language — `rem-ue-localization`
 - **Test**
-  - Make sure the tests are complete — `rem-test-completeness` (the gate); `rem-bdd-test-tree` (review index); spec templates & run gotchas in `rem-cpp-best-practices/references/tests.md`
+  - Make sure the tests are complete — `rem-test-completeness` (the completeness check); `rem-bdd-test-tree` (review index); spec templates & run gotchas in `rem-cpp-best-practices/references/tests.md`
 - **Commit & push**
-  - Commit — `rem-commit-workflow` (message, hygiene, completeness gate, build, headless tests); project facts come from its `local/` overlay
+  - Commit — `rem-commit-workflow` (message, hygiene, completeness check, build, headless tests); project facts come from its `local/` overlay
   - Clean history before push — `rem-rewrite-commit-history`
   - Sync / push submodules — `rem-submodule-sync`, `rem-submodule-push`
 - **Extend & maintain**
@@ -133,7 +133,7 @@ the lint keeps it that way — no tracked `local/` path, every file under
 skill folder. An unknown `Rem*`/`URem*` name fails the run; give it a publicly
 verifiable source in the allowlist or generalize it.
 
-It is a **local gate**, not a CI job — the check must pass before a change
+It is a **local check**, not a CI job — it must pass before a change
 leaves the machine, not after. Install the hook once per clone:
 
 ```bash

@@ -19,7 +19,7 @@ POSIX `$TMPDIR` (`/tmp`).
 
 One unique subdirectory per task (`mktemp -d`) keeps parallel runs apart.
 **Temp is the default; persistence is earned:** persist only files a later
-reader needs (report/gate citation, a later stage, a reviewer) into the
+reader needs (a report or check citation, a later stage, a reviewer) into the
 run/artifact directory; one-shot patches, message files, probe inputs,
 intermediate dumps and superseded copies stay in temp.
 
@@ -28,7 +28,7 @@ intermediate dumps and superseded copies stay in temp.
 - Temp may vanish between commands; keep a durable copy of what the task must
   not lose.
 - State the temp path whenever it holds evidence (a patch, a log).
-- Executors too: log to temp; copy into the run dir only what the report or gate
+- Executors too: log to temp; copy into the run dir only what the report or a check
   cites — never the working tree, never a command's output path.
 
 ## Checklist

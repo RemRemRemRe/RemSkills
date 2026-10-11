@@ -2,7 +2,7 @@
 
 Templates, the module placement table and the verified gotchas for the
 dedicated test module. Test *rules* live in `SKILL.md` §16; whether a change's
-tests are *complete* (the pre-commit gate) is owned by `rem-test-completeness`;
+tests are *complete* (the pre-commit check) is owned by `rem-test-completeness`;
 the headless run command itself — the one that carries the project's paths and
 filter — is owned by `rem-commit-workflow`.
 

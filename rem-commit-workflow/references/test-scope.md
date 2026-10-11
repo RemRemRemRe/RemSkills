@@ -65,4 +65,4 @@ Stage 2 — prune by symbol, then decide:
   `UPROPERTY`/`UFUNCTION` name, a class name assets reference), a config key, a cvar, a stat id.
   Renaming those is a behaviour change - run the scope that can reach them.
 - Why the scope matters: a failure outside the change's blast radius is noise — it can block
-  a clean commit and trains the reader to ignore the gate.
+  a clean commit and trains the reader to ignore the check.

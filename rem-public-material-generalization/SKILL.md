@@ -177,7 +177,7 @@ specific public type's API uses the real type name.
   state — `publicNames` for what a public repository actually contains,
   `documentedExamples` for a placeholder or engine type — each with its source.
   The lint matches `RemXxx` and the type-prefixed `URemXxx`/`ERemXxx` forms, and
-  an unlisted name fails it, so the check is a gate rather than a memory test.
+  an unlisted name fails it, so the check decides on its own rather than testing memory.
 - **Case catalogues** (false positives, pitfalls, "verified YYYY-MM" notes) —
   state the **shape** of the case, not the file it was seen in. A private file
   name in a catalogue entry leaks the plugin layout and gives the reader a
@@ -192,7 +192,7 @@ The checklist is the contract — run it before pushing any public material:
 
 - [ ] No machine paths — drive-letter paths, posix and macOS home paths (enforced by `tools/lint-skills.mjs`)
 - [ ] The collection lint passes before pushing — `node tools/lint-skills.mjs`; the run obligation and the tool itself are owned by `rem-write-better-skill` §8
-- [ ] Publishing was authorized as its own explicit instruction, never inferred from an approval of the edits (`rem-commit-workflow` — Publishing is a separate gate)
+- [ ] Publishing was authorized as its own explicit instruction, never inferred from an approval of the edits (`rem-commit-workflow` — Publishing is its own step)
 - [ ] No private project/plugin/module/target/type names — the lint fails on any Rem-family identifier (`RemXxx`, `URemXxx`) missing from `tools/public-names.json`; a name is added only with a public source
 - [ ] Names verified **anonymously** (`git -c credential.helper= -c core.askPass= ls-remote --heads <repo>`) — an authenticated lookup resolves private repositories and proves nothing
 - [ ] Catalogue citations name a public path or the case's shape, never a private file ("observed in `<private-file>`")

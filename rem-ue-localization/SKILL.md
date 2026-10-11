@@ -194,7 +194,7 @@ only once such a pipeline consumes it (§3.2).
 
 - `rem-cpp-best-practices` — comment discipline (doc comments become tooltips), `ForceUnits`, metadata completeness
 - `rem-observability-and-profiling` — what stays developer-facing English
-- `rem-test-completeness` — the pre-commit test gate for a localization change
+- `rem-test-completeness` — the pre-commit test check for a localization change
 - `rem-commit-workflow` — committing the data, the configs and the spec
 
 ## Checklist

@@ -49,7 +49,7 @@
 
 **主会话编排**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代/冻结点节奏、run 目录与等待纪律
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 完整检查的节奏、run 目录与等待纪律
 
 **环境约束**
 

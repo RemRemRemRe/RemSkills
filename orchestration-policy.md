@@ -1,7 +1,7 @@
 # Orchestration policy (main session)
 
 Hard rules for this project, always in force. The procedure behind them - delegation
-mechanics, the iteration/freeze sequence, run-directory and `resume` conventions, waiting
+mechanics, the writing-code / full-check sequence, run-directory and `resume` conventions, waiting
 discipline - lives in the `rem-orchestration` skill; load it when planning, delegating or
 sequencing work.
 
@@ -14,8 +14,8 @@ sequencing work.
   OS temp dir, a run's own output to its run directory (`rem-temp-files`); never into the
   working tree, ignored paths included.
 - **Iteration is code-only.** Compile the affected target and record test intent; specs,
-  the build + suite run, docs and commits happen once, at the freeze point.
-- **Freeze only settled work.** Specs, docs and commits wait until the surface a change exposes stops
+  the build + suite run, docs and commits happen once, in the full check.
+- **Run the full check on settled work only.** Specs, docs and commits wait until the surface a change exposes stops
   moving; until then keep iterating (compile + intent lines) with no spec and no doc. The settling
   criteria and the ceiling on unfrozen work live in `rem-orchestration`.
 - **What the operator reads is plain and short.** Anything addressed to the operator - the main

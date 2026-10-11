@@ -33,8 +33,8 @@ Do NOT use for: running tests or builds (`rem-commit-workflow`), generating
 test trees (`rem-bdd-test-tree`), spec style / module placement / build commands
 (`rem-cpp-best-practices/references/tests.md` §16).
 
-**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; this gate
-runs once, at the freeze point. Iteration records intent lines
+**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; this check
+runs once, in the full check. Iteration records intent lines
 (`<run-dir>/test-intent.md`) instead of specs; a bug fix proves its regression case
 by reverting the fix (§2).
 

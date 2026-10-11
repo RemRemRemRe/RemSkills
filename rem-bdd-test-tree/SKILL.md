@@ -30,8 +30,8 @@ with any Python 3).
 
 Do NOT use for: running tests, fixing test failures, writing new tests.
 
-**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; the tree is
-regenerated at the freeze point and feeds the review case plan. Adding or renaming
+**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; the tree is
+regenerated in the full check and feeds the review case plan. Adding or renaming
 test modules forces regeneration.
 
 ## Usage

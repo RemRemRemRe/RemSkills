@@ -56,9 +56,9 @@ Role clauses:
 
 - **Calibration run.** When the work unit *is* test authoring (new or changed spec cases), end the
   round with one targeted run of that spec and report it as **calibration**, never as gate evidence;
-  the suite still runs once, at the freeze. A compile-only test round leaves capture devices,
+  the suite still runs once, in the full check. A compile-only test round leaves capture devices,
   counters, "always passes" assertions and identifier collisions to be discovered at the gate.
-- **Freeze expectation checklist** (when the brief is a freeze brief): a per-prefix table — one row
+- **Expectation checklist for the full check** (when the brief covers it): a per-prefix table — one row
   per prefix in the filter, each with the previous run's count and the expected new cases — plus the
   new spec's own case count, the cases whose verdict needs runtime observation, and superseded logs
   moved out of the run directory with a marker.
@@ -92,7 +92,7 @@ and reports it honestly.
 
 Role clauses:
 
-- **Freeze expectation checklist.** Reconcile the runner's prefix counts against the brief's table,
+- **Expectation checklist for the full check.** Reconcile the runner's prefix counts against the brief's table,
   one row per prefix — never a single hand-counted total. For every difference, list the incremental
   case names and attribute each (this change / coexisting work-in-progress / undetermined). Name any
   case whose verdict needs runtime observation, and say explicitly when an earlier run's evidence was

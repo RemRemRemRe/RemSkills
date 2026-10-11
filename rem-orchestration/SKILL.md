@@ -3,7 +3,7 @@ name: rem-orchestration
 description: >
   Main-session orchestration policy for a project that uses this collection: delegate execution
   to subagents with self-contained briefs (background by default, never inheriting context), run
-  the iteration/freeze cadence - compile-only iteration, one build + suite at the freeze point -
+  the two-phase cadence - compile-only while the code is written, one build + suite in the full check -
   and prefer events over polling when waiting. Use when planning, delegating, or sequencing work
   as the main session in such a project.
 metadata:
@@ -75,73 +75,78 @@ procedure's restatement of it.
 - **Verify from artifacts.** A run's outcome is its run directory (`report.md`, logs) or the
   child session's final message - never "it is still running".
 
-## Iteration and freeze
+## Writing code, then the full check
 
-Iteration is code-only; the expensive gates run once, at the freeze point.
+Iteration is code-only; the expensive checks run once, in the full check.
 
-**Freeze only a settled surface.** The gates below run only when what the unit exposes has settled:
-its contract is written down (signature, inputs and outputs, error behaviour), no later step in the
-plan changes it, and the acceptance reads as one statement with no "for now". The parent decides this
-and states it in the brief - only the parent knows the coming steps, so the executor never judges it
-alone. Until then the round stays in iteration: compile, append intent lines, write no spec and no doc.
+**Run the full check on settled work only.** The steps below run only when what the unit exposes has
+settled: its contract is written down (signature, inputs and outputs, error behaviour), no later step
+in the plan changes it, and the acceptance reads as one statement with no "for now". The parent
+decides this and states it in the brief - only the parent knows the coming steps, so the executor
+never judges it alone. Until then the round stays in iteration: compile, append intent lines, write
+no spec and no doc.
 
-- **Split by stability, not by module.** Inside one unit, freeze the settled leaves first - pure
-  functions, data structures, algorithms, naming and path conventions - and let their specs drive the
-  implementation: as soon as a leaf's signature is settled, write the failing spec, then make it pass
-  (this is where TDD lives). The volatile layer above them - orchestration, lifecycle, wiring -
-  stays in iteration.
-- **Bound the unfrozen pile-up.** Freeze what is settled before writing more when any of these shows
-  up: the acceptance needs "and ... and ..." to state; one review of the freeze diff costs more than
-  the build + suite it precedes; the same interface is reworked a second time in iteration. The
-  larger the frozen diff, the harder one failed freeze run is to localize.
+- **Split by stability, not by module.** Inside one unit, run the full check on the settled leaves
+  first - pure functions, data structures, algorithms, naming and path conventions - and let their
+  specs drive the implementation: as soon as a leaf's signature is settled, write the failing spec,
+  then make it pass (this is where TDD lives). The volatile layer above them - orchestration,
+  lifecycle, wiring - stays in iteration.
+- **Bound what has not been checked yet.** Run the full check on what is settled before writing more
+  when any of these shows up: the acceptance needs "and ... and ..." to state; one review of the diff
+  the check covers costs more than the build + suite it precedes; the same interface is reworked a
+  second time in iteration. The larger the diff, the harder one failed run of the full check is to
+  localize.
 - **Discarding is explicit.** A dropped direction takes its intent lines with the code; record what
   was dropped, and why, in `state.md`. No spec was ever written for it, so no authoring or review
   round was spent.
 - **TDD survives as three facts.** The intent line is written *before* the code; new behaviour's spec
-  lands in the same freeze (no debt); a change to existing behaviour shows its spec failing against
-  the pre-change tree (the same revert proof the bug-fix rule uses), while a pure addition only has to
-  pass the "could this assertion ever fail" check (`rem-test-completeness`). Documentation follows the
-  same gate: a doc is written for a settled surface only, in the freeze docs pass.
+  lands in the same full check (no debt); a change to existing behaviour shows its spec failing
+  against the pre-change tree (the same revert proof the bug-fix rule uses), while a pure addition
+  only has to pass the "could this assertion ever fail" check (`rem-test-completeness`). Documentation
+  follows the same rule: a doc is written for a settled surface only, in the doc pass that runs with
+  the full check.
 
 1. **Iteration** - per work unit: edit, compile the affected target, record test intent in
-   `<run-dir>/test-intent.md` as one `trigger -> assertion` line per behaviour, and keep that line
-   current when the behaviour is reworked. No specs, no suite run, no docs sweep.
-2. **Freeze review** - one review pass over the accumulated diff, with the intent file and the
+   `<run-dir>/test-intent.md` as one `<prefix> | trigger -> assertion` line per behaviour - the
+   prefix it will feed - and keep that line current when the behaviour is reworked. No specs, no suite run, no docs sweep.
+2. **Case plan** - one review pass over the accumulated diff, with the intent file and the
    existing-case index as inputs, produces the case plan. The diff is the source of truth: each
    changed behaviour becomes a case to write or update. Reconcile both ways - an intent line with no
-   diff hunk, or a behaviour change with no intent line, is investigated, not waved through.
+   diff hunk, or a behaviour change with no intent line, is investigated, not waved through. The
+   parent persists the plan as `<run-dir>/test-plan.md` - the review profile has no write tool - and
+   the brief for writing the cases points at that file.
 3. **Test authoring** - write the cases from that plan. Whichever executor writes new or changed
    cases ends its round with one *targeted* run of that spec, reported as **calibration**, never as
-   gate evidence - the one-run-at-freeze rule governs the *suite*, not this run. Expectation
+   check evidence - the one-suite-run rule governs the *suite*, not this run. Expectation
    bookkeeping (how many times a message is recorded, which record a pattern claims), capture
    devices, counters, "always passes" assertions and identifier collisions are only visible by
-   executing, so a compile-only test round pushes them into the freeze and costs a red gate plus
+   executing, so a compile-only test round pushes them into the full check and costs a failed run plus
    extra rounds. Evidence: a wrong declaration turned into a red gate, a resumed authoring round and
    a second full build plus suite.
-4. **Verify** - one build plus one suite run, at the scope decided up front, on the frozen tree.
+4. **Verify** - one build plus one suite run, at the scope decided up front, on the unchanged tree.
    A build that reports "target is up to date" (**0 actions**) is **not** compiler evidence: nothing
    compiled. When that happens, take the compile evidence from the round that actually compiled the
    tree (name it in the brief) and corroborate it with the artifact's hash or mtime, or require a
    forced rebuild; the suite run still stands.
 5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
-   re-running. A bug fix proves its regression case by temporarily reverting the fix at the
-   freeze point. A change to the tree **after** the freeze needs a re-run that covers the new
+   re-running. A bug fix proves its regression case by temporarily reverting the fix inside the
+   full check. A change to the tree **after** the full check needs a re-run that covers the new
    bytes; a delta that is provably inert (comments only) may be exempted when a calibration run
    covers the one changed spec — and the exemption's reasoning is stated in the brief, never
    left implicit.
 
 Three rules bind that sequence:
 
-- **Review test deliverables before the freeze.** When the round's deliverable is tests, run the
-  focused review of the new/changed test files before the freeze gate, in parallel with the
+- **Review test deliverables before the full check.** When the round's deliverable is tests, run the
+  focused review of the new/changed test files before the full check, in parallel with the
   calibration run. The dominant defect class there - an assertion that passes for the wrong reason -
   is invisible to the compiler and to a compile-only round.
 - **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
   test-infrastructure refactors belong to separate units, because one red gate re-verifies every
   change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in
   the round, minor and elegance findings go to a backlog list.
-- **The freeze brief states the expectation per prefix.** Give a table with one row per prefix in the
+- **The brief for the full check states the expectation per prefix.** Give a table with one row per prefix in the
   run's filter: the previous run's count and the expected new cases for that prefix. Never hand-count
   a single total for the whole filter — the runner's `Found N` is the count, reported per prefix. The
   executor reconciles it per prefix and, on a mismatch, lists the incremental case names and
@@ -168,6 +173,8 @@ Three rules bind that sequence:
   bounded summary with pointers.
 - **One authoritative log per stage.** A superseded run's logs move out of the run directory
   with a "superseded" marker; the run directory holds the logs the report cites.
+- **The parent keeps `plan.md`.** One line per work unit - is the surface settled, has the full
+  check run - appended by the parent; executors may read it when their brief points there.
 - `resume` continues the same child session and the same run directory: append to
   `state.md`, never create a new run dir.
 
@@ -198,20 +205,20 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Run dirs hold only what a later reader needs — one-off generators, patches and message files stayed in temp (`rem-temp-files`)
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
-- [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
-- [ ] Every unit that reached the freeze had a settled surface (contract written, no planned change, no "for now"); unfrozen work stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
-- [ ] The freeze case plan came from the diff with the intent file as cross-check - reconciled both ways, no intent line and no behaviour change left unmatched
+- [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once in the full check
+- [ ] Every unit that reached the full check had a settled surface (contract written, no planned change, no "for now"); work that had not settled stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
+- [ ] The case plan in the full check came from the diff with the intent file as cross-check - reconciled both ways, no intent line and no behaviour change left unmatched
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
-- [ ] A post-freeze tree change got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
+- [ ] A tree change after the full check got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch
 - [ ] A test-authoring round ended with one targeted calibration run, reported as calibration rather than gate evidence
-- [ ] Test deliverables got their focused review before the freeze gate
+- [ ] Test deliverables got their focused review before the full check
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
-- [ ] The freeze brief gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
+- [ ] The brief for the full check gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
 - [ ] Read-only profiles (review/recon/grill) reported inline, with a capped scope and priority; the parent persisted the report
 - [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker
 - [ ] Operator-facing text was plain, context-bearing and free of coined shorthand

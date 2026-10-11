@@ -51,7 +51,7 @@ both files in the same change.
 
 **Main-session orchestration**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the iteration/freeze cadence, run-directory and waiting discipline for the main session
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / full-check cadence, run-directory and waiting discipline for the main session
 
 **Environment constraints**
 

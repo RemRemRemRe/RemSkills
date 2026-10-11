@@ -61,8 +61,8 @@ The obligation is per **artifact**, not per file changed: a one-line default
 change still updates the config reference, because that is the only place a
 reader looks for the default.
 
-**Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; external docs
-(module doc, subsystem doc, config reference) are batched in the freeze docs pass. The
+**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; external docs
+(module doc, subsystem doc, config reference) are batched in the doc pass that runs with it. The
 code-embedded obligations — API comments, tooltips, cvar help — still ship with the
 change that triggers them. Document a settled surface only: while a subsystem's
 contract is still moving, its doc waits with it.

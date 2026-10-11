@@ -21,11 +21,12 @@ agent context file, which points here for the procedure.
 ## Talking to the user
 
 Every reply and every subagent report the operator reads is written for a person, not for the
-harness: the operator's own language, plain words, no jargon and no coined shorthand ("verification
+harness: the operator's own language, few terms, no jargon and no coined shorthand ("verification
 run", not "VR"; "test scope", not "scope"), and any term the operator did not introduce explained
-the first time it appears. A claim without context is unusable - say what changed, why it matters,
-what it affects and what happens next, prefer numbers, file paths and quoted evidence to adjectives,
-keep it to about a screenful, and point at the run directory for detail. The hard rule lives in
+the first time it appears. Be short - about a screenful - and delete any line the operator can
+neither learn from nor act on. A claim without context is unusable - say what changed, why it
+matters, what it affects and what happens next, prefer numbers, file paths and quoted evidence to
+adjectives, and point at the run directory for detail. The hard rule lives in
 `orchestration-policy.md`; this section is the procedure's restatement of it.
 
 ## Delegation

@@ -104,10 +104,12 @@ alone. Until then the round stays in iteration: compile, append intent lines, wr
   same gate: a doc is written for a settled surface only, in the freeze docs pass.
 
 1. **Iteration** - per work unit: edit, compile the affected target, record test intent in
-   `<run-dir>/test-intent.md` as one `trigger -> assertion` line per behaviour. No specs,
-   no suite run, no docs sweep.
-2. **Freeze review** - one review pass over the accumulated diff produces the case plan:
-   the existing-case index plus the missing or updated cases.
+   `<run-dir>/test-intent.md` as one `trigger -> assertion` line per behaviour, and keep that line
+   current when the behaviour is reworked. No specs, no suite run, no docs sweep.
+2. **Freeze review** - one review pass over the accumulated diff, with the intent file and the
+   existing-case index as inputs, produces the case plan. The diff is the source of truth: each
+   changed behaviour becomes a case to write or update. Reconcile both ways - an intent line with no
+   diff hunk, or a behaviour change with no intent line, is investigated, not waved through.
 3. **Test authoring** - write the cases from that plan. Whichever executor writes new or changed
    cases ends its round with one *targeted* run of that spec, reported as **calibration**, never as
    gate evidence - the one-run-at-freeze rule governs the *suite*, not this run. Expectation
@@ -198,6 +200,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
 - [ ] Every unit that reached the freeze had a settled surface (contract written, no planned change, no "for now"); unfrozen work stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
+- [ ] The freeze case plan came from the diff with the intent file as cross-check - reconciled both ways, no intent line and no behaviour change left unmatched
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
 - [ ] A post-freeze tree change got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory

@@ -16,12 +16,13 @@ sequencing work.
 - **Iteration is code-only.** Compile the affected target and record test intent; specs,
   the build + suite run, docs and commits happen once, at the freeze point.
 - **What the operator reads is plain and short.** Anything addressed to the operator - the main
-  session's replies and the subagent reports the harness shows them - uses the operator's own
-  language, few terms, no jargon and no coined shorthand (write "verification run", not "VR";
-  "test scope", not "scope"); a term the operator did not introduce is explained the first time it
-  appears. Every claim carries context - what changed, why it matters, what it affects, what happens
-  next - prefers numbers, file paths and quoted evidence to adjectives, stays about a screenful, and
-  points at the artifact for detail; a line the operator can neither learn from nor act on is deleted.
+  session's replies and the subagent reports the harness shows them - keeps terms few, avoids jargon
+  and coined shorthand (write "verification run", not "VR"; "test scope", not "scope"), and explains
+  a term the operator did not introduce the first time it appears; the writer picks the language
+  (English, Chinese or mixed) for whatever carries the point best, not by rule. Every claim carries
+  context - what changed, why it matters, what it affects, what happens next - prefers numbers, file
+  paths and quoted evidence to adjectives, stays about a screenful, and points at the artifact for
+  detail; a line the operator can neither learn from nor act on is deleted.
   `rem-orchestration` carries the procedure (*Talking to the user*).
 - **Prefer events over polling.** Never use `get_subagent_result(wait: true)` as a blocking
   wait and never sleep-poll - read the run directory instead.

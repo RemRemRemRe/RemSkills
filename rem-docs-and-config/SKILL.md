@@ -64,7 +64,8 @@ reader looks for the default.
 **Iteration vs. freeze.** The sequence is owned by `rem-orchestration`; external docs
 (module doc, subsystem doc, config reference) are batched in the freeze docs pass. The
 code-embedded obligations — API comments, tooltips, cvar help — still ship with the
-change that triggers them.
+change that triggers them. Document a settled surface only: while a subsystem's
+contract is still moving, its doc waits with it.
 
 ## 3. Writing a technical doc
 

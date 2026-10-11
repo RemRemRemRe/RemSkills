@@ -79,6 +79,30 @@ procedure's restatement of it.
 
 Iteration is code-only; the expensive gates run once, at the freeze point.
 
+**Freeze only a settled surface.** The gates below run only when what the unit exposes has settled:
+its contract is written down (signature, inputs and outputs, error behaviour), no later step in the
+plan changes it, and the acceptance reads as one statement with no "for now". The parent decides this
+and states it in the brief - only the parent knows the coming steps, so the executor never judges it
+alone. Until then the round stays in iteration: compile, append intent lines, write no spec and no doc.
+
+- **Split by stability, not by module.** Inside one unit, freeze the settled leaves first - pure
+  functions, data structures, algorithms, naming and path conventions - and let their specs drive the
+  implementation: as soon as a leaf's signature is settled, write the failing spec, then make it pass
+  (this is where TDD lives). The volatile layer above them - orchestration, lifecycle, wiring -
+  stays in iteration.
+- **Bound the unfrozen pile-up.** Freeze what is settled before writing more when any of these shows
+  up: the acceptance needs "and ... and ..." to state; one review of the freeze diff costs more than
+  the build + suite it precedes; the same interface is reworked a second time in iteration. The
+  larger the frozen diff, the harder one failed freeze run is to localize.
+- **Discarding is explicit.** A dropped direction takes its intent lines with the code; record what
+  was dropped, and why, in `state.md`. No spec was ever written for it, so no authoring or review
+  round was spent.
+- **TDD survives as three facts.** The intent line is written *before* the code; new behaviour's spec
+  lands in the same freeze (no debt); a change to existing behaviour shows its spec failing against
+  the pre-change tree (the same revert proof the bug-fix rule uses), while a pure addition only has to
+  pass the "could this assertion ever fail" check (`rem-test-completeness`). Documentation follows the
+  same gate: a doc is written for a settled surface only, in the freeze docs pass.
+
 1. **Iteration** - per work unit: edit, compile the affected target, record test intent in
    `<run-dir>/test-intent.md` as one `trigger -> assertion` line per behaviour. No specs,
    no suite run, no docs sweep.
@@ -173,6 +197,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
 - [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once at the freeze point
+- [ ] Every unit that reached the freeze had a settled surface (contract written, no planned change, no "for now"); unfrozen work stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
 - [ ] A post-freeze tree change got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory

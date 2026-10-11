@@ -15,6 +15,9 @@ sequencing work.
   working tree, ignored paths included.
 - **Iteration is code-only.** Compile the affected target and record test intent; specs,
   the build + suite run, docs and commits happen once, at the freeze point.
+- **Freeze only settled work.** Specs, docs and commits wait until the surface a change exposes stops
+  moving; until then keep iterating (compile + intent lines) with no spec and no doc. The settling
+  criteria and the ceiling on unfrozen work live in `rem-orchestration`.
 - **What the operator reads is plain and short.** Anything addressed to the operator - the main
   session's replies and the subagent reports the harness shows them - keeps terms few, avoids jargon
   and coined shorthand (write "verification run", not "VR"; "test scope", not "scope"), and explains

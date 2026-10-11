@@ -38,6 +38,10 @@ runs once, at the freeze point. Iteration records intent lines
 (`<run-dir>/test-intent.md`) instead of specs; a bug fix proves its regression case
 by reverting the fix (§2).
 
+Write cases for a settled surface only: while the interface is still being shaped it
+stays in iteration as intent lines - a case written against a moving interface gets
+rewritten, not reused.
+
 ## The Gate Contract
 
 Called by `rem-commit-workflow` between commit hygiene and build, **once per

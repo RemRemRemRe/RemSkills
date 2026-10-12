@@ -2,7 +2,7 @@
 name: rem-commit-workflow
 description: >
   Commit local changes in a UE project and verify them — single-responsibility
-  commits, English comments, reformat edited files, a pre-build test
+  commits, English comments, formatting verified, a pre-build test
   completeness check, then build and run the project's automation tests
   headless. Use when committing plugin changes, splitting a mixed commit for
   review, running the project's test suite, or deciding whether commits may be
@@ -84,12 +84,14 @@ contracts; the diff carries the *how*.
   change under review — fix it under the same check, or record it explicitly. It
   is not "pre-existing" to a reviewer reading the commit.
 - Comments are English, never Chinese.
-- **Unified format pass before committing.** Edited files are reformatted so the
-  code matches the solution code style — use the Rider MCP `reformat_file` tool
-  on every changed file (batched in one `mcpScript` loop). Hand-edited spacing
-  is not a substitute; the build + test checks run on the reformatted code. After
-  a reformat, re-check long `UPROPERTY` `meta` string literals
-  (`rem-cpp-best-practices` §4).
+- **Formatting belongs to the coding round; the commit only verifies it.** That
+  round runs the project formatter (Rider MCP `reformat_file`, batched in one
+  `mcpScript` loop) on every touched file and compiles *after* it, so the verified
+  bytes are the formatted bytes. The commit stage never reformats: doing it here
+  invalidates the verified tree, and another tool or version can change more than
+  the diff suggests. An unformatted file stops the commit and returns the work to
+  authoring; the mid-string split of a long `UPROPERTY` `meta` literal is caught
+  here (`rem-cpp-best-practices` §4).
 - Stage by exact path; never `git add -A` in the project repository — leave
   unfinished work uncommitted. A **generated tree whose contents are all
   produced by tooling** (the plugin-adapter's build repo) is the stated
@@ -267,8 +269,8 @@ Before committing:
 - [ ] Body carries decisions, not evidence dumps — at most one short verification line, no local identifiers
 - [ ] One logical change per commit; a mixed commit was split per reason-to-change
 - [ ] Comments in the diff are English
-- [ ] Every edited file went through the Rider MCP `reformat_file` pass
-- [ ] Long `UPROPERTY` `meta`/`EditCondition` literals survived the reformat intact
+- [ ] Formatting came from the coding round; the commit verified it and did not reformat (that would invalidate the verified tree)
+- [ ] Long `UPROPERTY` `meta`/`EditCondition` literals are intact after the coding round's reformat (no mid-string split)
 - [ ] Staged by exact path (no `git add -A`); `git show --stat` verified the file list after any amend; a message fed via `-F` was BOM-free
 - [ ] A file shared with another's work was staged hunk-wise: the other work stayed unstaged, the staged content carried none of its tokens, and the gitlink matched the submodule HEAD — or the split was merged with the non-compilable-intermediate proof stated
 - [ ] Un-pushed history folded per `rem-rewrite-commit-history`, not left as follow-up noise

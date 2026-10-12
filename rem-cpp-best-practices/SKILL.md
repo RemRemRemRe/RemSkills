@@ -129,6 +129,9 @@ Namespace layout, extended examples and the full naming tables: `references/nami
 
 ## 4. Formatting
 
+**When:** the reformat closes the coding round, before the compile that verifies it - never after
+(a late reformat invalidates the verified bytes).
+
 Allman braces; 4-space indentation; one statement per line; `Type* Ptr` / `const Type& Ref`; explicit braces on every block; namespace contents not indented; alignment is whatever the Rider `.DotSettings` produces — never hand-align.
 
 **Comments:** `/** */` Doxygen on header declarations, `//` in `.cpp`, never `///`; no `} // namespace` closing comments. Discipline: **the default is no comment** — self-explanatory code is the goal; a fact that needs one usually wants a better name instead, and a comment narrating its own line is deleted. What earns one: **why** a choice was made and which invariant holds, one concept per comment, at its most useful spot; **overview comments** (a file's, type's or section's purpose and reading order) are the exception worth writing. Use real Doxygen keywords (`@warning`, `@note`, `@param`, `@return`, `@tparam`, `@see`, `@todo`), never plain-text lookalikes. A comment next to a declaration can become its **tooltip**: UHT stores a `/** */` doc comment as `ToolTip` metadata — and equally a bare `//` line or a comment inside the specifier list as `Comment` metadata, which the details panel falls back to when no doc comment exists; never park specifier text (`Transient/*, Meta = (...) */`) or preprocessor lines there (data-side symptoms: `rem-ue-localization` `references/pitfalls.md`).
@@ -137,9 +140,7 @@ Allman braces; 4-space indentation; one statement per line; `Type* Ptr` / `const
 
 **Rule of Five/Zero:** declare or delete all five (or `REM_DEFINE_THE_RULE_OF_FIVE`). Use `#pragma region` for section organization.
 
-**Reformat caveat:** the Rider reformatter can split a long `UPROPERTY` `meta` string mid-string → UHT "Unterminated character constant"; re-check long literals after `reformat_file`.
-
-Examples and the sample layout: `references/naming-formatting.md`.
+Caveat (a reformat can split a long `UPROPERTY` `meta` string mid-string → UHT "Unterminated character constant") and examples: `references/naming-formatting.md`.
 
 ---
 

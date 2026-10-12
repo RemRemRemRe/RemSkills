@@ -152,7 +152,9 @@ single build + suite run.
 
 - **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
   `Fixed` / `Improvement` commits). Skip only with a stated reason: pure
-  refactor with no semantic change, docs, formatting, naming, config-only.
+  refactor with no semantic change, docs, formatting, naming, config-only. A
+  deferred behaviour is not skipped silently - it goes on the debt ledger and is
+  paid before the push (`rem-test-completeness` §4).
 - Applies to the **whole change set once**, not per split commit.
 - Tests incomplete → write the missing cases per `rem-test-completeness`
   **before** building; the build and test run happen once, after tests are
@@ -271,7 +273,7 @@ Before committing:
 - [ ] A file shared with another's work was staged hunk-wise: the other work stayed unstaged, the staged content carried none of its tokens, and the gitlink matched the submodule HEAD — or the split was merged with the non-compilable-intermediate proof stated
 - [ ] Un-pushed history folded per `rem-rewrite-commit-history`, not left as follow-up noise
 - [ ] Each module's dependencies declared per `rem-cpp-best-practices` §15
-- [ ] Test-completeness check run for behavior-affecting changes, or skipped with a stated reason
+- [ ] Test-completeness check run for behavior-affecting changes, or the skip is stated and recorded in `test-debt.md` (paid before the push)
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)

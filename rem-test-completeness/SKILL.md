@@ -152,7 +152,7 @@ case).
   assertion passes on a broken implementation; if the helper's own test is that
   weak, strengthen it in the same change, then use it.
 
-## 4. Skip Conditions (explicit exceptions)
+## 4. Skip Conditions and Test Debt
 
 The check is mandatory only for **behavior-affecting** changes (logic in
 `New` / `Changed` / `Fixed` / `Improvement` commits). Skip with a stated reason
@@ -161,6 +161,14 @@ when the change is:
 - A pure refactor with no semantic change (behavior preserved),
 - Docs, formatting, naming, or config-only,
 - Already covered by existing cases (name the cases).
+
+**A skipped behaviour becomes debt, not a decision.** One line in
+`<run-dir>/test-debt.md`: the behaviour, its intent line, why no case yet, when it
+must land. Two classes cannot defer past the commit - externally visible behaviour
+(serialized or ABI-visible shapes, save data, network or API contracts) and bug
+fixes (their regression case). Everything else may defer until one of three
+triggers: a push, the next change to the same surface, or the end of a unit whose
+acceptance depends on that behaviour. **A push carries no debt.**
 
 ## 5. Test Style & Placement (single-ownership pointers)
 

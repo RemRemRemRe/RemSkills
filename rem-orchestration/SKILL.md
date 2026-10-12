@@ -136,12 +136,16 @@ no spec and no doc.
    covers the one changed spec — and the exemption's reasoning is stated in the brief, never
    left implicit.
 
-Three rules bind that sequence:
+Four rules bind that sequence:
 
 - **Review test deliverables before the full check.** When the round's deliverable is tests, run the
   focused review of the new/changed test files before the full check, in parallel with the
   trial run. The dominant defect class there - an assertion that passes for the wrong reason -
   is invisible to the compiler and to a compile-only round.
+- **A local commit may carry test debt; a push may not.** A deferred behaviour goes on
+  `<run-dir>/test-debt.md` (what, why, when it must land) and is paid at one of three triggers: a push,
+  the next change to the same surface, or the end of a unit that depends on it; externally visible
+  behaviour and bug fixes never defer past the commit (`rem-test-completeness` §4).
 - **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
   test-infrastructure refactors belong to separate units, because one failed check re-verifies every
   change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in

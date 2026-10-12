@@ -18,6 +18,9 @@ sequencing work.
 - **Run the full check on settled work only.** Specs, docs and commits wait until the surface a change exposes stops
   moving; until then keep iterating (compile + intent lines) with no spec and no doc. The settling
   criteria and the ceiling on unfrozen work live in `rem-orchestration`.
+- **A push carries no test debt.** A deferred test for a behaviour change goes on
+  `<run-dir>/test-debt.md` and must be paid before the code leaves the machine
+  (`rem-test-completeness` §4).
 - **What the operator reads is plain and short.** Anything addressed to the operator - the main
   session's replies and the subagent reports the harness shows them - keeps terms few, avoids jargon
   and coined shorthand (write "verification run", not "VR"; "test scope", not "scope"), and explains

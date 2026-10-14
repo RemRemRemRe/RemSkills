@@ -5,7 +5,7 @@ description: >
   knowledge base: harvest the insights, patterns, and pitfalls that emerged,
   classify them by type and generality, decide the destination (a new document
   vs an amendment to an existing document, process, or skill), and write
-  generalized, checkable entries. Use at the end of a session or at a
+  generalized, checkable entries once the operator has approved them. Use at the end of a session or at a
   milestone, and whenever a session's lessons should improve existing
   processes, documents, or skills.
 metadata:
@@ -34,7 +34,7 @@ skill or any public document.
 |---|---|
 | End of a session with substantial work | Full distillation pass |
 | A milestone inside a long session | Quick pass — capture only the strong items |
-| A pitfall / pattern was re-encountered or re-explained | Capture immediately — do not wait |
+| A pitfall / pattern was re-encountered or re-explained | Put it in the candidate list at once — the write still waits for approval |
 | The session corrected an existing skill / doc rule | Fix the target now, then record it in the pass |
 
 ## What counts as reusable knowledge
@@ -52,6 +52,20 @@ The bar: **would the next session waste time re-learning this?**
 Rule of thumb: once, session-specific → skip. The promotion bar for
 recurring knowledge is owned by `rem-write-better-skill` §9.
 
+## The operator approves before anything is written
+
+A pass **proposes**; it never writes on its own initiative. Harvest and classify first, then show the
+candidates in one batch — one line each: the item, its destination, what it costs (a new section or an
+amended bullet). Write only what the operator approves; silence is not approval. "Interesting" is not a
+reason: an entry nobody acts on costs context in every later session and dilutes the entries that
+matter.
+
+- **Budget the entry.** When the destination is a skill, say what the entry replaces or compresses;
+  prefer amending a bullet to adding a section, and keep the skill inside the collection's size budget
+  (`rem-write-better-skill`).
+- **A rejection sticks.** Keep the rejected candidates, one line each, in
+  `<run-dir>/knowledge-candidates.md` so the next pass does not propose them again.
+
 ## The workflow
 
 1. **Harvest** — list the candidate insights as one-line bullets: failures +
@@ -62,9 +76,12 @@ recurring knowledge is owned by `rem-write-better-skill` §9.
 3. **Locate the destination** — for each survivor, find its home (decision
    table below) and amend it there (single ownership:
    `rem-write-better-skill` §11).
-4. **Write** — one entry per item, in the destination's format (§Entry
+4. **Propose** — put the survivors in front of the operator (item / destination /
+   cost) and wait: only approved items are written; a rejection goes to
+   `<run-dir>/knowledge-candidates.md`.
+5. **Write** — one entry per item, in the destination's format (§Entry
    templates) and following the destination's own conventions.
-5. **Verify** — the checklist (§Checklist) plus the destination's own
+6. **Verify** — the checklist (§Checklist) plus the destination's own
    checklist (for a skill: its closing checklist and
    `rem-public-material-generalization`).
 
@@ -131,6 +148,8 @@ Write the correction back into the skill per `rem-write-better-skill` §10.
 Before finishing a distillation pass:
 
 - [ ] Harvested candidates listed before writing (no strong item silently skipped)
+- [ ] Every write was approved by the operator first; rejected candidates recorded in the run directory
+- [ ] Each entry states what it replaced or compressed where the destination is a skill (the skill stayed inside its size budget)
 - [ ] Every kept item passes the bar: generalizable, verified, and not already documented
 - [ ] Each item classified (type + generality); session-specific items dropped
 - [ ] Destination per the table: amended the existing home when one exists (single ownership); a new doc only for a coherent new topic

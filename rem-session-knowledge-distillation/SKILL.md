@@ -52,6 +52,10 @@ The bar: **would the next session waste time re-learning this?**
 Rule of thumb: once, session-specific → skip. The promotion bar for
 recurring knowledge is owned by `rem-write-better-skill` §9.
 
+**Wait for the surface to settle.** A design that is still moving yields a candidate, not a rule: hold
+it and write the rule once the surface stops changing (`rem-orchestration` — the full-check premise). A
+rule written too early is documentation churn paid twice.
+
 ## The operator approves before anything is written
 
 A pass **proposes**; it never writes on its own initiative. Harvest and classify first, then show the
@@ -63,14 +67,19 @@ matter.
 - **Budget the entry.** When the destination is a skill, say what the entry replaces or compresses;
   prefer amending a bullet to adding a section, and keep the skill inside the collection's size budget
   (`rem-write-better-skill`).
-- **A rejection sticks.** Keep the rejected candidates, one line each, in
-  `<run-dir>/knowledge-candidates.md` so the next pass does not propose them again.
+- **A rejection sticks.** Keep rejected candidates, one line each, in
+  `local/rejected-candidates.md` beside this skill (git-ignored, linked from the private repository)
+  and read that file before proposing — it outlives the session; a project without the overlay keeps
+  the same list in its run directory.
 
 ## The workflow
 
 1. **Harvest** — list the candidate insights as one-line bullets: failures +
    root causes, fixes that worked, verified facts, process changes, rule
-   corrections. Do this before writing anything.
+   corrections. List just as plainly what the knowledge base should *lose*: an
+   entry a new one supersedes, two entries saying the same thing, an entry
+   nothing ever used, and the three to five oldest dated entries re-checked for
+   still being true. Do this before writing anything.
 2. **Classify** — type and generality per item (§Classification). Drop the
    session-specific ones.
 3. **Locate the destination** — for each survivor, find its home (decision
@@ -114,6 +123,8 @@ matter.
 | A coherent topic with no home yet | Create a new document — or a new section in the closest document |
 | A domain-wide rule with no home | Create a new skill (see `rem-write-better-skill` §9) |
 | Project-specific facts | The skill's `local/` overlay or local docs — never the public repo |
+| A hard-to-reverse design decision (not a fact) | The project's decision log / ADR — `rem-docs-and-config` |
+| A term that needs one shared definition | The project's glossary, when it keeps one |
 
 When in doubt between "new doc" and "amend existing": **amend**. A new
 document is a new place to search; it is justified only by a coherent topic
@@ -148,7 +159,10 @@ Write the correction back into the skill per `rem-write-better-skill` §10.
 Before finishing a distillation pass:
 
 - [ ] Harvested candidates listed before writing (no strong item silently skipped)
-- [ ] Every write was approved by the operator first; rejected candidates recorded in the run directory
+- [ ] Every write was approved by the operator first; rejected candidates recorded (`local/rejected-candidates.md`, or the run directory when the skill has no overlay)
+- [ ] The pass proposed deletions and merges as well as additions (superseded, duplicated, or unused entries)
+- [ ] The oldest dated entries were re-checked (date refreshed, or proposed for deletion)
+- [ ] An entry is self-contained: a reader who never saw the session can act on it
 - [ ] Each entry states what it replaced or compressed where the destination is a skill (the skill stayed inside its size budget)
 - [ ] Every kept item passes the bar: generalizable, verified, and not already documented
 - [ ] Each item classified (type + generality); session-specific items dropped

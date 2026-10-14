@@ -128,7 +128,9 @@ no spec and no doc.
    compiled. When that happens, take the compile evidence from the round that actually compiled the
    tree (name it in the brief) and corroborate it with the artifact's hash or mtime, or require a
    forced rebuild; the suite run still stands.
-5. **Docs, then git** - batch the documentation obligations once, then commit. When the tree
+5. **Docs, then git** - batch the documentation obligations once, then commit. The doc pass touches
+   files the code check does not read, so it may run alongside step 4; only a write to a file the
+   check reads has to wait. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
    re-running. A bug fix proves its regression case by temporarily reverting the fix inside the
    full check. A change to the tree **after** the full check needs a re-run that covers the new

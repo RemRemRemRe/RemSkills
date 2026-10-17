@@ -61,11 +61,19 @@ The obligation is per **artifact**, not per file changed: a one-line default
 change still updates the config reference, because that is the only place a
 reader looks for the default.
 
-**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; external docs
-(module doc, subsystem doc, config reference) are batched in the doc pass that runs with it. The
-code-embedded obligations — API comments, tooltips, cvar help — still ship with the
-change that triggers them. Document a settled surface only: while a subsystem's
-contract is still moving, its doc waits with it.
+**When docs are written.** Two classes, two rules:
+
+- **Working records** - a decision, a deferred step, a design note, an ADR draft - are written when
+  the need appears, not at the end. They are what makes a deferral safe and a resumed session
+  possible (`<run-dir>/plan.md`, `test-debt.md`, the decision log). Write them immediately.
+- **Deliverable docs** - module doc, subsystem doc, config reference - are written as soon as the
+  surface they describe has settled, in the unit that settles it. A surface still moving waits
+  (`rem-orchestration`). The full check's doc pass **sweeps what is missing**; it is not the first
+  time anything is written.
+
+**Keep current, not just written.** A change that moves a documented surface updates that doc in the
+same unit; a doc that contradicts the code is a defect, not a backlog item. Code-embedded obligations
+(API comments, tooltips, cvar help) always ship with the change that triggers them.
 
 ## 3. Writing a technical doc
 
@@ -132,6 +140,8 @@ Rules:
 Before declaring a documentation/config change (or reviewing one) done:
 
 - [ ] §2 — every row of the obligation table was applied to this change, per artifact
+- [ ] Each doc was written in the unit that settled its surface (the full check only swept what was missing)
+- [ ] Working records (decisions, deferred steps) were written when the need appeared
 - [ ] §1 — a fact expressible as tooltip/metadata is on the artifact, not only in prose
 - [ ] §3 — technical docs are per subsystem, lead with the contract, and state the invariants
 - [ ] §3 — volatile facts carry "Last verified: YYYY-MM"

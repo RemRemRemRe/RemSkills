@@ -13,11 +13,18 @@ sequencing work.
 - **Nothing scratch in the repository.** Temp files, throwaway clones and worktrees go to the
   OS temp dir, a run's own output to its run directory (`rem-temp-files`); never into the
   working tree, ignored paths included.
-- **Iteration is code-only.** Compile the affected target and record test intent; specs,
-  the build + suite run, docs and commits happen once, in the full check.
-- **Run the full check on settled work only.** Specs, docs and commits wait until the surface a change exposes stops
-  moving; until then keep iterating (compile + intent lines) with no spec and no doc. The settling
-  criteria and the ceiling on unfrozen work live in `rem-orchestration`.
+- **Iteration is code-only.** Compile the affected target and record test intent; specs and the
+  build + suite run happen once, in the full check. Working records - a decision, a deferral, a design
+  note - are written when the need appears; they are what makes a deferral safe.
+- **Fewest cycles, best method.** Every stage takes the cheapest route that still produces the
+  evidence it needs: batch related edits into one compile, script mechanical sweeps, run independent
+  work in parallel, reuse evidence on an unchanged tree, and never repeat a cycle that a better
+  order avoids. Count round trips, not keystrokes - a round trip costs more than a larger first
+  attempt.
+- **Run the full check on settled work only.** Specs and deliverable docs wait until the surface a
+  change exposes stops moving; until then keep iterating (compile + intent lines) with no spec and no
+  deliverable doc. The settling criteria and the ceiling on unfrozen work live in
+  `rem-orchestration`.
 - **A push carries no test debt.** A deferred test for a behaviour change goes on
   `<run-dir>/test-debt.md` and must be paid before the code leaves the machine
   (`rem-test-completeness` §4).

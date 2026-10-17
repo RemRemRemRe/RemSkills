@@ -84,7 +84,7 @@ settled: its contract is written down (signature, inputs and outputs, error beha
 in the plan changes it, and the acceptance reads as one statement with no "for now". The parent
 decides this and states it in the brief - only the parent knows the coming steps, so the executor
 never judges it alone. Until then the round stays in iteration: compile, append intent lines, write
-no spec and no doc.
+no spec and no deliverable doc (working records are written as the need appears).
 
 - **Split by stability, not by module.** Inside one unit, run the full check on the settled leaves
   first - pure functions, data structures, algorithms, naming and path conventions - and let their
@@ -103,8 +103,8 @@ no spec and no doc.
   lands in the same full check (no debt); a change to existing behaviour shows its spec failing
   against the pre-change tree (the same revert proof the bug-fix rule uses), while a pure addition
   only has to pass the "could this assertion ever fail" check (`rem-test-completeness`). Documentation
-  follows the same rule: a doc is written for a settled surface only, in the doc pass that runs with
-  the full check.
+  follows the same rule: a deliverable doc is written for a settled surface only, as soon as it
+  settles; the full check sweeps what is missing.
 
 1. **Iteration** - per work unit: edit, compile the affected target, record test intent in
    `<run-dir>/test-intent.md` as one `<prefix> | trigger -> assertion` line per behaviour - the
@@ -128,7 +128,8 @@ no spec and no doc.
    compiled. When that happens, take the compile evidence from the round that actually compiled the
    tree (name it in the brief) and corroborate it with the artifact's hash or mtime, or require a
    forced rebuild; the suite run still stands.
-5. **Docs, then git** - batch the documentation obligations once, then commit. The doc pass touches
+5. **Docs, then git** - the docs a change owes are current by the commit; the doc pass sweeps
+   what is missing rather than being the first time anything is written (`rem-docs-and-config`). The doc pass touches
    files the code check does not read, so it may run alongside step 4; only a write to a file the
    check reads has to wait. When the tree
    did not change after verify, the commit stage checks the recorded evidence instead of
@@ -160,6 +161,27 @@ Four rules bind that sequence:
   signal needs runtime observation, and require the executor to report superseded runs explicitly.
   Evidence: one session's hand-computed total disagreed with the run four times and each miss cost a
   clarification round.
+
+## Fewest cycles
+
+The cost that matters is **cycles**, not keystrokes: one round trip costs more than a slightly larger
+first attempt.
+
+- **Cheap evidence first, expensive evidence last** - a compile before a spec run, a spec run before
+  the build + suite; never run the expensive one to answer what the cheap one answers.
+- **Batch related work** - one compile per coherent batch, one suite per unchanged tree, one doc
+  sweep per unit. A compile per file multiplies the cheapest step; a suite per fix multiplies the
+  dearest.
+- **Reuse evidence** - an unchanged tree keeps its evidence (hash/mtime); only the new bytes need a
+  new run.
+- **Parallelize what shares no file** - writers serialize per file; reads, disjoint repositories and
+  the doc pass proceed alongside.
+- **Script repeated edits** - past ~50 sites a scripted transform with an inverse-diff proof is
+  cheaper, and it removes the per-site review round.
+- **Make the brief complete** - a missing constraint costs a round trip; quoting the expected working
+  set costs one line.
+- **Record what a round cost** - compile count, suite runs and round trips in `state.md`; you can
+  only cut what you measured.
 
 ## Waiting
 

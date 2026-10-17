@@ -150,7 +150,8 @@ is owned by `rem-test-completeness`; this section only states the check rules.
 
 **Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; this check
 runs **once, in the full check**, on the accumulated change set, before the
-single build + suite run.
+single build + suite run. Order the evidence by cost - compile, then the narrowed prefix, then the
+full authorized scope - and never run the expensive one to answer what the cheap one answers.
 
 - **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
   `Fixed` / `Improvement` commits). Skip only with a stated reason: pure

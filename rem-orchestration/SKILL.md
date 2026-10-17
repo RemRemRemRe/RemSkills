@@ -151,7 +151,8 @@ Four rules bind that sequence:
   behaviour and bug fixes never defer past the commit (`rem-test-completeness` §4).
 - **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
   test-infrastructure refactors belong to separate units, because one failed check re-verifies every
-  change in the unit. Apply the review's severity ladder: blocking and major findings are fixed in
+  change in the unit. Two independent, low-risk units over disjoint files may share one full check -
+  never a unit with one that touches the same surface. Apply the review's severity ladder: blocking and major findings are fixed in
   the round, minor and elegance findings go to a backlog list.
 - **The brief for the full check states the expectation per prefix.** Give a table with one row per prefix in the
   run's filter: the previous run's count and the expected new cases for that prefix. Never hand-count

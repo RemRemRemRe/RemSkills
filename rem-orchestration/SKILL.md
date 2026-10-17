@@ -51,11 +51,8 @@ procedure's restatement of it.
 - **Background by default.** Pass `run_in_background: false` only when the next decision
   needs the result in the same turn and nothing else can run meanwhile. Parallelism comes
   from issuing several Agent calls in one message, not from the background flag.
-- **Writes serialize, reads parallelize.** Never run two writers over the same file. A running
-  writer blocks only the files it owns, so documentation that is not a build input, the next
-  stage's brief, a disjoint repository and read-only analysis of finished material all proceed
-  alongside it; only a read of a *frozen* tree (the verification of a change set) must wait for
-  every writer to stop.
+- **Writes serialize, reads parallelize** - the dispatch rules, per resource, live in
+  *Concurrency and shared resources* below.
 - **A read-only profile reports inline; the parent persists it.** Review, recon and grill profiles run
   without a write tool, so a brief that requires a report file produces none — ask for the report in
   the final message and let the parent write it into the run directory. Cap such a brief's scope and
@@ -74,6 +71,31 @@ procedure's restatement of it.
   read the run directory instead of assuming a report exists.
 - **Verify from artifacts.** A run's outcome is its run directory (`report.md`, logs) or the
   child session's final message - never "it is still running".
+
+## Concurrency and shared resources
+
+Parallelism is decided per **resource**, not per task. Before dispatching two units at once, name each
+unit's **write set** (files, and the module or target it builds) and the shared resources it needs;
+overlap on either means serialize.
+
+- **Writers serialize per file and per directory.** Two executors never write the same file, the same
+  generated-output directory or the same run directory; a brief that shares one with a live unit is a
+  dispatch defect. When the overlap is unavoidable, run the units in sequence - the second starts from
+  the first's result, never from a snapshot taken before it.
+- **A reader of a file being written reads a torn tree.** Read-only analysis is valid on files no
+  writer owns; a review or fact sheet of a unit still being edited is noise. Point readers at a
+  finished unit, or at the tree once every writer has stopped.
+- **One owner per shared resource.** The build (UBT), the automation suite, the editor or PIE session,
+  the git index/worktree and history of one repository, and the IDE's MCP tools (formatter,
+  breakpoints) are single-owner: a second run that needs one queues behind the first. A build started
+  while another run writes sources proves nothing about either tree.
+- **Verification reads a tree nobody is writing.** The full check starts only after every writer has
+  stopped; an earlier run is superseded, and a write after verification invalidates its evidence.
+- **Git is one chain** - never two git executors on one repository, never a push during a rewrite.
+- **Declare the lock in the brief.** SCOPE names the write set; an executor that needs a file or a
+  resource outside it stops and reports `blocked` instead of taking it.
+- **On discovered overlap, stop and re-plan.** Steer the writer to stop, or abort it; never let two
+  writers resolve a conflict by writing over each other.
 
 ## Writing code, then the full check
 

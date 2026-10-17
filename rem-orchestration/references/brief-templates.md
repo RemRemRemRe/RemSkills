@@ -16,6 +16,9 @@ Fixed in every role template:
   return `RESULT: blocked (rider-unavailable)` when it is down; do not touch files outside SCOPE or
   another unit's files; scratch goes to the OS temp dir (`rem-temp-files`) and the run directory
   receives only what a later reader needs.
+- **Write set and resources** — SCOPE names the files (and the target) this unit may write, so the
+  parent can run only disjoint units in parallel; sharing a file with a live unit is a dispatch defect,
+  and an executor that needs anything outside the list stops and reports `blocked`.
 - **Expected working set** — the brief pastes the expected `git status --short` output verbatim, not
   a counted total: a wrong count forces an avoidable round trip.
 - **Report shape** — the role's fixed label lines below, no more than 40 lines, written in plain

@@ -25,6 +25,9 @@ sequencing work.
   change exposes stops moving; until then keep iterating (compile + intent lines) with no spec and no
   deliverable doc. The settling criteria and the ceiling on unfrozen work live in
   `rem-orchestration`.
+- **One writer per resource.** Before dispatching in parallel, name each unit's write set and the
+  build/test/git resources it needs; overlap on either means serialize. Verification reads a tree
+  nobody is writing (`rem-orchestration`).
 - **A deferred step leaves a record.** Whatever is postponed - a test, a doc, a refactor, a
   decision - gets one line: what, why, and when it must be handled, in a ledger (`plan.md`,
   `test-debt.md`, `knowledge-candidates.md`). No record means the step is dropped, not deferred.

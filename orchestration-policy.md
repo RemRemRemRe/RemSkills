@@ -25,6 +25,9 @@ sequencing work.
   change exposes stops moving; until then keep iterating (compile + intent lines) with no spec and no
   deliverable doc. The settling criteria and the ceiling on unfrozen work live in
   `rem-orchestration`.
+- **A deferred step leaves a record.** Whatever is postponed - a test, a doc, a refactor, a
+  decision - gets one line: what, why, and when it must be handled, in a ledger (`plan.md`,
+  `test-debt.md`, `knowledge-candidates.md`). No record means the step is dropped, not deferred.
 - **A push carries no test debt.** A deferred test for a behaviour change goes on
   `<run-dir>/test-debt.md` and must be paid before the code leaves the machine
   (`rem-test-completeness` §4).

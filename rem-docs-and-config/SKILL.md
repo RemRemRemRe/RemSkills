@@ -51,7 +51,7 @@ cannot drift from the code it sits on, prose can.
 |---|---|
 | New subsystem | module doc section: purpose, entry points, lifecycle, config keys |
 | New or changed config property | config reference entry **and** an editor tooltip / cvar help string |
-| New or changed public API | declaration doc comment; update any usage doc that shows the old signature |
+| New or changed public API | declaration doc comment; update any usage doc that shows the old signature. A renamed or removed symbol gets a search of the documentation set for the old name - every hit is fixed in the same change |
 | New workflow or tooling step | the workflow doc it belongs to, plus the tool's own help output |
 | Behavior visible to designers/players | the designer-facing doc or the property tooltip that controls it |
 | Removed feature or key | **delete** its documentation — no deprecation banner, no "no longer used" note |

@@ -97,6 +97,15 @@ overlap on either means serialize.
 - **On discovered overlap, stop and re-plan.** Steer the writer to stop, or abort it; never let two
   writers resolve a conflict by writing over each other.
 
+## Before the first edit
+
+A repository that already holds uncommitted work is not a clean starting point. Before the first edit
+of a unit, inventory the working tree per repository (submodules included) and settle every dirty
+entry: commit it, record it as deferred with the reason, or declare it out of scope in writing. Until
+that list exists, the commit stage degenerates into a negotiation over which dirty file belongs to
+whose change - paid at the end, when separating the unit's own work is hardest. A dirty tree left alone
+deliberately is fine; an unexamined one is not.
+
 ## Writing code, then the full check
 
 Iteration is code-only; the expensive checks run once, in the full check.
@@ -273,3 +282,4 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Read-only profiles (review/recon/grill) reported inline, with a capped scope and priority; the parent persisted the report
 - [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker
 - [ ] Operator-facing text was plain, context-bearing and free of coined shorthand
+- [ ] Every pre-existing dirty entry was committed, deferred with a record, or declared out of scope before the first edit

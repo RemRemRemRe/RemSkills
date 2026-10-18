@@ -119,3 +119,21 @@ taste, not a defect, and must not be reported.
 
 Deletion is the preferred fix: a proxy that fails because the code is
 unnecessary is resolved by removing it, not by adding a layer.
+
+### Choosing where an extension lives
+
+An extension point should not tax the code that never uses it: "flexible" is a cost every reader and
+every asset pays, including the ones that never need the variation. Decide by asking where the
+variation actually lives, not which mechanism is most general.
+
+- **The behaviour differs** → a subclass with a virtual hook: the base keeps the flow and the default,
+  the variant carries its own data, and nothing exists on the base that only one variant uses. A field
+  that is always present but meaningful for one case ("empty by default") is still a field, a branch
+  and a serialized slot - the smell this ordering exists to remove.
+- **Only a value differs** → an enum or a plain field. A duration, a radius or a mode is data; one
+  subclass per value multiplies types without changing structure.
+- **The variant must be picked from an asset and brings its own payload** → a type-erased payload such
+  as an instanced struct. It is the most expensive of the three to read and debug: take it last, and
+  only when the choice truly lives in data.
+- **A flag that switches behaviour** → usually wrong. Two paths that share almost nothing are two
+  types; two paths that share everything are one type, and the flag is data.

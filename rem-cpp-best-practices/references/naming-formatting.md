@@ -153,7 +153,15 @@ members and before any function declarations.
 
 ---
 
----
+### Reusable helpers and file-local ones
+
+- **A reusable helper does not live in a translation unit's anonymous namespace.** A file-local
+  function must be unreusable by nature - it encodes one file's one-off step. Anything another caller
+  could use belongs in the matching utility library, with a template going into the `.inl` that only
+  consumers needing its dependencies include.
+- A helper belongs to the namespace of the domain it judges, not to its caller's: a predicate about
+  ownership lives with the ownership utilities even when a single system calls it, and a helper that
+  must reach into another domain's concept is usually sitting in the wrong namespace.
 
 ## 2. Formatting details
 
@@ -379,3 +387,7 @@ Namespace contents are NOT indented (`NAMESPACE_INDENTATION = None` in the
 project `.DotSettings`); the sample is above.
 
 ---
+
+**Layout that survives review:** one blank line after a logging call, so the log reads as its own
+paragraph instead of appearing to introduce the next statement; emptiness is `IsEmpty()` on the
+container or view, never `Len() == 0` / `Num() == 0`.

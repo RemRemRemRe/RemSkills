@@ -501,4 +501,10 @@ auto* Widget = static_cast<UMyWidget*>(BaseWidget);
 Do not use C-style casts. For `UObject`-based downcasts where runtime type checking
 is required, use `Cast<T>()` (which internally uses `static_cast` after IsA check).
 
----
+### Names built from string views (verified 2026-10)
+
+`FName` can be built straight from a UTF-8 view - `FName(View.Len(), View.GetData(), FNAME_Find)` -
+so a substring does not need an `FString` round trip. Name the find mode: the default is `FNAME_Add`,
+which inserts a name-table entry for any string that is not an existing name - wrong when looking up
+items, rows or tags, and a silent source of name-table growth. `FNAME_Find` returns an invalid name on
+a miss, which is what a lookup wants.

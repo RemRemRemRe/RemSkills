@@ -127,25 +127,6 @@ warns on a single description above 800 chars. Each run prints the running
 total, and `--discovery <root>...` reports it for any skills root, including
 ones outside this repository. §11 governs how to spend it.
 
-### A mechanical check must be able to fail, and must model its own exceptions
-
-A check that cannot go red proves nothing, and two failure modes are silent:
-
-- **Vacuous green.** A check that collects candidates and passes on an empty set
-turns an extraction bug into a pass. Treat "found 0 candidates" as a failure,
-and mutate the input once — add a deliberate violation — to watch the check fire
-before trusting it.
-- **A legitimate exception reported as a failure.** A collection-wide assertion
-("no file does X") usually has one artifact that *owns* X and may legitimately
-do it. Exempt it explicitly, by name and with the reason, rather than letting the
-check report the one correct case as a defect: a check that goes red where the
-content is right gets waived, and then deleted.
-- **One implementation only.** A second, ad-hoc implementation of an authoritative
-  check is itself a defect source — a probe that re-derived the lint produced 91
-  false positives from its own path bug. Trust the tool, and delete the probe.
-
----
-
 ## 3. Use Generic Placeholder Types
 
 Use **completely meaningless, business-unrelated placeholder names** in code
@@ -311,6 +292,23 @@ size budget. The leak and name checks it also runs are owned by
 `node tools/lint-skills.mjs --discovery <root>...` lists every skill a skills root
 puts in context with its description size, and fails when a non-`SKILL.md` file
 carries skill frontmatter. Run it over both roots after adding or adapting a skill.
+
+**A mechanical check must be able to fail, and must model its own exceptions.**
+
+A check that cannot go red proves nothing, and two failure modes are silent:
+
+- **Vacuous green.** A check that collects candidates and passes on an empty set
+turns an extraction bug into a pass. Treat "found 0 candidates" as a failure,
+and mutate the input once — add a deliberate violation — to watch the check fire
+before trusting it.
+- **A legitimate exception reported as a failure.** A collection-wide assertion
+("no file does X") usually has one artifact that *owns* X and may legitimately
+do it. Exempt it explicitly, by name and with the reason, rather than letting the
+check report the one correct case as a defect: a check that goes red where the
+content is right gets waived, and then deleted.
+- **One implementation only.** A second, ad-hoc implementation of an authoritative
+  check is itself a defect source — a probe that re-derived the lint produced 91
+  false positives from its own path bug. Trust the tool, and delete the probe.
 
 **Run it before committing a skill change**, and never let a failing run reach
 the remote: the repo's `pre-push` hook (`.githooks/pre-push`, installed with

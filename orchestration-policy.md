@@ -28,6 +28,9 @@ sequencing work.
 - **One writer per resource.** Before dispatching in parallel, name each unit's write set and the
   build/test/git resources it needs; overlap on either means serialize. Verification reads a tree
   nobody is writing (`rem-orchestration`).
+- **One holder per shared resource, across sessions too.** Parallel sessions claim their write set and
+  lease the build, test, git and IDE resources; a live holder is never overwritten, and no session
+  waits for a second resource while holding one (`rem-shared-resources`).
 - **A deferred step leaves a record.** Whatever is postponed - a test, a doc, a refactor, a
   decision - gets one line: what, why, and when it must be handled, in a ledger (`plan.md`,
   `test-debt.md`, `knowledge-candidates.md`). No record means the step is dropped, not deferred.

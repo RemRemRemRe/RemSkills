@@ -74,6 +74,9 @@ procedure's restatement of it.
 
 ## Concurrency and shared resources
 
+The rules below govern one session dispatching its own executors; sessions that share one project
+coordinate through claims and leases (`rem-shared-resources`).
+
 Parallelism is decided per **resource**, not per task. Before dispatching two units at once, name each
 unit's **write set** (files, and the module or target it builds) and the shared resources it needs;
 overlap on either means serialize.

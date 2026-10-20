@@ -108,6 +108,13 @@ membership. `tools/lint-skills.mjs` enforces the outcome: every Rem-family
 identifier in a skill (`RemXxx` and the type-prefixed `URemXxx`/`ERemXxx`
 forms) must be listed in `tools/public-names.json` with a public source.
 
+Ownership decides membership, not the name: a Rem-family module whose remote
+sits under a personal account is **private**, and public material may not name
+it or its types even when the pattern it implements is general. Apply the same
+test to a skill's *subject* - a skill that teaches a pattern implemented in a
+private module belongs in the private collection. The verified allow/deny list
+for this machine lives in `local/public-module-allowlist.md`.
+
 Shipped files are **not** exempt: the leak and name checks scan a skill's
 scripts, templates and configs exactly like its prose, and the repository-level
 files (README, LICENSE, workflows, hooks, `tools/`) in the same pass, because a

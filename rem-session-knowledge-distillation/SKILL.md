@@ -37,6 +37,21 @@ skill or any public document.
 | A pitfall / pattern was re-encountered or re-explained | Put it in the candidate list at once — the write still waits for approval |
 | The session corrected an existing skill / doc rule | Fix the target now, then record it in the pass |
 
+## When the session ends by context pressure
+
+A handoff is written for the **next session**, not for the operator and not as a session log. It carries only what
+the code and the skills cannot answer:
+
+- the requirement **as verified** - the interpretation actually implemented, not the source document restated;
+- the implemented design's load-bearing facts (ordering guarantees, lifecycle, ownership) with file entry points;
+- the next unit's plan **and its acceptance** - otherwise the next session invents its own "done";
+- the open decisions with a recommendation and its reason, so the next round re-asks them instead of settling them;
+- one line per trap a fresh session would pay for again, pointing at the skill that owns the detail.
+
+It omits git state (it ages within the hour), anything a skill already teaches, and the operator's own wording
+where a verified fact exists. Keep it to a screen or two in the run directory, and leave a one-screen pointer in the
+project's local context file. The next session's first round re-asks the open items - a recommendation is not an answer.
+
 ## What counts as reusable knowledge
 
 The bar: **would the next session waste time re-learning this?**

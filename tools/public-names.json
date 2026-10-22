@@ -13,7 +13,7 @@
     "placeholders (rem-write-better-skill §3) and engine types. They are still decisions, so",
     "they carry a source too."
   ],
-  "verified": "2026-09",
+  "verified": "2026-10",
   "publicNames": {
     "RemRemRemRe": "https://github.com/RemRemRemRe",
     "RemSkills": "this collection",
@@ -38,6 +38,7 @@
     "RemScopedStructContainer": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemScopedStructContainer.h)",
     "RemInstancedStructContainer": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemInstancedStructContainer.h)",
     "RemStructViewStatics": "https://github.com/RemRemRemRe/RemCommon (Public/Struct/RemInstancedStructStatics.inl)",
+    "RemGameplayTagArray": "https://github.com/RemRemRemRe/RemCommon (Public/GameplayTag/RemGameplayTagArray.h)",
     "RemComponentBase": "https://github.com/RemRemRemRe/RemCommon (Public/Components/RemComponentContainer.h)",
     "RemObjectStatics": "https://github.com/RemRemRemRe/RemCommon (Public/Object/RemObjectStatics.h)",
     "RemActorComponent": "https://github.com/RemRemRemRe/RemCommon (Public/Components/RemActorComponent.h)",

@@ -324,6 +324,7 @@ Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Fiv
 - `FUtf8String` is the primary string type; `FString` only when the engine API demands it
 - No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
 - **Handle/registration tokens that are never a container index** use `unsigned` with `0` = invalid — not `int32` + `INDEX_NONE` (that sentinel belongs to container indices); precedents: `FTargetingRequestHandle`/`FPrimitiveComponentId`/`FDelegateHandle`. Never add unreachable sentinel-skip code.
+- **Tag arrays in authored data** use `FRemGameplayTagArray`; convert to `FGameplayTagContainer` at engine boundaries.
 
 Complete tables (judgment calls, string priority, Add vs Emplace):
 `references/type-mapping.md`.

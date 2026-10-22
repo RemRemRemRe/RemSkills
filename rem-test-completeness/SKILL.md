@@ -152,6 +152,26 @@ case).
   assertion passes on a broken implementation; if the helper's own test is that
   weak, strengthen it in the same change, then use it.
 
+### Assertions that pass for the wrong reason (verified 2026-10)
+
+Five shapes seen in one review; each reads green and measures nothing:
+
+- **The production predicate as the oracle** — asserting a round trip by calling
+  the production `ShouldReconcile` / `Matches` on the result. Assert the fields
+  explicitly; keep the predicate as an extra.
+- **A latch or guard earlier than the branch under test** — a second event
+  returns at the latch, so the guard after it never runs. Drive the branch on a
+  fresh object, or reset the latch.
+- **A fixture that filters away the only subject** — a same-team victim is
+  dropped by the hostile filter, so the "zero victims" event passes as if it
+  were the positive path. Assert the positive (damage, victim count) as well.
+- **A control that cannot discriminate the gate** — an empty tag matches no
+  handler anyway; the case stays green with the `IsValid` guard deleted. Use a
+  value that would match if the gate were absent, plus the positive control.
+- **A re-run that starts in the terminal state** — "no second event" is
+  guaranteed if the state already says stopped. Assert the first transition's
+  values, or re-run from a state that could fire.
+
 ## 4. Skip Conditions and Test Debt
 
 The check is mandatory only for **behavior-affecting** changes (logic in

@@ -151,6 +151,12 @@ case).
 - **Check a helper's own test before using the helper.** A `contains`-style
   assertion passes on a broken implementation; if the helper's own test is that
   weak, strengthen it in the same change, then use it.
+- **An expected-error matcher is a regular expression, and `Occurrences = 0`
+  means "at least one"** (verified 2026-10). `AddExpectedError` takes a pattern,
+  so a condition text carrying `(` or `&&` never matches — use
+  `AddExpectedErrorPlain` with the call-site condition text to pin an ensure.
+  `Occurrences` counts a minimum: `0` fails the case when nothing matches, so it
+  cannot express "any number of these".
 
 ### Assertions that pass for the wrong reason (verified 2026-10)
 

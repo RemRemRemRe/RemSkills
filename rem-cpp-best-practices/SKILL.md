@@ -272,6 +272,10 @@ Definitions and examples: `references/language-features.md`.
   preference and magnitude (cm as km, bytes as MB), which is unpredictable for
   fixed gameplay values. Engine semantics: `references/type-mapping.md`.
 - Bitfields (`uint8 bFlag : 1`) only when packing gains real space under alignment
+- A `USTRUCT` **cannot carry a pure-virtual hook** — `CHECK_PUREVIRTUALS` is 0 for
+  reflected types, so construction instantiates the "abstract" struct (verified
+  2026-10). Give the hook a default implementation that reports and returns a
+  failure value
 
 ### Metadata completeness
 

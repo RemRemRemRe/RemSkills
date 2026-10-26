@@ -249,7 +249,9 @@ portable and the values sit next to the commands they change. Two shapes recur: 
 batch builder from a POSIX shell needs its path conversion disabled (a quoted
 `-project="…"`/`-ExecCmds="…"` line arrives with literal backslashes and fails at argument parsing),
 and a file must be re-read after a formatter run because a stale editor buffer can overwrite it from
-older content. The brief points at the overlay file; it never copies the commands into itself.
+older content — re-reading first is not enough: never format a file the IDE still holds unsaved
+edits for, and compare the file's hash before and after every IDE call. The brief points at the
+overlay file; it never copies the commands into itself.
 Harness-level operational facts of the current installation (model/MCP configuration, context
 cost) live in `local/pi-harness.md` under the same split: values there, portable rules here.
 

@@ -242,6 +242,29 @@ Rules:
 - Same pitfall applies to `FMemory::Memcpy`-style "deep copy" helpers — verify
   what "copy" means before round-tripping.
 
+### Non-reflected fixture members are dropped by a struct copy (verified 2026-10)
+
+A fixture that travels **inside** a reflected container — a component container's
+`SetComponentsView`, a `TInstancedStruct` stored in an asset — is copied through
+`CopyScriptStruct`, so only its **reflected** members survive. A raw pointer to a
+recorder, or a `TArray<TObjectPtr<AActor>>`, that is not a `UPROPERTY` is silently
+replaced by a default value at install.
+
+Symptom: the case asserts a counter that is always zero (`CallCount == 0`) and
+passes for the wrong reason, or `AddExpectedMessage` becomes the only thing that
+can still fail. Nothing warns.
+
+Rules:
+
+- Bind such members on the **installed instance** (`FindComponent<T>()` after the
+  copy), not on the source struct handed to the setter.
+- Mark a member `UPROPERTY()` when it must travel with the copy — an actor array
+  reads back correctly, a raw C++ pointer cannot be reflected and must be bound
+  after the copy instead.
+- When a fixture has no reflected payload left (emptied or replaced by a shapeless
+  struct), assert the observable side effect (no timer, no damage) rather than a
+  counter that no longer exists.
+
 ## 7. Shared helpers and fixtures (verified 2026-08)
 
 - `MakeNotNull` explicit template argument is the **pointed type**, not the

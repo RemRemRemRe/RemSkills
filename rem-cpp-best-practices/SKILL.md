@@ -585,6 +585,7 @@ Before committing any C++ file:
 - [ ] `#pragma once` right after copyright
 - [ ] Base class header first; generated.h included before any type declarations (not at file bottom)
 - [ ] Includes separated by empty lines in logical groups; IWYU — no transitive dependencies
+- [ ] File-local objects (console variables, helpers, constants) sit in an anonymous namespace at the top of the `.cpp`, not behind `static`
 - [ ] `GENERATED_BODY()` as first member of every UCLASS/USTRUCT
 - [ ] `using ThisClass = ...;` declared for USTRUCTs; `Super`/`ThisClass` as-needed for non-reflected classes
 - [ ] Data members before function members, each with explicit visibility label
@@ -623,6 +624,7 @@ Before committing any C++ file:
 - [ ] `Build.cs` dependencies all in `PrivateDependencyModuleNames`; every consumer declares each dependency it uses itself (public headers of a dependency do NOT grant transitive include paths)
 - [ ] No debug `REM_LOG_*` or `UE_LOGF` left in
 - [ ] Variable/lambda parameter names are full words (no abbreviations, no single letters — `A`/`B` OK only in Sort lambdas)
+- [ ] Member access omits `this->` (a lambda that captured `this` resolves members directly)
 - [ ] Lambda parameters in generic contexts (transrangers::transform, Sort) use explicit types, not `auto`
 - [ ] Integer locals/loop counters use explicit `int32` (`auto X = 0` would deduce `int`)
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors

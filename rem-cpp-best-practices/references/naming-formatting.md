@@ -98,6 +98,9 @@ the existing `<Domain>Statics.h` + `<Domain>Statics.inl` layout (e.g.
 - **Getter**: `Get<Name>()` — `GetOwner()`, `GetComponentIndex()`
 - **Bool check**: `Is<Condition>()` / `Has<Property>()` — `IsInitialized()`, `HasTag()`, `ShouldTick()`
 - **Output params**: prefix `Out` — `void GetItems(TArray<FItem>& OutItems)`
+- **Member access omits `this->`** — write the member name directly; a lambda that captured `this` resolves
+  members the same way. Keep `this->` only where a parameter or local shadows the member name and the member is
+  what you mean.
 - **Non-const getter pair**: define both `const` and non-`const` overloads returning `auto&&`
 - **Function objects**: `Rem::Fn::FunctionName` — via `REM_FUNCTION_TO_FUNCTOR_SIMPLE`
 

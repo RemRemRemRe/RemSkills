@@ -45,7 +45,16 @@ enum class ESomeEnum : uint8;
 // 3. Inline generated cpp by name (if needed)
 UE_INLINE_GENERATED_CPP_BY_NAME(MyClass)
 
-// 4. Implementation ...
+// 4. File-local objects: console variables, helpers, constants — anonymous namespace,
+//    not file scope behind `static`
+namespace
+{
+
+TAutoConsoleVariable<bool> CVarFeatureEnabled{TEXT("My.Feature.Enable"), true, TEXT("help text")};
+
+}
+
+// 5. Implementation ...
 ```
 
 ### Rules
@@ -60,6 +69,7 @@ UE_INLINE_GENERATED_CPP_BY_NAME(MyClass)
 | IWYU | Include every header directly used; do not rely on transitive includes |
 | Incomplete type | Prefer a **forward declaration**; `#include` only when the complete type is needed (project rule) |
 | Empty line separators | Separate groups with empty lines for readability |
+| File-local objects | A console variable, helper function or constant that only the `.cpp` uses lives in an **anonymous namespace** at the top of the file, not at file scope behind `static` |
 | `.inl` for templates | Heavy template implementations go in `FileName.inl` alongside the header. The `.h` stays minimal; callers `#include` the `.inl` directly when they need the template. Do NOT auto-include `.inl` from `.h` — it forces heavier transitive dependencies on every consumer of the `.h`. |
 
 Dependency minimization is a HARD constraint: a `.h` never includes `.inl`.

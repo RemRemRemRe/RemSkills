@@ -49,7 +49,7 @@
 
 **主会话编排**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 完整检查的节奏、run 目录与等待纪律
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 完整检查的节奏、时间成本控制（找出并削减每轮最慢的步骤）、run 目录与等待纪律
 
 **环境约束**
 
@@ -130,7 +130,7 @@ git config core.hooksPath .githooks
 
 ## 项目笔记
 
-- [`orchestration-policy.md`](orchestration-policy.md) —— 主会话的**常驻硬规则**（禁扫盘、委派默认值、只编译的迭代、事件驱动等待）；其背后的流程在 `rem-orchestration` 技能里。它是项目根目录 `AGENTS.md` 软链接的源文件，指向该软链接的 harness 加载的正是这份文件。与根目录的两份 README 一样，它是仓库文档，不是 skill。
+- [`orchestration-policy.md`](orchestration-policy.md) —— 主会话的**常驻硬规则**（禁扫盘、委派默认值、只编译的迭代、削减每轮最慢步骤、事件驱动等待）；其背后的流程在 `rem-orchestration` 技能里。它是项目根目录 `AGENTS.md` 软链接的源文件，指向该软链接的 harness 加载的正是这份文件。与根目录的两份 README 一样，它是仓库文档，不是 skill。
 
 ## Star History
 

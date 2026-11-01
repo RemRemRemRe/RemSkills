@@ -4,8 +4,9 @@ description: >
   Main-session orchestration policy for a project that uses this collection: delegate execution
   to subagents with self-contained briefs (background by default, never inheriting context), run
   the two-phase cadence - compile-only while the code is written, one build + suite in the full check -
-  and prefer events over polling when waiting. Use when planning, delegating, or sequencing work
-  as the main session in such a project.
+  cut each round's slowest step by merging, caching or deferring it, and prefer events over polling
+  when waiting. Use when planning, delegating, or sequencing work as the main session in such a
+  project.
 metadata:
   category: workflow
   trigger: manual
@@ -218,6 +219,28 @@ first attempt.
 - **Record what a round cost** - compile count, suite runs and round trips in `state.md`; you can
   only cut what you measured.
 
+### Finding the slow step
+
+Every round has one step that dominates its wall-clock time, and cutting *that* step is the only
+change that shortens the next round. So every round ends with one line in `state.md`, written by
+whoever ran the round and without being asked: the slowest step, and what it cost. Typical candidates
+here are the full build, the automation suite, an editor or PIE session, an IDE round trip, asset
+regeneration, and a subagent round trip (whose fixed brief/report cost is the slow part, not the
+work).
+
+Slow means measured wall-clock time in this round, not expensive in principle. The next round then
+gives that step one of three treatments:
+
+| Treatment | When it applies |
+|---|---|
+| **Merge** | two steps need the same expensive input: one compile for a batch of edits, one editor session for several assets, one suite run for several prefixes |
+| **Cache** | the result stays valid while its input is unchanged: a build's artifact hash/mtime, a spec run's counts, a finished review of a hunk |
+| **Defer** | the step is only needed once the surface settles: the build + suite, the docs sweep, a review pass - deferred with a record, never silently |
+
+A slow step that runs twice inside one round was mis-ordered: its inputs were not complete when it
+started, so fix the order instead of repeating the run. Two slow steps in a row over an unchanged
+tree mean the loop has stalled - stop and re-plan rather than iterate again.
+
 ## Waiting
 
 - Prefer events over polling: background subagents wake the session on completion; a long
@@ -277,6 +300,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] A tree change after the full check got a re-run covering the new bytes, or a stated inert-delta exemption backed by a trial run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
+- [ ] Each round named its slowest step in `state.md` and merged, cached or deferred it; no expensive step ran twice inside one round
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch

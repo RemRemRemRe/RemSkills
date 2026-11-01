@@ -51,7 +51,7 @@ both files in the same change.
 
 **Main-session orchestration**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / full-check cadence, run-directory and waiting discipline for the main session
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / full-check cadence, cycle economy (finding and cutting each round's slowest step), run-directory and waiting discipline for the main session
 
 **Environment constraints**
 
@@ -144,7 +144,7 @@ git config core.hooksPath .githooks
 
 - [`orchestration-policy.md`](orchestration-policy.md) — the project's always-on
   hard rules for the main session (scanning ban, delegation defaults, code-only
-  iteration, event-driven waiting); the procedure behind them is the
+  iteration, cutting the round's slowest step, event-driven waiting); the procedure behind them is the
   `rem-orchestration` skill. It is the source of the project-root `AGENTS.md`
   symlink, so a harness pointed at that symlink loads exactly this file. Like the
   root READMEs, it is repository documentation, not a skill.

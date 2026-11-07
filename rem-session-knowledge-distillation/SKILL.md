@@ -64,6 +64,10 @@ The bar: **would the next session waste time re-learning this?**
 | Process improvements that made the work faster or safer | Session-specific decisions for one task |
 | Corrections to existing rules (what was wrong, what is right) | Complaints without a concrete alternative |
 
+An entry either names the **mechanism** behind the claim with its source (a header,
+function, log line, command) or is labelled as a **single observation** with its date.
+A correlation from one run is a candidate, never a rule.
+
 Rule of thumb: once, session-specific → skip. The promotion bar for
 recurring knowledge is owned by `rem-write-better-skill` §9.
 
@@ -108,6 +112,19 @@ matter.
 6. **Verify** — the checklist (§Checklist) plus the destination's own
    checklist (for a skill: its closing checklist and
    `rem-public-material-generalization`).
+7. **Reflect and re-audit** — read back what this pass wrote, next to the session
+   evidence that produced it:
+   - which existing entry did the session **disprove or age** — fix or delete it in
+     this pass, and say what disproved it;
+   - which two entries now say the same thing, and which phrase a later change would
+     read as a rule when it is an example;
+   - what this pass wrote that a second reading would cut — an entry the operator
+     cannot act on is noise in every later session.
+
+   A **full audit** (one skill read end to end against the current code, not just its
+   oldest entries) runs when one of its premises moved or it approaches its size
+   budget. Two failure modes to look for while auditing: a rule generalised from a
+   single run, and an entry that outlived the code it describes.
 
 ## Classification
 
@@ -186,6 +203,9 @@ Before finishing a distillation pass:
 - [ ] Public content generalized per `rem-public-material-generalization` (placeholders, no machine paths, no project inventory; real names only when verified public + cited)
 - [ ] The destination's own conventions followed (a skill follows `rem-write-better-skill`)
 - [ ] Sources cited for facts; "verified YYYY-MM" dates present
+- [ ] The pass fixed or removed every entry the session disproved, and named the evidence
+- [ ] Every kept entry states its mechanism and source, or is labelled a single observation with its date
+- [ ] The reflect step ran: the written entries were read back against the evidence, and what a second reading would cut was cut
 - [ ] No stale content left behind (outdated rules removed, not flagged)
 - [ ] Workarounds carry a lifecycle annotation (label, failure signal, iteration path) per `rem-write-better-skill` §10.5
 - [ ] Session scratch left no trace: one-shot generators, patches and message files swept, the tree free of them per `rem-temp-files`

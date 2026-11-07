@@ -344,6 +344,7 @@ or a property of a thing?**
 |---|---|
 | World position; a world-space offset consumed as a position; accumulated world state (position, velocity, force) | `double` — `FVector` |
 | Tuning parameter (speed, acceleration, gravity scale, radius, duration), angle, scale, ratio, alpha, weight, probability, normalized direction | `float` is normal, and matches the engine's own movement components |
+| A configured *shape* — a box half-extent, a damage volume, a spawn region | `FVector3f` for the authored value; widen once where the engine asks for an `FVector` (`FCollisionShape::MakeBox`) |
 | Bulk array of positions | `float` only as a re-based local array with one `double` origin (`references/scalar-width.md` §7) |
 
 Never store an **authoritative** world position — or anything that will be added

@@ -72,7 +72,7 @@ Rule of thumb: once, session-specific → skip. The promotion bar for
 recurring knowledge is owned by `rem-write-better-skill` §9.
 
 **Wait for the surface to settle.** A design that is still moving yields a candidate, not a rule: hold
-it and write the rule once the surface stops changing (`rem-orchestration` — the full-check premise). A
+it and write the rule once the surface stops changing (`rem-orchestration` — the freeze premise). A
 rule written too early is documentation churn paid twice.
 
 ## The operator approves before anything is written

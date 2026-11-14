@@ -30,9 +30,9 @@ with any Python 3).
 
 Do NOT use for: running tests, fixing test failures, writing new tests.
 
-**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; the tree is
-regenerated in the full check and feeds the review case plan. Adding or renaming
-test modules forces regeneration.
+**When the tree is rebuilt.** The sequence is owned by `rem-orchestration`; the tree is regenerated
+when test modules are added or renamed, and the review that precedes the push gate's run reads it as
+the case list.
 
 ## Usage
 

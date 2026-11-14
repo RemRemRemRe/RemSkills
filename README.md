@@ -15,7 +15,7 @@ both files in the same change.
 
 **Commit & Git workflows**
 
-- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — single-responsibility commits, pre-build test completeness check, headless build & test
+- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — single-responsibility commits, format + review + one build; the suite runs at the push gate
 - [`rem-rewrite-commit-history`](rem-rewrite-commit-history/SKILL.md) — reshape un-pushed commit stacks (amend / fixup / rebase -i)
 - [`rem-submodule-sync`](rem-submodule-sync/SKILL.md) — update submodules to remote latest, verify by build, commit
 - [`rem-submodule-push`](rem-submodule-push/SKILL.md) — three-axis audit + batch push with `--recurse-submodules=check` as the authoritative check
@@ -36,7 +36,7 @@ both files in the same change.
 
 **Testing**
 
-- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — the pre-commit test check: change-to-case mapping, five-point completeness criteria, regression-first for fixes
+- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — the push gate's check: change-to-case mapping, five-point completeness criteria, regression-first for fixes
 - [`rem-bdd-test-tree`](rem-bdd-test-tree/SKILL.md) — hierarchical BDD test tree (mind-map index) + layered review workflow
 
 **Multi-engine plugin adaptation**
@@ -51,7 +51,7 @@ both files in the same change.
 
 **Main-session orchestration**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / full-check cadence, cycle economy (finding and cutting each round's slowest step), run-directory and waiting discipline for the main session
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / freeze / push-gate cadence (layered runs, two small records), cycle economy (finding and cutting each round's slowest step), run-directory and waiting discipline for the main session
 
 **Environment constraints**
 
@@ -71,7 +71,7 @@ both files in the same change.
 - **Test**
   - Make sure the tests are complete — `rem-test-completeness` (the completeness check); `rem-bdd-test-tree` (review index); spec templates & run gotchas in `rem-cpp-best-practices/references/tests.md`
 - **Commit & push**
-  - Commit — `rem-commit-workflow` (message, hygiene, completeness check, build, headless tests); project facts come from its `local/` overlay
+  - Commit — `rem-commit-workflow` (message, hygiene, review, build); the suite runs at the push gate; project facts come from its `local/` overlay
   - Clean history before push — `rem-rewrite-commit-history`
   - Sync / push submodules — `rem-submodule-sync`, `rem-submodule-push`
 - **Extend & maintain**

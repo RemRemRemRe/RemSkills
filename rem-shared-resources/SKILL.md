@@ -72,7 +72,7 @@ when done.
 
 Every build and test result records the tree it ran on: `HEAD`, a digest of `git status --porcelain`,
 and the session's claims. Evidence is reused only when that identity is unchanged; a change by any
-session invalidates it, and the freeze's build or the test session's suite re-runs. A build reporting
+session invalidates it, and the freeze's build or the push gate's run re-runs. A build reporting
 "target is up to date" is not evidence either (`rem-orchestration`).
 
 ## 4. Failure handling

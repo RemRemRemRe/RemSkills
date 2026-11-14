@@ -57,36 +57,37 @@ containing the change.
 
 Role clauses:
 
-- **Trial run.** When the work unit *is* test authoring (new or changed spec cases), end the
-  round with one targeted run of that spec and report it as a **trial run**, never as check evidence;
-  the suite still runs once, in the full check. A compile-only test round leaves capture devices,
-  counters, "always passes" assertions and identifier collisions to be discovered at the check.
-- **Expectation checklist for the full check** (when the brief covers it): a per-prefix table — one row
-  per prefix in the filter, each with the previous run's count and the expected new cases — plus the
-  new spec's own case count, the cases whose verdict needs runtime observation, and superseded logs
-  moved out of the run directory with a marker.
-- **Report labels.** `RESULT / CHANGES / DEVIATIONS / EVIDENCE / FORMAT / RISKS / NEXT / DETAIL`.
+- **The case is written here, run later.** A behaviour the round changes gets its case in the same
+  commit (`rem-test-completeness` §4); which layer that case belongs in is §3c. Nothing defers as a
+  description: what is left is a case that has never executed - one row in the plugin's unrun record
+  naming why and the tier that runs it next (`rem-orchestration`, *Two records*) - and the report
+  lists those rows as `UNRUN`. A red the round cannot show without running is marked
+  `red not proven`.
+- **Report labels.** `RESULT / CHANGES / DEVIATIONS / EVIDENCE / FORMAT / UNRUN / RISKS / NEXT / DETAIL`.
 
-## Verifier (build & test)
+## Verifier (commit build and push gate)
 
-`subagent_type: <verify-profile>` — pure execution: runs the single build + suite of the frozen tree
-and reports it honestly.
+`subagent_type: <verify-profile>` — pure execution in one of two uses: the commit gate **builds only**,
+the push gate **builds and takes the range's single run**. It reports whatever it ran honestly and
+never widens its own scope.
 
 ```md
 ## OBJECTIVE
-<one line: verify <change set> on the frozen tree>
+<one line: build <change set> / build and run the push gate for <commit range>>
 
 ## SCOPE
-- allowed: run the build and the automation suite; mechanical compile fixes only
+- allowed: the build; at the push gate, one automation run at the brief's scope; mechanical compile fixes only
 - forbidden: behaviour, design and test-expectation changes; writes outside the run dir
 
 ## CONSTRAINTS
-- standards: `rem-test-completeness` for the check, `rem-commit-workflow` for the exact commands
+- standards: `rem-commit-workflow` for the exact commands and the run scope, `rem-test-completeness` §3c for the layers
 - environment: the build/test overlay (`rem-commit-workflow`, `local/build-test-and-commit.md`)
-- delta over the standing template: <the case-plan pointer or tree state if it differs>
+- delta over the standing template: <commit gate or push gate; the tree state; the prefix string>
 
 ## ACCEPTANCE
-- [ ] expected case count <N> per prefix observed and reconciled, <failing case names or "none">
+- [ ] build green, with its action count and the artifact's hash or mtime
+- [ ] (push gate only) one run at the brief's scope - the core prefix string plus the prefixes the range touches - with <expected count per prefix> reconciled
+- [ ] every recorded known red the run met, listed
 - [ ] log cited by path
 
 ## REPORT
@@ -95,15 +96,27 @@ and reports it honestly.
 
 Role clauses:
 
-- **Expectation checklist for the full check.** Reconcile the runner's prefix counts against the brief's table,
-  one row per prefix — never a single hand-counted total. For every difference, list the incremental
-  case names and attribute each (this change / coexisting work-in-progress / undetermined). Name any
-  case whose verdict needs runtime observation, and say explicitly when an earlier run's evidence was
-  discarded as superseded (and why).
+- **Commit gate: one build, no suite.** The tree is the one the parent froze; a failure returns the
+  work to iteration instead of starting a repair loop inside the gate.
+- **Push gate: one build, one run, at the brief's scope.** The core layer is a generated
+  `+StartsWith:` string from the project's layer table, never a guessed filter (`RunFilter Engine`
+  pulls the engine's own suite; `SmokeFilter` on a spec kills every editor start). Never stack scopes
+  - narrow, then module, then full - and a second run needs a stated reason: a changed tree, or a
+  scope the first run could not reach. Which cases must run, and how an existing flat suite is brought
+  into layers, is `references/test-layering.md` (classify, apply, measure) over the project's table.
+- **The expectation checklist per prefix.** Give a table with one row per prefix in the run - the
+  previous run's count and the expected new cases for that prefix - plus the new spec's own case
+  count. Never hand-count a single total for the whole scope: the runner's `Found N` is the count,
+  reported per prefix. Reconcile it per prefix and, on a mismatch, list the incremental case names and
+  attribute each (this change / coexisting work-in-progress / undetermined). Name any case whose
+  verdict needs runtime observation, and say explicitly when an earlier run's evidence was discarded
+  as superseded (and why).
+  Evidence: one session's hand-computed total disagreed with the run four times, and each miss cost
+  a clarification round.
 - **A 0-action build is not compile evidence.** When the build reports "target is up to date" (0
   actions), nothing compiled: cite the round the brief names as the one that actually compiled the
-  tree and corroborate it with the artifact's hash or mtime, or force a rebuild. The suite run still
-  stands.
+  tree and corroborate it with the artifact's hash or mtime, or force a rebuild. A suite run in the
+  same session still stands.
 - **Persist one authoritative log per stage**; a superseded copy leaves the run directory with a
   `superseded` marker.
 - **Report labels.** `RESULT / BUILD / TESTS / EVIDENCE / MECHANICAL_FIXES / SUPERSEDED / RISKS /
@@ -135,14 +148,16 @@ Role clauses:
 
 Role clauses:
 
-- **Test-deliverable rounds** (the deliverable is tests): give a per-case non-vacuity verdict — would
-  this case fail if the behaviour regressed? That is the finding class the round needs; an assertion
-  that passes for the wrong reason is invisible to the compiler.
+- **The cases, before the push gate's run,** get a per-case non-vacuity verdict - would this case
+  fail if the behaviour regressed? That is the finding class the gate needs; an assertion that passes
+  for the wrong reason is invisible to the compiler. Reconcile both ways: a case with no behaviour
+  change behind it, or a behaviour change in the range with no case, is reported rather than waved
+  through.
 - **Cap the scope and state the priority.** A read-only audit has no write tool, so its report is
   the final message (`inline`) and the parent persists it. Name the files and dimensions that matter
   most and their order: a broad heavy audit is interrupted before it reports and has to be narrowed
   and re-dispatched.
-- **Report labels.** `RESULT / SCOPE_REVIEWED / DIMENSIONS / FINDINGS / VERDICT / TEST_PLAN /
+- **Report labels.** `RESULT / SCOPE_REVIEWED / DIMENSIONS / FINDINGS / VERDICT / NON_VACUITY /
   NOT_COVERED / EVIDENCE / NEXT / DETAIL`.
 
 ## Git stage

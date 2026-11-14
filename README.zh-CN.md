@@ -13,7 +13,7 @@
 
 **提交与 Git 工作流**
 
-- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — 单一职责提交、构建前测试完备性关卡、无头构建与测试
+- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — 单一职责提交、格式 + 审查 + 一次构建；套件在推送档运行
 - [`rem-rewrite-commit-history`](rem-rewrite-commit-history/SKILL.md) — 重塑未推送的提交栈（amend / fixup / rebase -i）
 - [`rem-submodule-sync`](rem-submodule-sync/SKILL.md) — 更新子模块到远端最新、构建验证、提交
 - [`rem-submodule-push`](rem-submodule-push/SKILL.md) — 三轴审计 + 批量推送，以 `--recurse-submodules=check` 为关卡
@@ -34,7 +34,7 @@
 
 **测试**
 
-- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — 提交前关卡：变更→用例映射、五条完备性判定、bug 修复 regression-first
+- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — 推送档的关卡：变更→用例映射、五条完备性判定、bug 修复 regression-first
 - [`rem-bdd-test-tree`](rem-bdd-test-tree/SKILL.md) — 层级化 BDD 测试树（思维导图式索引）+ 分层审查工作流
 
 **多引擎插件适配**
@@ -49,7 +49,7 @@
 
 **主会话编排**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 完整检查的节奏、时间成本控制（找出并削减每轮最慢的步骤）、run 目录与等待纪律
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 冻结 / 推送档的节奏（分层运行、两条小记录）、时间成本控制（找出并削减每轮最慢的步骤）、run 目录与等待纪律
 
 **环境约束**
 
@@ -69,7 +69,7 @@
 - **测试**
   - 确认测试完备 — `rem-test-completeness`（关卡）；`rem-bdd-test-tree`（审查索引）；spec 模板与运行坑位在 `rem-cpp-best-practices/references/tests.md`
 - **提交与推送**
-  - 提交 — `rem-commit-workflow`（message、hygiene、完备性关卡、构建、无头测试）；项目事实来自其 `local/` overlay
+  - 提交 — `rem-commit-workflow`（message、hygiene、审查、构建）；套件在推送档运行；项目事实来自其 `local/` overlay
   - 推送前整理历史 — `rem-rewrite-commit-history`
   - 同步 / 推送子模块 — `rem-submodule-sync`、`rem-submodule-push`
 - **扩展与维护**

@@ -217,6 +217,12 @@ module graph, then prune by symbol**. The procedure - the `tools/scope.py` invoc
 rules, the behaviour exemptions and the load-time argument - lives in `references/test-scope.md`;
 read it when the scope is decided and record its evidence next to the run.
 
+**Start from the layer table, not from the graph.** Which cases *must* run is the core prefix string
+plus every prefix the range touches, both in the project's layer table
+(`rem-orchestration/references/test-layering.md` says how it is built), and each case's `red` symbol
+turns "does this diff touch that case" into a lookup. The module-graph pass below is the fallback for
+a changed symbol the table does not name - new code, a rename, a refactor.
+
 **Exit criterion:** candidates enumerated from the module graph, every dropped candidate carrying its
 one-line reason, and the prefixes that cannot reach the change recorded; a change that cannot alter
 behaviour needs no test run, with that reasoning stated rather than implied.

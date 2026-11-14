@@ -197,7 +197,9 @@ nothing defers as a description any more. Two small local records replace the le
   maps every case name this project ever renamed, dropped or merged, so a record that cites an old name
   stays resolvable.
 - The layer each case belongs to, and the prefix string the gate runs, live in
-  `rem-orchestration/local/test-layers.md` (project data, not this skill).
+  `rem-orchestration/local/test-layers.md` (project data, not this skill). Bringing an existing flat
+  suite into layers is its own repeatable pass - classify, apply, measure - written down in
+  `references/test-layering.md`.
 
 ## Fewest cycles
 

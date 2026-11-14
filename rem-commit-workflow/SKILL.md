@@ -2,11 +2,11 @@
 name: rem-commit-workflow
 description: >
   Commit local changes in a UE project and verify them — single-responsibility
-  commits, English comments, formatting verified, a pre-build test
-  completeness check, then build and run the project's automation tests
-  headless. Use when committing plugin changes, splitting a mixed commit for
-  review, running the project's test suite, or deciding whether commits may be
-  published.
+  commits, English comments, formatting verified, then one build; cases travel
+  with the commit and the suite runs at the push gate, in a separate,
+  operator-triggered session. Use when committing plugin changes, splitting a
+  mixed commit for review, running the push gate for a range, or deciding whether
+  commits may be published.
 metadata:
   category: workflow
   trigger: manual
@@ -56,8 +56,9 @@ contracts; the diff carries the *how*.
   non-obvious reason. It never narrates diff mechanics ("renamed X", "added the
   include", "moved Y") that the diff already shows.
 - **Verification is one short closing line at most**, and only for a
-  behaviour-affecting commit: `- Verified: editor DebugGame build and the full
-  automation suite are green.` No raw action/case counts, log or run file
+  behaviour-affecting commit: `- Verified: editor DebugGame build, and the
+  suite run for this range, are green.` Omit the suite half until the push gate
+  covers the range. No raw action/case counts, log or run file
   names, per-module breakdowns, warning counts, exit codes or "on this exact
   tree" — the check's raw evidence lives in the run directory; the message says
   only what was verified.
@@ -142,28 +143,23 @@ file), use `git hash-object -w --path=<path>` (applies the clean filter, stores 
 `git update-index --cacheinfo`; verify the staged blob has zero CR and the worktree hash is
 unchanged. (The `git apply --cached` recipe above writes a temporary file.)
 
-## Test completeness check
+## Tests at the commit gate
 
-Before building, prove the change set's tests are complete. The methodology —
-change-to-case mapping, the five-point criteria, regression-first for fixes —
-is owned by `rem-test-completeness`; this section only states the check rules.
+The gate is format + review + build. The suite is not part of it: cases are written in the round that
+changes the behaviour, and the run happens at the **push gate** - the core layer plus the prefixes the
+range touches (`rem-test-completeness` §3c). This section decides what the commit owes; the case
+methodology (change-to-case mapping, the five-point criteria, regression-first for fixes) belongs to
+`rem-test-completeness`.
 
-**Iteration vs. the full check.** The sequence is owned by `rem-orchestration`; this check
-runs **once, in the full check**, on the accumulated change set, before the
-single build + suite run. Order the evidence by cost - compile, then the narrowed prefix, then the
-full authorized scope - and never run the expensive one to answer what the cheap one answers.
-
-- **Mandatory** for behavior-affecting changes (logic in `New` / `Changed` /
-  `Fixed` / `Improvement` commits). Skip only with a stated reason: pure
-  refactor with no semantic change, docs, formatting, naming, config-only. A
-  deferred behaviour is not skipped silently - it goes on the debt ledger and is
-  paid before the push (`rem-test-completeness` §4).
+- **Written in the same commit** for every behaviour the change makes observable, except the skip
+  conditions in `rem-test-completeness` §4.
+- **Unrun cases are the only thing a local commit may carry.** A case that has never executed becomes
+  one row in the plugin's unrun record with the tier that runs it next (`rem-orchestration`, *Two
+  records*).
+- **Skip with a stated reason** when the change cannot alter behaviour - such a skip needs no case.
 - Applies to the **whole change set once**, not per split commit.
-- Tests incomplete → write the missing cases per `rem-test-completeness`
-  **before** building; the build and test run happen once, after tests are
-  complete.
-- Regression cases bind bug fixes; spot-check core logic by temporarily
-  reverting the fix (the case must fail).
+- **A push needs a green run at the push gate for its range**, and that run must list every recorded
+  known red it met.
 
 ## Review check
 
@@ -176,7 +172,8 @@ source-lifecycle gap were only found by the review pass; the test suite was
 green).
 
 - Run it read-only over the diff/working tree before committing; fix the
-  substantive findings, then re-run the build + tests.
+  substantive findings, then re-run the build. The suite is not re-run here: it
+  belongs to the push gate.
 - Findings are not all equal: treat medium-high severity (state-machine
   correctness, lifetime/dangling, provider lifecycle) as blocking for the
   commit; fold lower-severity style nits in the same pass or list them.
@@ -197,7 +194,23 @@ Use the project's editor development configuration — never build a different
 editor config for this. Exact engine path, target, and config are project
 facts: see the Local overlay section (`local/build-test-and-commit.md`).
 
-## Test scope
+## The push gate (operator-triggered)
+
+The gate's run happens here and nowhere else. The operator opens the session, names its scope (the
+commit range and the prefixes the range touches), and may run it in another session after the commit.
+A session takes one build plus one run at that scope, reported as its evidence.
+
+**One run per session.** Scopes are never stacked (narrow, then module, then full), and a second run
+needs a stated reason - a changed tree, or a scope the first run could not reach. A red run returns
+cases to the author; it does not start a retry loop inside the session.
+
+**The core layer is a prefix string, not a filter.** `RunFilter Engine` pulls Epic's own engine suite
+and prints no `Found N`; `EAutomationTestFlags::SmokeFilter` on a spec kills every editor start (the
+editor runs smoke tests unconditionally and a spec's latent command trips the framework's assertion).
+The core layer is a generated `+StartsWith:` string from `rem-orchestration/local/test-layers.md`,
+combined with the prefixes the range touches.
+
+### Test scope
 
 Scope is a two-stage decision, and both stages leave evidence: **enumerate candidates from the
 module graph, then prune by symbol**. The procedure - the `tools/scope.py` invocations, the pruning
@@ -207,7 +220,8 @@ read it when the scope is decided and record its evidence next to the run.
 **Exit criterion:** candidates enumerated from the module graph, every dropped candidate carrying its
 one-line reason, and the prefixes that cannot reach the change recorded; a change that cannot alter
 behaviour needs no test run, with that reasoning stated rather than implied.
-## Run tests
+
+### Run tests
 
 ```
 <engine-install-path>\Engine\Binaries\Win64\UnrealEditor-Win64-<config>-Cmd.exe "<project-dir>\<ProjectName>.uproject" -unattended -nullrhi -ExecCmds="Automation RunTests StartsWith:<test-prefix>; Quit" -TestExit="Automation Test Queue Empty" -DisablePlugins=<nullrhi-crash-plugin> -log
@@ -217,9 +231,8 @@ behaviour needs no test run, with that reasoning stated rather than implied.
   Local overlay section, `local/build-test-and-commit.md`); the filter
   is `StartsWith:<test-prefix>`, not `*`.
 - **Scope is decided first** (`Test scope` above); this command only runs it.
-- **Pick one scope up front and run it once for the evidence.** Narrower filters are for
-  iteration only; the pre-commit check is a single run at the authorized scope — never stack
-  scopes (narrow, then module, then full).
+- **Pick one scope up front and run it once for the evidence.** The session's evidence is a single run
+  at the authorized scope - never stack scopes (narrow, then module, then full).
 - The console prints only UBT platform validation — judge red/green from
   `<project-dir>/Saved/Logs/<ProjectName>.log` (search `Result={Fail}`; green
   ends with `**** TEST COMPLETE. EXIT CODE: 0 ****`).
@@ -276,12 +289,12 @@ Before committing:
 - [ ] A file shared with another's work was staged hunk-wise: the other work stayed unstaged, the staged content carried none of its tokens, and the gitlink matched the submodule HEAD — or the split was merged with the non-compilable-intermediate proof stated
 - [ ] Un-pushed history folded per `rem-rewrite-commit-history`, not left as follow-up noise
 - [ ] Each module's dependencies declared per `rem-cpp-best-practices` §15
-- [ ] Test-completeness check run for behavior-affecting changes, or the skip is stated and recorded in `test-debt.md` (paid before the push)
+- [ ] Every case written and never executed is one row in the plugin's unrun record (`<cwd>/.agents/test-debt/`) naming the tier that runs it; externally visible behaviour and bug fixes carried their case in this commit instead
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)
-- [ ] Test scope: candidates enumerated from the module graph (`tools/scope.py`), pruned by a search of the changed names, every dropped candidate given a reason
-- [ ] Headless tests run with the project's filter at that scope; red/green judged from the project log, not the console output
+- [ ] (Test session) Test scope: candidates enumerated from the module graph (`tools/scope.py`), pruned by a search of the changed names, every dropped candidate given a reason
+- [ ] (Test session) One build and one suite run at that scope; red/green judged from the project log, not the console output
 - [ ] Every irreversible act carries its own explicit instruction — push **or upload**, force-push, deleting a branch/tag, pruning (`reflog expire` / `gc --prune`), publishing — never inferred from an approval of the commit work
 - [ ] Before a branch's first push: what else becomes public was stated (a first push publishes the whole history)
 

@@ -3,10 +3,11 @@ name: rem-orchestration
 description: >
   Main-session orchestration policy for a project that uses this collection: delegate execution
   to subagents with self-contained briefs (background by default, never inheriting context), run
-  the two-phase cadence - compile-only while the code is written, one build + suite in the full check -
-  cut each round's slowest step by merging, caching or deferring it, and prefer events over polling
-  when waiting. Use when planning, delegating, or sequencing work as the main session in such a
-  project.
+  the three-phase cadence - iteration that writes code and cases but runs nothing, a freeze that
+  reviews the diff and builds once, and a push gate that runs the core test layer plus the prefixes
+  the range touches; cut each round's slowest step by merging, caching or deferring it, and prefer
+  events over polling when waiting. Use when planning, delegating, or sequencing work as the main
+  session in such a project.
 metadata:
   category: workflow
   trigger: manual
@@ -93,8 +94,9 @@ overlap on either means serialize.
   the git index/worktree and history of one repository, and the IDE's MCP tools (formatter,
   breakpoints) are single-owner: a second run that needs one queues behind the first. A build started
   while another run writes sources proves nothing about either tree.
-- **Verification reads a tree nobody is writing.** The full check starts only after every writer has
-  stopped; an earlier run is superseded, and a write after verification invalidates its evidence.
+- **Verification reads a tree nobody is writing.** The freeze's build and the push gate's run
+  start only after every writer has stopped; an earlier run is superseded, and a write after
+  verification invalidates its evidence.
 - **Git is one chain** - never two git executors on one repository, never a push during a rewrite.
 - **Declare the lock in the brief.** SCOPE names the write set; an executor that needs a file or a
   resource outside it stops and reports `blocked` instead of taking it.
@@ -110,101 +112,100 @@ that list exists, the commit stage degenerates into a negotiation over which dir
 whose change - paid at the end, when separating the unit's own work is hardest. A dirty tree left alone
 deliberately is fine; an unexamined one is not.
 
-## Writing code, then the full check
+## Writing code, then the freeze
 
-Iteration is code-only; the expensive checks run once, in the full check.
+Iteration writes code and cases together; the build happens once, at the freeze, and cases run at the
+push gate. Which layer a case belongs to, and what "full" means, live in `rem-test-completeness` §3c.
 
-**Run the full check on settled work only.** The steps below run only when what the unit exposes has
-settled: its contract is written down (signature, inputs and outputs, error behaviour), no later step
-in the plan changes it, and the acceptance reads as one statement with no "for now". The parent
-decides this and states it in the brief - only the parent knows the coming steps, so the executor
-never judges it alone. Until then the round stays in iteration: compile, append intent lines, write
-no spec and no deliverable doc (working records are written as the need appears).
+**Iteration writes cases and runs nothing.** A round may write or rewrite the cases for the behaviour
+it changes, in the same commit as the code; a compile is the only execution evidence it may produce.
+No suite, no single spec, no editor or PIE session opened to watch a behaviour. The reason is
+measured, not stylistic: a run costs 30-40 s of editor startup before the first case (2026-11-14: a
+176-case core run is ~70 s, half of it startup), so a run inside iteration spends the slowest step of
+the whole loop on every round. The rule is revisited the day that startup comes down to compile time.
 
-- **Split by stability, not by module.** Inside one unit, run the full check on the settled leaves
-  first - pure functions, data structures, algorithms, naming and path conventions - and let their
-  specs drive the implementation: as soon as a leaf's signature is settled, write the failing spec,
-  then make it pass (this is where TDD lives). The volatile layer above them - orchestration,
-  lifecycle, wiring - stays in iteration.
-- **Bound what has not been checked yet.** Run the full check on what is settled before writing more
-  when any of these shows up: the acceptance needs "and ... and ..." to state; one review of the diff
-  the check covers costs more than the build + suite it precedes; the same interface is reworked a
-  second time in iteration. The larger the diff, the harder one failed run of the full check is to
-  localize.
-- **Discarding is explicit.** A dropped direction takes its intent lines with the code; record what
-  was dropped, and why, in `state.md`. No spec was ever written for it, so no authoring or review
-  round was spent.
-- **TDD survives as three facts.** The intent line is written *before* the code; new behaviour's spec
-  lands in the same full check (no debt); a change to existing behaviour shows its spec failing
-  against the pre-change tree (the same revert proof the bug-fix rule uses), while a pure addition
-  only has to pass the "could this assertion ever fail" check (`rem-test-completeness`). Documentation
-  follows the same rule: a deliverable doc is written for a settled surface only, as soon as it
-  settles; the full check sweeps what is missing.
+The price is stated rather than hidden: a case's capture, its counts and its identifiers are proven
+only by executing, so a case that has never run is recorded in the plugin's *unrun cases* record
+(below), and the first run that covers it owns making it pass.
 
-1. **Iteration** - per work unit: edit, compile the affected target, record test intent in
-   `<run-dir>/test-intent.md` as one `<prefix> | trigger -> assertion` line per behaviour - the
-   prefix it will feed - and keep that line current when the behaviour is reworked. No specs, no suite run, no docs sweep.
-2. **Case plan** - one review pass over the accumulated diff, with the intent file and the
-   existing-case index as inputs, produces the case plan. The diff is the source of truth: each
-   changed behaviour becomes a case to write or update. Reconcile both ways - an intent line with no
-   diff hunk, or a behaviour change with no intent line, is investigated, not waved through. The
-   parent persists the plan as `<run-dir>/test-plan.md` - the review profile has no write tool - and
-   the brief for writing the cases points at that file.
-3. **Test authoring** - write the cases from that plan. Whichever executor writes new or changed
-   cases ends its round with one *targeted* run of that spec, reported as a **trial run**, never as
-   check evidence - the one-suite-run rule governs the *suite*, not this run. Expectation
-   bookkeeping (how many times a message is recorded, which record a pattern claims), capture
-   devices, counters, "always passes" assertions and identifier collisions are only visible by
-   executing, so a compile-only test round pushes them into the full check and costs a failed run plus
-   extra rounds. Evidence: a wrong declaration turned into a failed check, a resumed authoring round and
-   a second full build plus suite.
-4. **Verify** - one build plus one suite run, at the scope decided up front, on the unchanged tree.
-   A build that reports "target is up to date" (**0 actions**) is **not** compiler evidence: nothing
-   compiled. When that happens, take the compile evidence from the round that actually compiled the
-   tree (name it in the brief) and corroborate it with the artifact's hash or mtime, or require a
-   forced rebuild; the suite run still stands.
-5. **Docs, then git** - the docs a change owes are current by the commit; the doc pass sweeps
-   what is missing rather than being the first time anything is written (`rem-docs-and-config`). The doc pass touches
-   files the code check does not read, so it may run alongside step 4; only a write to a file the
-   check reads has to wait. When the tree
-   did not change after verify, the commit stage checks the recorded evidence instead of
-   re-running. A bug fix proves its regression case by temporarily reverting the fix inside the
-   full check. A change to the tree **after** the full check needs a re-run that covers the new
-   bytes; a delta that is provably inert (comments only) may be exempted when a trial run
-   covers the one changed spec — and the exemption's reasoning is stated in the brief, never
-   left implicit.
+**Freeze on a settled surface only.** The freeze runs when what the unit exposes has settled: its
+contract is written down (signature, inputs and outputs, error behaviour), no later step in the plan
+changes it, and the acceptance reads as one statement with no "for now". The parent decides this and
+states it in the brief - only the parent knows the coming steps, so the executor never judges it
+alone. Until then the round stays in iteration: compile, append intent lines, write no spec, no case
+and no deliverable doc (working records are written as the need appears).
 
-Four rules bind that sequence:
+- **Split by stability, not by module.** Inside one unit, freeze and commit the settled leaves first -
+  pure functions, data structures, algorithms, naming and path conventions - and write their cases in
+  the same round as the code, while the surface is still in the author's hands. The volatile layer
+  above them - orchestration, lifecycle, wiring - stays in iteration.
+- **Cap the unrun backlog.** No more than ~10 unrun cases per plugin before a run is scheduled at the
+  push gate, and never two rounds of reworked cases with no run between them: a case that never
+  executed is not evidence, and a pile of them hides which one is wrong.
+- **Discarding is explicit.** A dropped direction takes its cases and intent lines with the code;
+  record what was dropped, and why, in `state.md`.
+- **TDD survives as two facts.** The intent line is written *before* the code, and a change to
+  existing behaviour writes its case against the pre-change tree wherever red is visible without a run
+  (a pure addition only has to pass "could this assertion ever fail", `rem-test-completeness` §3b). A
+  fix whose red cannot be seen without executing says so in the unrun record and marks the case
+  `red not proven`. Documentation follows the same rule: a deliverable doc is written for a settled
+  surface only, as soon as it settles; the freeze sweeps what is missing.
 
-- **Review test deliverables before the full check.** When the round's deliverable is tests, run the
-  focused review of the new/changed test files before the full check, in parallel with the
-  trial run. The dominant defect class there - an assertion that passes for the wrong reason -
-  is invisible to the compiler and to a compile-only round.
-- **A local commit may carry test debt; a push may not.** A deferred behaviour goes on
-  `<run-dir>/test-debt.md` (what, why, when it must land) and is paid at one of three triggers: a push,
-  the next change to the same surface, or the end of a unit that depends on it; externally visible
-  behaviour and bug fixes never defer past the commit (`rem-test-completeness` §4).
+1. **Iteration** - per work unit: edit, compile the affected target, write or update the unit's cases
+   in the same commit, and record test intent in `<run-dir>/test-intent.md` as one
+   `<prefix> | trigger -> assertion` line per behaviour. No suite run, no docs sweep.
+2. **Freeze** - declared by the parent once the surface has settled: review the accumulated diff for
+   code quality, sweep the docs, take one full build, commit. The build is the commit's evidence.
+3. **Push gate** - operator-triggered, possibly in another session: the core layer plus every prefix
+   the range touches (`rem-test-completeness` §3c names the tiers), one run, reported as the range's
+   evidence. The cases it covers become proven; the rest stay in the unrun record.
+
+Three rules bind that sequence:
+
+- **A local commit may carry unrun cases; a push may not.** A case written and never executed is one
+  row in the plugin's *unrun cases* record and is named in the commit that adds it; the push gate's
+  run is what turns them into evidence. Externally visible behaviour and bug fixes are written in the
+  commit's own round (`rem-test-completeness` §4).
 - **Size change sets by verification unit.** Production fixes, new tests, adjacent utility fixes and
-  test-infrastructure refactors belong to separate units, because one failed check re-verifies every
-  change in the unit. Two independent, low-risk units over disjoint files may share one full check -
-  never a unit with one that touches the same surface. Apply the review's severity ladder: blocking and major findings are fixed in
-  the round, minor and elegance findings go to a backlog list.
-- **The brief for the full check states the expectation per prefix.** Give a table with one row per prefix in the
-  run's filter: the previous run's count and the expected new cases for that prefix. Never hand-count
-  a single total for the whole filter — the runner's `Found N` is the count, reported per prefix. The
-  executor reconciles it per prefix and, on a mismatch, lists the incremental case names and
-  attributes each (this change / coexisting work-in-progress / undetermined). Name any case whose
-  signal needs runtime observation, and require the executor to report superseded runs explicitly.
-  Evidence: one session's hand-computed total disagreed with the run four times and each miss cost a
-  clarification round.
+  test-infrastructure refactors belong to separate units, because one run re-verifies every change in
+  its scope. Two independent, low-risk units over disjoint files may share one gate. Apply the
+  review's severity ladder: blocking and major findings are fixed in the round, minor and elegance
+  findings go to a backlog list.
+- **The push gate is its own session.** The operator opens it and names its scope; it may run in
+  another session, after the commit. Its procedure - scope, build, one run - is owned by
+  `rem-commit-workflow`.
+
+## Two records, not a ledger
+
+A deferred *description* rots: by the time a later session reads "the warning is reported once", the
+code may report it four times - the row was never wrong about intent, only stale about code. So
+nothing defers as a description any more. Two small local records replace the ledger, under
+`<cwd>/.agents/test-debt/` (git-ignored):
+
+| record | one row per | fields |
+|---|---|---|
+| unrun cases | a case that exists and has never been executed | `case | why it has not run | the tier that runs it next` |
+| manual checks | a behaviour no headless case can reach | `behaviour | the procedure that checks it | performed / owed` |
+
+- A behaviour with no case gets its case in the round that changes it; it does not enter a record.
+- A **known red** is an unrun row whose reason is `red`, plus an owner and a deadline. A non-core known
+  red with both does not block the gate; a core one does. The gate's run must list every known red it
+  met, so "no new failures" stays checkable.
+- Two classes never defer past the commit: externally visible behaviour and bug fixes
+  (`rem-test-completeness` §4).
+- The records are local by decision - losing the machine loses them. Next to them, `case-renames.md`
+  maps every case name this project ever renamed, dropped or merged, so a record that cites an old name
+  stays resolvable.
+- The layer each case belongs to, and the prefix string the gate runs, live in
+  `rem-orchestration/local/test-layers.md` (project data, not this skill).
 
 ## Fewest cycles
 
 The cost that matters is **cycles**, not keystrokes: one round trip costs more than a slightly larger
 first attempt.
 
-- **Cheap evidence first, expensive evidence last** - a compile before a spec run, a spec run before
-  the build + suite; never run the expensive one to answer what the cheap one answers.
+- **Cheap evidence first, expensive evidence last** - a compile before a build, a build before the
+  suite; never run the expensive one to answer what the cheap one answers.
 - **Batch related work** - one compile per coherent batch, one suite per unchanged tree, one doc
   sweep per unit. A compile per file multiplies the cheapest step; a suite per fix multiplies the
   dearest.
@@ -235,7 +236,7 @@ gives that step one of three treatments:
 |---|---|
 | **Merge** | two steps need the same expensive input: one compile for a batch of edits, one editor session for several assets, one suite run for several prefixes |
 | **Cache** | the result stays valid while its input is unchanged: a build's artifact hash/mtime, a spec run's counts, a finished review of a hunk |
-| **Defer** | the step is only needed once the surface settles: the build + suite, the docs sweep, a review pass - deferred with a record, never silently |
+| **Defer** | the step is only needed once the surface settles or the operator asks for it: the freeze's build, the push gate's run (deferred to its own operator-triggered session), the docs sweep, a review pass - deferred with a record, never silently |
 
 A slow step that runs twice inside one round was mis-ordered: its inputs were not complete when it
 started, so fix the order instead of repeating the run. Two slow steps in a row over an unchanged
@@ -259,8 +260,9 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   bounded summary with pointers.
 - **One authoritative log per stage.** A superseded run's logs move out of the run directory
   with a "superseded" marker; the run directory holds the logs the report cites.
-- **The parent keeps `plan.md`.** One line per work unit - is the surface settled, has the full
-  check run - appended by the parent; executors may read it when their brief points there.
+- **The parent keeps `plan.md`.** One line per work unit - is the surface settled, has the freeze
+  run, how many cases are unrun - appended by the parent; executors may read it when their brief
+  points there.
 - `resume` continues the same child session and the same run directory: append to
   `state.md`, never create a new run dir.
 
@@ -293,21 +295,23 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Run dirs hold only what a later reader needs — one-off generators, patches and message files stayed in temp (`rem-temp-files`)
 - [ ] Every brief was self-contained (no inherited context) and named its acceptance criteria
 - [ ] Execution ran in the background unless the same turn needed the result
-- [ ] Iteration stayed compile-only; specs, the build + suite and docs ran once in the full check
-- [ ] Every unit that reached the full check had a settled surface (contract written, no planned change, no "for now"); work that had not settled stayed in iteration, wrote no spec or doc, and obeyed the pile-up ceiling
-- [ ] The case plan in the full check came from the diff with the intent file as cross-check - reconciled both ways, no intent line and no behaviour change left unmatched
+- [ ] Iteration wrote cases with the code and ran nothing; the freeze swept the docs and took one full build; the suite ran only at the push gate
+- [ ] Every unit that reached the freeze had a settled surface (contract written, no planned change, no "for now"); work that had not settled stayed in iteration and obeyed the ~10-case unrun ceiling
+- [ ] Every case written and never executed became one unrun row naming the tier that runs it; externally visible behaviour and bug fixes carried their case in the commit instead
+- [ ] A regression case whose red could not be shown without a run was marked `red not proven`, not asserted as proven
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
-- [ ] A tree change after the full check got a re-run covering the new bytes, or a stated inert-delta exemption backed by a trial run covering the changed spec
+- [ ] A tree change after the freeze's build got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Each round named its slowest step in `state.md` and merged, cached or deferred it; no expensive step ran twice inside one round
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch
-- [ ] A test-authoring round ended with one targeted trial run of that spec, reported as a trial run rather than check evidence
-- [ ] Test deliverables got their focused review before the full check
+- [ ] A rename, drop or merge of a case produced one row in `case-renames.md`, generated from the before/after case names rather than hand-written
+- [ ] The push gate's run used the generated prefix string - not `RunFilter Engine`, and never a spec carrying `SmokeFilter`
+- [ ] Test deliverables got their focused review before the push gate's run
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
-- [ ] The brief for the full check gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
+- [ ] The push gate's brief gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
 - [ ] Read-only profiles (review/recon/grill) reported inline, with a capped scope and priority; the parent persisted the report
 - [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker
 - [ ] Operator-facing text was plain, context-bearing and free of coined shorthand

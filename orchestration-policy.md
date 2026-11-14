@@ -40,5 +40,8 @@ planning, delegating or sequencing work.
   Each claim says what changed, why it matters, what it affects and what comes next; about a
   screenful; detail by pointer to the artifact. Delete a line the operator can neither learn from
   nor act on. Procedure: `rem-orchestration` (*Talking to the user*).
-- **Prefer events over polling.** Never block on `get_subagent_result(wait: true)`, never sleep-poll;
-  read the run directory.
+- **Prefer events over polling; `sleep` is the last resort and capped at 15 s.** A background run or an
+  external process signals its own completion - wait for that event, or give the blocking call a
+  timeout that covers it. Never block on `get_subagent_result(wait: true)` as a wait. Reach for
+  `sleep` only when there is no event to wait on at all: then one wait of at most 15 seconds,
+  repeated only as many times as the plan states, and never instead of reading the run directory.

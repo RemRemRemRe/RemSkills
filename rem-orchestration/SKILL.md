@@ -251,7 +251,10 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
 - Do not use `get_subagent_result(wait: true)` as a blocking wait, and do not sleep-poll. If
   a run looks stuck, read its run directory or child session for a final message before
   waiting again; report a genuine stall to the user.
-- 15 s is the pragmatic ceiling for a poll interval; use a better signal when one exists.
+- **`sleep` is a last resort and never exceeds 15 seconds.** Use it only when there is no event to
+  wait on (a file another machine writes, a queue nobody signals). One wait of at most 15 s, repeated
+  only as many times as the plan states, and never as a substitute for reading the run directory. An
+  unbounded poll loop is a defect, not a habit.
 
 ## Artifacts
 

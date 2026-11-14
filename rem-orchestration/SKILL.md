@@ -302,7 +302,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Every case written and never executed became one unrun row naming the tier that runs it; externally visible behaviour and bug fixes carried their case in the commit instead
 - [ ] A regression case whose red could not be shown without a run was marked `red not proven`, not asserted as proven
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
-- [ ] A tree change after the freeze's build got a re-run covering the new bytes, or a stated inert-delta exemption backed by a calibration run covering the changed spec
+- [ ] A tree change after the freeze's build got a re-run covering the new bytes, or a stated inert-delta exemption backed by the push gate's run covering the changed spec
 - [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Each round named its slowest step in `state.md` and merged, cached or deferred it; no expensive step ran twice inside one round

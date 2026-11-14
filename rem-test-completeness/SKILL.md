@@ -1,8 +1,8 @@
 ---
 name: rem-test-completeness
 description: >
-  Decide whether a change set's automation tests are complete before a test
-  session runs the suite, and guide writing the missing cases. Covers change-to-case
+  Decide whether a change set's automation tests are complete before the push gate
+  runs the suite, and guide writing the missing cases. Covers change-to-case
   mapping (diff ->
   changed behavior -> one spec case per behavior), the five-point completeness
   criteria, regression-first for bug fixes, mutation spot checks on core logic,

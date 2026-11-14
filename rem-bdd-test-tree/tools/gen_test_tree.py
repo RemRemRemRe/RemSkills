@@ -123,11 +123,11 @@ def main():
 
     roots = args.root or ['Plugins', 'Source']
     out = [
-        '# BDD 测试用例树（自动生成，勿手改）',
+        '# BDD test case tree (generated — do not edit by hand)',
         '',
-        '> 生成方式：解析 `*.spec.cpp` 的 `DEFINE_SPEC` / `Describe` / `It` 结构；',
-        '> 用例数为静态解析近似值。重新生成：`python gen_test_tree.py`。',
-        '> 用途：测试审查索引——叶子挂 [文件:行号] 锚点，从树直接跳转源码。',
+        '> How it is generated: parses the `*.spec.cpp` `DEFINE_SPEC` / `Describe` / `It` structure;',
+        '> Case counts are approximate static parses. Regenerate: `python gen_test_tree.py`.',
+        '> Purpose: a test review index — leaves carry [file:line] anchors, so the tree jumps straight to the source.',
         '',
     ]
 
@@ -137,18 +137,18 @@ def main():
         module_total = sum(sum(1 for item in items if item[1] == 'It')
                            for _, _, items in modules[module])
         total += module_total
-        out.append('## ' + module + '  (' + str(module_total) + ' 个用例)')
+        out.append('## ' + module + '  (' + str(module_total) + ' cases)')
         out.append('')
         for spec_name, full, items in sorted(modules[module], key=lambda entry: entry[0]):
             rel = full.replace(os.sep, '/')
             it_count = sum(1 for item in items if item[1] == 'It')
-            out.append('### ' + spec_name + '  (' + str(it_count) + ' 个用例)  `[' + rel + ']`')
+            out.append('### ' + spec_name + '  (' + str(it_count) + ' cases)  `[' + rel + ']`')
             out.append('')
             render(build_tree(items), 0, out, rel)
             out.append('')
 
     out.append('')
-    out.append('**总计：' + str(total) + ' 个用例（静态解析，与运行器计数可能略有出入）**')
+    out.append('**Total: ' + str(total) + ' cases (static parse — may differ slightly from the runner\'s count)**')
     out.append('')
 
     output_path = make_output_path(args.output)

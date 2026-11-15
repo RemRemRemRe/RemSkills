@@ -4,7 +4,6 @@ description: >
   UE localization: localization targets, namespace+key lookups for editor text,
   gather/translate/compile. Use when adding a language or text stays
   untranslated.
-disable-model-invocation: true
 metadata:
   category: workflow
   trigger: manual

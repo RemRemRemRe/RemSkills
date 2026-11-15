@@ -20,6 +20,11 @@ planning, delegating or sequencing work.
   is its own operator-triggered session: one build, one run of the core layer plus every prefix the
   range touches, and a report that lists every recorded known red it met (`rem-test-completeness`
   §3c).
+- **A submodule commit stays in its submodule until the pin is needed.** Commits inside a submodule
+  during iteration and the freeze leave the parent's gitlink alone; the `m` the parent shows is the
+  expected state, not a task. The bump is one parent commit at the push gate - unless the parent cannot
+  stand on the old pin (a cross-repository change whose caller half needs the new commit), where the
+  pin travels with the change (`rem-orchestration`, *Commits across a submodule boundary*).
 - **Fewest cycles, best method.** Take the cheapest route that still yields the evidence: batch
   edits into one compile, script mechanical sweeps, run independent work in parallel, reuse
   evidence on an unchanged tree. Count round trips, not keystrokes.

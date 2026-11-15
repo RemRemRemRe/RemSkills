@@ -80,6 +80,11 @@ contracts; the diff carries the *how*.
   and other repositories migrate its call sites, the halves commit **together**,
   and whatever pins the versions (a submodule pointer, a lock file) moves in the
   same batch — staged by exact path so unrelated dirty entries stay out.
+- **A pin the parent does not need yet is not bumped.** Commits that land inside a
+  submodule during iteration leave the parent's gitlink alone until the push gate
+  (`rem-orchestration`, *Commits across a submodule boundary*). The
+  cross-repository rule above is the exception - there the caller half cannot work
+  without the new pin - not the default.
 - **A file the change set commits carries its pre-existing defects into that
   set.** A defect found inside a file already being committed belongs to the
   change under review — fix it under the same check, or record it explicitly. It

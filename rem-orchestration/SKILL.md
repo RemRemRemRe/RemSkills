@@ -175,6 +175,27 @@ Three rules bind that sequence:
   another session, after the commit. Its procedure - scope, build, one run - is owned by
   `rem-commit-workflow`.
 
+### Commits across a submodule boundary
+
+A repository the project consumes as a submodule has two audiences: its own history and the parent's
+gitlink. During iteration and the freeze a commit lands in the submodule's history only - the parent
+keeps the gitlink it already records, and the `m` that `git status` shows there is the expected state,
+not work to finish.
+
+The bump is deferred because it buys nothing and costs twice: the parent's history becomes a log of the
+submodule's rounds, and a rewrite of those rounds before the push (a squash, a reorder) has to be
+replayed into the parent too. The push gate decides it - its third axis requires every gitlink to
+equal the submodule's HEAD (`rem-submodule-push`) - so the bump is one parent commit at the gate,
+covering every submodule whose HEAD moved.
+
+Two cases are not deferrals, and both are decided by whether the parent can stand on its recorded pin:
+
+- **The parent needs the new commit.** A cross-repository change - an API removed in one repository,
+  its call sites migrated in another - is one unit, and the pin travels with it
+  (`rem-commit-workflow`, *Commit hygiene*).
+- **The unit is the submodule update.** When bringing submodules up to a remote latest *is* the work,
+  the bump is its result and `rem-submodule-sync` owns it.
+
 ## Two records, not a ledger
 
 A deferred *description* rots: by the time a later session reads "the warning is reported once", the
@@ -316,6 +337,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] The push gate's run used the generated prefix string - not `RunFilter Engine`, and never a spec carrying `SmokeFilter`
 - [ ] Test deliverables got their focused review before the push gate's run
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
+- [ ] Submodule commits stayed inside their submodule; a parent gitlink was bumped at the push gate (or with a cross-repository change that needs the new pin), never per iteration round
 - [ ] The push gate's brief gave a per-prefix expected-count table; the run reconciled it per prefix and attributed every delta
 - [ ] Read-only profiles (review/recon/grill) reported inline, with a capped scope and priority; the parent persisted the report
 - [ ] The run directory holds one authoritative log per stage; superseded logs moved out with a marker

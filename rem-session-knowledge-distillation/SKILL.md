@@ -1,13 +1,8 @@
 ---
 name: rem-session-knowledge-distillation
 description: >
-  Distill reusable knowledge from a working session and write it into the
-  knowledge base: harvest the insights, patterns, and pitfalls that emerged,
-  classify them by type and generality, decide the destination (a new document
-  vs an amendment to an existing document, process, or skill), and write
-  generalized, checkable entries once the operator has approved them. Use at the end of a session or at a
-  milestone, and whenever a session's lessons should improve existing
-  processes, documents, or skills.
+  Distill a session's reusable lessons into a new doc or an amendment to an
+  existing doc, process or skill. Use when a session ends or at a milestone.
 metadata:
   category: workflow
   trigger: manual

@@ -1,11 +1,8 @@
 ---
 name: rem-no-disk-scanning
 description: >
-  Bans disk-scanning text searchers (rg, grep, find, fd, ripgrep, findstr and any
-  editor "search in files" equivalent) - they walk entire trees and hang - and
-  requires search through the project's MCP server (Rider MCP) instead. The tools
-  are removed from the project's agent toolsets by configuration, so their absence
-  is expected. Use this constraint in every session, not on demand.
+  Disk text search (rg, grep, find, ripgrep, findstr) is banned; search goes
+  through the project's MCP server (Rider MCP). Use whenever you search files.
 metadata:
   category: meta
   trigger: always

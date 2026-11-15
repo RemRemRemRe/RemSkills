@@ -1,12 +1,8 @@
 ---
 name: rem-submodule-sync
 description: >
-  Detect and update git submodules to their remote default-branch latest:
-  enumerate submodules, fetch and report behind/ahead per remote, fast-forward
-  clean ones, rebase local custom commits on top of upstream, resolve
-  conflicts, verify by an incremental UE build, then commit. Use when asked to
-  check which submodules lag their remote, update submodules, or sync plugin
-  submodules to upstream latest.
+  Fast-forward or rebase git submodules onto their remote default branch, verify
+  by build, commit. Use when submodules lag or a plugin submodule needs syncing.
 metadata:
   category: workflow
   trigger: manual

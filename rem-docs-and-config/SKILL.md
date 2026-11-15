@@ -1,13 +1,9 @@
 ---
 name: rem-docs-and-config
 description: >
-  Documentation and configuration obligations for project changes: which
-  artifacts exist (module docs, subsystem/technical docs, config references,
-  decision records, editor tooltips), when a change must update which one, how
-  to write a technical doc that stays useful, and how to document configuration
-  so a reader can change it safely — with the review checklist. Use when writing
-  or reviewing a change that adds a subsystem, a public API, a config property
-  or a designer-facing behavior.
+  Document what a change adds: technical docs, config references, tooltips. Use
+  when adding a subsystem, public API, config property or designer-facing
+  behavior.
 metadata:
   category: meta
   trigger: manual

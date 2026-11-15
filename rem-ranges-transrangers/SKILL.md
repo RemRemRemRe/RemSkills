@@ -1,11 +1,8 @@
 ---
 name: rem-ranges-transrangers
 description: >
-  Write functional pipeline code using Rem::Ranges, transrangers, and RemStd::bind_back.
-  Covers creating rangers from arrays, filtering, transforming, consuming (ForEach, ToArray,
-  FirstElement), grouping, and the C1060 workaround (REM_RANGES_FOREACH). Use whenever the
-  user writes or reads transrangers-based pipeline code in the Rem project.
-  Last verified: 2026-07.
+  Functional pipeline code with Rem::Ranges, transrangers and RemStd::bind_back.
+  Use whenever you write or read filter/transform/group pipelines.
 metadata:
   category: meta
   trigger: manual

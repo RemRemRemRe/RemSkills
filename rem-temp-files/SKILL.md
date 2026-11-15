@@ -1,11 +1,9 @@
 ---
 name: rem-temp-files
 description: >
-  Route scratch — patches, generated message files, throwaway clones, temporary
-  git worktrees — to the OS temp dir resolved from the environment
-  (`%TEMP%`/`%TMP%`, `$TMPDIR`/`/tmp`): temp is the default; only files a later
-  reader needs persist into the run/artifact directory, never the working tree.
-  Use whenever a session writes intermediate files.
+  Route scratch to the OS temp dir, not the working tree; only what a later
+  reader needs persists in the run directory. Use whenever a session writes temp
+  files.
 metadata:
   category: meta
   trigger: always

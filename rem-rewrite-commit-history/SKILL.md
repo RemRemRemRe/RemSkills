@@ -1,13 +1,8 @@
 ---
 name: rem-rewrite-commit-history
 description: >
-  Rewrite the history of un-pushed commits before it reaches collaborators:
-  fold iterative local work into coherent single-purpose commits (amend,
-  fixup + autosquash, rebase -i reword/reorder/squash/drop), so the pushed
-  history — and the changelog it feeds — stays clean. Use when a local branch
-  accumulated WIP, backtracking, or experiment commits that have not been
-  pushed, or when a commit series should be reshaped before push. Never for
-  pushed or shared history.
+  Fold un-pushed WIP into single-purpose commits with amend, fixup + autosquash
+  or rebase -i. Use when reshaping a local branch before push.
 metadata:
   category: workflow
   trigger: manual

@@ -1,13 +1,8 @@
 ---
 name: rem-observability-and-profiling
 description: >
-  Runtime visibility requirements for project code: when and how to log (level
-  and category, spam control), toggle-gated and shipping-safe debug drawing,
-  debugger/tooling integration (gameplay debugger categories, console commands
-  and cvars, visual logger, trace channels), and profiling tags (CPU scopes,
-  cycle stats, stat groups and their classification, CSV stats). Use when
-  writing or reviewing gameplay/system code that must be observable at
-  runtime.
+  Logging, toggle-gated debug drawing, console and cvar hooks, profiling tags.
+  Use when writing or reviewing code that must be observable at runtime.
 metadata:
   category: meta
   trigger: manual

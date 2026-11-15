@@ -13,49 +13,49 @@
 
 **提交与 Git 工作流**
 
-- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — 单一职责提交、格式 + 审查 + 一次构建；套件在推送档运行
-- [`rem-rewrite-commit-history`](rem-rewrite-commit-history/SKILL.md) — 重塑未推送的提交栈（amend / fixup / rebase -i）
-- [`rem-submodule-sync`](rem-submodule-sync/SKILL.md) — 更新子模块到远端最新、构建验证、提交
-- [`rem-submodule-push`](rem-submodule-push/SKILL.md) — 三轴审计 + 批量推送，以 `--recurse-submodules=check` 为关卡
+- [`rem-commit-workflow`](rem-commit-workflow/SKILL.md) — 在 UE 项目中提交改动：单一职责提交、格式 + 审查 + 一次构建。提交或拆分混合提交时使用。
+- [`rem-rewrite-commit-history`](rem-rewrite-commit-history/SKILL.md) — 用 amend、fixup + autosquash 或 rebase -i 把未推送的 WIP 折叠为单一职责提交。推送前重塑本地分支时使用。
+- [`rem-submodule-sync`](rem-submodule-sync/SKILL.md) — 把 git 子模块快进或 rebase 到远端默认分支最新，构建验证后提交。子模块落后或需要同步插件子模块时使用。
+- [`rem-submodule-push`](rem-submodule-push/SKILL.md) — 安全推送父仓库及其子模块：三轴审计、显式 origin 引用、以 `--recurse-submodules=check` 为关卡。推送带子模块的项目时使用。
 
 **C++ 开发规范**
 
-- [`rem-cpp-best-practices`](rem-cpp-best-practices/SKILL.md) — C++ 审查清单（构建设置、文件/头文件结构、命名、const、UPROPERTY 与元数据完整性、优雅实现代理项、日志宏、测试模块）与提交前 checklist
-- [`rem-observability-and-profiling`](rem-observability-and-profiling/SKILL.md) — 运行时可见性：何时/记录什么、开关控制的调试绘制、调试器与控制台钩子、性能剖析 scope、stat group 与 CSV 统计
-- [`rem-docs-and-config`](rem-docs-and-config/SKILL.md) — 文档与配置义务：技术文档、配置参考、提示文本、与变更联动的文档更新
-- [`rem-ranges-transrangers`](rem-ranges-transrangers/SKILL.md) — 用 `Rem::Ranges`、transrangers、`RemStd::bind_back` 编写函数式流水线代码
+- [`rem-cpp-best-practices`](rem-cpp-best-practices/SKILL.md) — 模块代码的 C++ 审查清单：include、命名、const、UPROPERTY 元数据、日志、测试。提交前审查 diff 或编写模块代码时使用。
+- [`rem-observability-and-profiling`](rem-observability-and-profiling/SKILL.md) — 日志、开关控制的调试绘制、控制台与 cvar 钩子、剖析标签。编写或审查必须在运行时可见的代码时使用。
+- [`rem-docs-and-config`](rem-docs-and-config/SKILL.md) — 记录一次改动带来的文档与配置：技术文档、配置参考、提示文本。新增子系统、公开 API、配置属性或面向策划的行为时使用。
+- [`rem-ranges-transrangers`](rem-ranges-transrangers/SKILL.md) — 用 Rem::Ranges、transrangers、RemStd::bind_back 编写函数式流水线代码。编写或阅读 filter/transform/group 流水线时使用。
 
 **UE 模块与编辑器扩展**
 
-- [`rem-create-new-module`](rem-create-new-module/SKILL.md) — 从 RemMyBlank 模板创建新模块或插件
-- [`rem-customize-factory-asset-menu`](rem-customize-factory-asset-menu/SKILL.md) — 把自定义 `UFactory` 放到 Content Browser "Add" 菜单的指定分类与子菜单
-- [`rem-sequencer-custom-channel-section`](rem-sequencer-custom-channel-section/SKILL.md) — 自定义 `FMovieSceneChannel` / `UMovieSceneSection`，支持逐关键帧结构体编辑
-- [`rem-ue-localization`](rem-ue-localization/SKILL.md) — UE 本地化：target 与加载策略、编辑器文本的 namespace+key 查表、gather → 翻译 → compile 管线与验证
+- [`rem-create-new-module`](rem-create-new-module/SKILL.md) — 按关键字替换复制 RemMyBlank 模板来创建模块或插件。新增模块或新建插件时使用。Last verified: 2026-07。
+- [`rem-customize-factory-asset-menu`](rem-customize-factory-asset-menu/SKILL.md) — 把自定义 UFactory 放进 Content Browser 的 Add/New Asset 分类或子菜单。工厂没出现在预期菜单、或 GetAssetMenuPathsForCategory 被忽略时使用。
+- [`rem-sequencer-custom-channel-section`](rem-sequencer-custom-channel-section/SKILL.md) — 为 Sequencer 添加自定义 FMovieSceneChannel 与 UMovieSceneSection，支持逐关键帧结构体编辑。关键帧存放需逐帧编辑的结构体数据时使用。
+- [`rem-ue-localization`](rem-ue-localization/SKILL.md) — UE 本地化：localization target、编辑器文本的 namespace+key 查表、gather/translate/compile。新增语言或文本未翻译时使用。
 
 **测试**
 
-- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — 推送档的关卡：变更→用例映射、五条完备性判定、bug 修复 regression-first
-- [`rem-bdd-test-tree`](rem-bdd-test-tree/SKILL.md) — 层级化 BDD 测试树（思维导图式索引）+ 分层审查工作流
+- [`rem-test-completeness`](rem-test-completeness/SKILL.md) — 判断一次改动的自动化测试是否完备：变更→用例映射、五条判定、bug 修复 regression-first。编写缺失用例时使用。
+- [`rem-bdd-test-tree`](rem-bdd-test-tree/SKILL.md) — 把 UE 自动化 spec 文件（DEFINE_SPEC / Describe / It）整理成思维导图式的层级测试树。审查大型测试套件或需要测试树索引时使用。
 
 **多引擎插件适配**
 
-- [`rem-ue-plugin-adapter`](rem-ue-plugin-adapter/SKILL.md) — 把 UE 插件从上游最新适配到 5.3–5.8，含分支管理与 build-fix-commit 循环
+- [`rem-ue-plugin-adapter`](rem-ue-plugin-adapter/SKILL.md) — 把 UE 插件从上游最新适配到 5.3–5.8 引擎：分支管理、嵌入依赖、build-fix-commit 循环。运行跨版本构建时使用。
 
 **Skill 元技能**
 
-- [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — 本集合的 skill 编写约定
-- [`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md) — 所有公开材料的发布规则：占位符、提交信息与历史泄漏、逐 skill 的 `local/` overlay、推送前 checklist
-- [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — 将会话中可复用的知识点沉淀到新文档，或对现有文档 / skill 进行改进与补充
+- [`rem-write-better-skill`](rem-write-better-skill/SKILL.md) — skill 编写约定：frontmatter、文件结构、占位符、示例、checklist。创建或更新本集合中的 skill 时使用。
+- [`rem-public-material-generalization`](rem-public-material-generalization/SKILL.md) — 公开材料的发布规则：占位符、local/ overlay、推送前泄漏清单。编写公开文档、提交信息或 skill 时使用。
+- [`rem-session-knowledge-distillation`](rem-session-knowledge-distillation/SKILL.md) — 把会话中可复用的经验沉淀为新文档，或对现有文档 / 流程 / skill 的增补。会话结束或到达里程碑时使用。
 
 **主会话编排**
 
-- [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 冻结 / 推送档的节奏（分层运行、两条小记录）、时间成本控制（找出并削减每轮最慢的步骤）、run 目录与等待纪律
-- [`rem-shared-resources`](rem-shared-resources/SKILL.md) — 在同一个项目目录内协调多个 agent 会话：声明会话要写的文件，为构建 / 测试 / git / IDE 资源加带 TTL 与过期接管的租约，保留各会话的日志，并把构建与测试证据绑定到产出它的那棵树
+- [`rem-orchestration`](rem-orchestration/SKILL.md) — 委派子代理、执行迭代 / 冻结 / 推送档节奏、削减每轮最慢的步骤。作为主会话编排工作时使用。
+- [`rem-shared-resources`](rem-shared-resources/SKILL.md) — 协调同一项目中的多个 agent 会话：声明要写的文件，租约 build / test / git / IDE 资源，保留各会话日志。两个会话共用一个项目时使用。
 
 **环境约束**
 
-- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁用磁盘扫描器（`rg`、`grep`、`find`、`fd`、ripgrep、findstr），所有文本搜索走项目的 MCP 服务器（Rider MCP）；这些工具已由配置从 agent 工具集中移除
-- [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件默认放系统 TEMP 目录；只有后续读者需要的才持久化到 run/artifact 目录，绝不落工作树
+- [`rem-no-disk-scanning`](rem-no-disk-scanning/SKILL.md) — 始终加载：禁止磁盘文本搜索（rg、grep、find、ripgrep、findstr）；搜索走项目的 MCP 服务器（Rider MCP）。每会话搜索文件时使用。
+- [`rem-temp-files`](rem-temp-files/SKILL.md) — 始终加载：临时文件放系统 TEMP 目录而非工作树；只有后续读者需要的才持久化到 run 目录。会话写出中间文件时使用。
 
 ## 日常参考工作流
 
@@ -109,7 +109,8 @@ node tools/lint-skills.mjs
 ```
 
 零依赖的集合约定检查：frontmatter 结构与取值、`name` 与文件夹一致、description
-包含触发条件、结尾 checklist、体量预算（>32KB 告警 / >48KB 失败，不含
+包含触发条件且不超过 160 字符（集合总计 3,500 字符 —— 它常驻在每个请求的
+上下文中）、结尾 checklist、体量预算（>32KB 告警 / >48KB 失败，不含
 checklist）、泄漏模式（盘符路径与家目录路径），以及
 [`tools/public-names.json`](tools/public-names.json) 中的 Rem 家族名单白名单。
 

@@ -1,11 +1,9 @@
 ---
 name: rem-shared-resources
 description: >
-  Coordinate several agent sessions working in one project directory: claim the files a session will
-  write, lease the build, test, git and IDE resources with a TTL and stale takeover, keep per-session
-  logs, and bind build/test evidence to the tree that produced it. Use when two or more sessions or
-  operators work on the same project at the same time, or before a build, suite run, git rewrite or
-  formatter run that another session might also use.
+  Coordinate agent sessions in one project: claim files, lease build, test, git
+  and IDE resources, keep per-session logs. Use when two sessions share a
+  project.
 metadata:
   category: workflow
   trigger: manual

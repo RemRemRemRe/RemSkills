@@ -1,13 +1,9 @@
 ---
 name: rem-submodule-push
 description: >
-  Push a parent repo and its git submodules to their remotes safely: run the
-  three-axis audit (parent unpushed commits / submodule unpushed commits /
-  gitlink-to-HEAD sync), classify submodules by remote ownership, batch-push
-  with explicit origin refs, use `push --recurse-submodules=check` as the
-  authoritative check, handle non-fast-forward by rebase instead of force, and
-  follow force-push discipline. Use when asked to push a project with
-  submodules, or after `rem-submodule-sync` updated submodules.
+  Push a parent repo and its submodules safely: three-axis audit, explicit
+  origin refs, `--recurse-submodules=check`. Use when pushing a project with
+  submodules.
 metadata:
   category: workflow
   trigger: manual

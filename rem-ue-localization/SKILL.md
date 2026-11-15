@@ -1,12 +1,9 @@
 ---
 name: rem-ue-localization
 description: >
-  Unreal Engine localization for plugins and projects: localization targets and their
-  loading policies, the namespace+key lookups behind editor-visible text (details-panel
-  categories, tooltips, display names, code strings), the gather → translate → compile
-  pipeline (gettext .po to .locres), and how to verify a language switch. Use when adding
-  a language to a UE plugin or project, when a translation does not appear in the editor,
-  or when a plugin must ship translated text.
+  UE localization: localization targets, namespace+key lookups for editor text,
+  gather/translate/compile. Use when adding a language or text stays
+  untranslated.
 metadata:
   category: workflow
   trigger: manual

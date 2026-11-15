@@ -1,13 +1,8 @@
 ---
 name: rem-orchestration
 description: >
-  Main-session orchestration policy for a project that uses this collection: delegate execution
-  to subagents with self-contained briefs (background by default, never inheriting context), run
-  the three-phase cadence - iteration that writes code and cases but runs nothing, a freeze that
-  reviews the diff and builds once, and a push gate that runs the core test layer plus the prefixes
-  the range touches; cut each round's slowest step by merging, caching or deferring it, and prefer
-  events over polling when waiting. Use when planning, delegating, or sequencing work as the main
-  session in such a project.
+  Delegate to subagents, run the iteration / freeze / push-gate cadence, cut
+  each round's slowest step. Use when sequencing work as the main session.
 metadata:
   category: workflow
   trigger: manual

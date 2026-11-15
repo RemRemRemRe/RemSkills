@@ -1,18 +1,16 @@
 ---
 name: rem-create-new-module
 description: >
-  Create a new runtime module or plugin by copying the RemMyBlank template
-  and performing keyword substitution. Covers two scenarios: (a) adding a
-  module to an existing plugin, and (b) creating a brand-new standalone plugin.
-  Use when the user asks to "create a new module" or "create a new plugin"
-  using the project's RemMyBlank boilerplate.
-  Last verified: 2026-07.
+  Copy the RemMyBlank template to scaffold a module or plugin by keyword
+  substitution. Use when adding a module or starting a plugin.
 metadata:
   category: workflow
   trigger: manual
 ---
 
 # Create new module or plugin from RemMyBlank template
+
+Last verified: 2026-07.
 
 ## Overview
 

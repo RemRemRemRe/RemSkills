@@ -1,13 +1,9 @@
 ---
 name: rem-public-material-generalization
 description: >
-  Publication rules for every public material — skills, docs, source code,
-  commit messages, pull requests and release notes: why public content must be
-  generalized, what keeps real names, how project-specific facts live in an
-  ignored `local/` overlay, and the pre-push checklist that covers the whole
-  outgoing history. Use when creating or publishing a skill, writing public
-  docs or commit messages, or when a public library must not leak the project
-  that consumes it.
+  Publication rules for public material: placeholders, the local/ overlay, the
+  pre-push leak checklist. Use when writing a public doc, commit message or
+  skill.
 metadata:
   category: meta
   trigger: manual

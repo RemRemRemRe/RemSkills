@@ -1,14 +1,9 @@
 ---
 name: rem-test-completeness
 description: >
-  Decide whether a change set's automation tests are complete before the push gate
-  runs the suite, and guide writing the missing cases. Covers change-to-case
-  mapping (diff ->
-  changed behavior -> one spec case per behavior), the five-point completeness
-  criteria, regression-first for bug fixes, mutation spot checks on core logic,
-  and reuse of the layered review from rem-bdd-test-tree. Use when a test
-  session asks whether a change's tests are complete, when writing tests for a
-  change, or when judging whether existing tests cover a change.
+  Judge whether a change's automation tests are complete: change-to-case
+  mapping, five criteria, regression-first for fixes. Use when writing the
+  missing tests.
 metadata:
   category: meta
   trigger: manual

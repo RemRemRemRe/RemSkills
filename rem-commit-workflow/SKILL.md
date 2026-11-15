@@ -1,12 +1,8 @@
 ---
 name: rem-commit-workflow
 description: >
-  Commit local changes in a UE project and verify them — single-responsibility
-  commits, English comments, formatting verified, then one build; cases travel
-  with the commit and the suite runs at the push gate, in a separate,
-  operator-triggered session. Use when committing plugin changes, splitting a
-  mixed commit for review, running the push gate for a range, or deciding whether
-  commits may be published.
+  Commit local changes in a UE project: single-responsibility commits, formatted
+  and reviewed, then one build. Use when committing or splitting a mixed commit.
 metadata:
   category: workflow
   trigger: manual

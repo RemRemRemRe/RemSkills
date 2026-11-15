@@ -1,12 +1,9 @@
 ---
 name: rem-ue-plugin-adapter
 description: >
-  Multi-engine Unreal Engine plugin adaptation: adapting a plugin from
-  upstream latest down to UE 5.3–5.8. Covers branch management, dependency
-  embedding, cherry-picking prior adaptation commits, the build-fix-commit
-  loop (compile, read errors, decide fixes, commit), and final verification.
-  Use when adapting a plugin to multiple engine versions, running
-  cross-version builds, or fixing compilation errors across UE 5.3–5.8.
+  Adapt a UE plugin from upstream latest down to engine 5.3-5.8: branches,
+  embedded dependencies, build-fix-commit loop. Use when running cross-version
+  builds.
 metadata:
   category: workflow
   trigger: manual

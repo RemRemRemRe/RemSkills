@@ -1,10 +1,8 @@
 ---
 name: rem-bdd-test-tree
 description: >
-  Generates a hierarchical BDD test case tree (mind-map style index) from UE
-  automation spec files (DEFINE_SPEC / Describe / It) for test review. Use when
-  the user wants to review a large test suite, needs a test case index, or asks
-  for a test case tree / mind map of the specs.
+  Build a hierarchical mind-map index of UE automation spec files (DEFINE_SPEC /
+  Describe / It). Use when reviewing a large suite or asking for a test tree.
 metadata:
   category: meta
   trigger: manual

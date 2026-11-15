@@ -1,11 +1,8 @@
 ---
 name: rem-write-better-skill
 description: >
-  Guidelines for writing maintainable, clean skills (custom instructions for AI coding
-  agents). Covers frontmatter format, file structure, placeholder types, self-contained
-  examples, exception handling, citations, table formatting, and checklist validation.
-  Use when creating a new skill or updating an existing one. Publication/generalization
-  rules live in `rem-public-material-generalization`.
+  Skill writing conventions: frontmatter, file structure, placeholders,
+  examples, checklist. Use when creating or updating a skill in this collection.
 metadata:
   category: meta
   trigger: manual

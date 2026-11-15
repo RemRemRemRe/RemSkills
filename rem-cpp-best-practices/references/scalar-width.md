@@ -118,6 +118,7 @@ a thing?**
 | Angle, angular rate | `float` | a full turn is inherently bounded; `float` still resolves ~3e-5 of a degree at 360 |
 | Scale, ratio, alpha, weight, probability, normalized direction | `float` | dimensionless and bounded by construction |
 | Bulk array of positions | `float` only as a re-based local array | see §7 |
+| An authored *shape* — box half-extent, damage volume, spawn region | `FVector3f`; widen once where the engine asks for an `FVector` (`FCollisionShape::MakeBox`) | authored data, not world state; the widening is the boundary |
 | Count, index, flag | integer type | not a width question |
 
 Three consequences the table does not spell out:

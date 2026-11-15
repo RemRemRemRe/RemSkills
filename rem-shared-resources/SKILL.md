@@ -91,6 +91,7 @@ session invalidates it, and the freeze's build or the push gate's run re-runs. A
 ## 5. Rules that keep the tree honest
 
 - Stage by exact path; never `git add -A`, and never commit a path outside your claims.
+- **A foreign edit can appear between your rounds, inside or beside a claim.** Compare `git status --porcelain` with the file list you own immediately before staging and stage that list only; a path you did not write stays out of the index and goes back to its owner. The same holds for the build: a new untracked file from a second session can break the shared target while a commit is being prepared (2026-11), and that failure is not evidence about your change.
 - One session never edits another's claimed files, and never resolves a conflict by overwriting.
 - Logs, reports and scratch stay in the session's own run directory (`rem-temp-files`, `rem-orchestration`);
   a test log is redirected there rather than shared through the project's default log path.

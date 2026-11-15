@@ -45,8 +45,8 @@ the core prefix string, the run commands - belong to the project's local overlay
   names, not from the module name (a module-scope filter that misses one prefix silently runs less).
 - Record startup and execution separately. Startup dominated the core run in both plugins (37 of
   70 s, and 22 of 30 s); that ratio is why the core layer is a push gate and not a commit gate.
-- Reconcile: the `It` sum of the core specs must equal the runner's `Found N`. A mismatch is a
-  mis-flagged spec or a deleted one that still has cases.
+- Reconcile: the `It`/`LatentIt` sum of the core specs must equal the runner's `Found N` (`Describe`
+  contributes no entry, so count only the cases — the mechanism is in `rem-cpp-best-practices/references/tests.md`). A mismatch is a mis-flagged spec or a deleted one that still has cases.
 - A spec name must not be a **dot-prefix** of a different-layer spec's name (`X` versus `X.Content`);
   the runner appends a dot to `StartsWith:`, so `X` versus `XArray` is harmless, `X` versus
   `X.Content` is not.

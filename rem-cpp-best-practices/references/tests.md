@@ -191,9 +191,13 @@ Third-party editor plugins that crash under `-nullrhi` may need
   match and matches nothing. Use `StartsWith:Rem` (prefix) —
   `Automation RunTests StartsWith:Rem; Quit` runs the whole suite. `+`
   separates OR-filters: `Rem.Foo+Rem.Bar`.
-- The runner counts **Describe nodes as test entries too**, so `Found N` is
-  larger than the `It` count whenever a spec has `Describe` nodes — a count that
-  looks high by the number of `Describe`s is not a defect.
+- The runner counts **`It`/`LatentIt` executions, and a `Describe` contributes none**: `GetTests` runs
+  the spec in discovery mode (`FBDDAutomationTestBase::GetTests`, `AutomationTest.h`) and every `It`
+  registers one entry through its `FSpecIt`, while `Describe` merely runs its body to reach the `It`s
+  inside it and `BeforeEach/AfterEach` register nothing. So `Found N` equals the sum of `It` executions
+  across the whole spec tree — nested ones included, and a table-driven `Describe` multiplies them. A
+  count that looks high by "the number of `Describe`s" is a miscount of nested or latent cases, not a
+  framework quirk.
 - Negative tests must NOT trigger assertion log events: `RemCheck*`,
   `REM_VIRTUAL_WARN` defaults, and `ensure` failures emit Error log events that
   the automation framework attaches to the current test and marks it failed —

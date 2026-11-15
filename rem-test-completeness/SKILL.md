@@ -94,6 +94,12 @@ A fixed bug gets a regression case **bound to the fix**:
   temporarily reverting the fix — the regression case must fail. Full revert
   checks are optional; one representative check per core fix is enough.
 
+**A red proof runs only in a deliberate, separately authorized run**, whose stated reason is the
+deliberately changed tree - here and in criterion 5. An authoring round stays compile-only
+(`rem-orchestration`), and the push gate's run stays the one green run for the range. A case whose
+red was never proven is not silently trusted: it becomes a row in the unrun record marked
+`red not proven`, naming the tier that proves it.
+
 ## 3. The Five-Point Completeness Criteria
 
 1. **Executed coverage** — every changed behavior / public API has ≥1 spec case
@@ -106,8 +112,8 @@ A fixed bug gets a regression case **bound to the fix**:
    `rem-cpp-best-practices/references/tests.md` §5).
 4. **No structural gaps** — layered review L1/L2 (`rem-bdd-test-tree`) clean.
 5. **Core-logic mutation spot check** — flip a condition or assertion in the
-   code under test (or in the case); the suite must go red. Staying green means
-   the case does not exercise the path.
+   code under test (or in the case) in the red-proof run of §2; the suite must
+   go red. Staying green means the case does not exercise the path.
 
 Optional evidence: UE code-coverage data. Supporting evidence only — never a
 check (UE coverage support is limited).
@@ -227,8 +233,9 @@ tier needs a schedule rather than an intention. Which spec is in which layer - a
 the gate runs - are project data (`rem-orchestration/local/test-layers.md`), never this skill.
 
 **One spec declares one layer.** The automation filter is per spec and the engine asserts exactly one
-filter bit, so a spec that mixes layers is split and a case whose layer changed moves to that layer's
-spec. `EAutomationTestFlags::SmokeFilter` is never usable on a spec - mechanism and symptom:
+filter bit, so a case whose layer changed moves to that layer's spec; whether a spec that mixes layers
+is split, and when, is the split decision in `rem-orchestration/references/test-layering.md` §2.
+`EAutomationTestFlags::SmokeFilter` is never usable on a spec - mechanism and symptom:
 `rem-commit-workflow` §*The push gate*.
 Use `EngineFilter` for the core layer and `ProductFilter` for the rest.
 
@@ -278,7 +285,7 @@ Before declaring a change set complete:
 - [ ] Criterion 2: every bug fix has a bound regression case (revert spot-check on core logic)
 - [ ] Criterion 3: no placeholder assertions
 - [ ] Criterion 4: layered review L1/L2 clean (`rem-bdd-test-tree`)
-- [ ] Criterion 5: mutation spot check goes red on core logic
+- [ ] Criterion 5: mutation spot check goes red on core logic (in the red-proof run of §2)
 - [ ] Cases are self-validating: falsifiable assertion, a baseline before any zero assertion, a case-owned registry key, and an adequate test for any helper used (§3b)
 - [ ] Every case that has never executed is one row in the unrun record, with the tier that runs it next
 - [ ] Missing cases written in BDD spec style (`rem-cpp-best-practices/references/tests.md` §16)

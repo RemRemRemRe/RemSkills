@@ -49,10 +49,10 @@ exception, never a habit. A session never writes outside its claims.
 **The unit of exclusion is the hunk, not the file.** Two sessions may edit one file when their hunks
 and their meanings do not overlap - a member declaration in a header and a caller in the same header's
 other half, say. Then: claim the file, touch only your own region, never revert, reformat or "tidy" the
-other side's lines, and stage by exact path so their hunk stays uncommitted (their `git status` shows
-it as modified when they come back, which is the correct hand-off). Wait or split the unit only when
-the *same lines* or the *same semantic change* would be touched — a shared file is not a conflict by
-itself (ruled 2026-11).
+other side's lines, and stage your own hunk only so their work stays uncommitted
+(`rem-commit-workflow` §*Staging part of a file*). Wait or split the unit only when the *same lines*
+or the *same semantic change* would be touched — a shared file is not a conflict by itself
+(ruled 2026-11).
 
 ## 2. Lease a shared resource
 

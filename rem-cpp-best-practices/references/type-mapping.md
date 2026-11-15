@@ -36,9 +36,55 @@ if (const auto* Player = Cast<APlayerController>(Controller))
 ### `const` UObject pointer
 
 ```cpp
-TObjectPtr<const UObject> ConstObj{};  // UPROPERTY
-const UObject* ConstPtr = ...;         // non-UPROPERTY
+TObjectPtr<const UObject> ConstObj{};  // UPROPERTY: the pointee's const is fine
+const UObject* ConstPtr = ...;         // non-UPROPERTY: a read-only local or parameter
 ```
+
+A `UPROPERTY` member itself cannot be const-qualified (UHT: `Const properties are not supported.`,
+`UhtPropertyParser.cs`), but the **pointee's** constness is expressible and supported:
+`TObjectPtr<const UObject>` and `TArray<TObjectPtr<const UObject>>` are valid members (a reflected
+settings asset in a consuming project stores its asset array as `TArray<TObjectPtr<const …>>` and
+builds). Keep that const when the type's API promises it — dropping it to satisfy the `TObjectPtr` rule
+loses a real semantic. A project may also leave a `const T*` member raw until its `TObjectPtr<const T>`
+conversion is planned; that is a migration state, not a legal shape exception.
+
+**Dropping the const charges a `const_cast` at every assignment.** A const-returning API (an asset
+lookup, a `Cast<T>` whose source is const) binds straight into `TObjectPtr<const T>` and needs a cast
+into `TObjectPtr<T>`:
+
+```cpp
+const UDataAsset* Loaded = ResolveAsset();      // the API hands out const
+TObjectPtr<const UDataAsset> Kept = Loaded;     // ok: the const survives
+TObjectPtr<UDataAsset> Mutable = const_cast<UDataAsset*>(Loaded);   // the cost of dropping it
+```
+
+That is the reason to prefer `TObjectPtr<const T>` over dropping the const when the member is not
+written through.
+
+**A getter that returns a reference into the member cannot survive the conversion.** `T* const& Get()`
+(or an `auto&&` family) would have to expose `TObjectPtr<T>&` — a storage type in the API. Replace it
+with a value getter returning `.Get()`; a `Get*Ref` name does not survive a `TObjectPtr` conversion.
+
+`TObjectPtr` never appears in a function parameter, a return type or a local variable: those
+carry raw `T*` (or `TNotNull` for the non-null contract). The one exception is a parameter that has
+to name a `UPROPERTY` container's element type, where no raw spelling exists:
+
+```cpp
+void Walk(const TConstArrayView<TObjectPtr<UObject>> Objects);   // no raw equivalent
+void Walk(const TArray<UObject*>& Objects);                     // reject: a UPROPERTY array of
+                                                                // TObjectPtr does not convert to it
+```
+
+Two consequences that cost time when a member is converted (measured 2026-11):
+
+- **An array of raw pointers does not assign into an array of `TObjectPtr`.** The cross-element copy
+  constructor is `explicit`, so `TArray<AActor*> Plain; TArray<TObjectPtr<AActor>> Wrapped = Plain;`
+  does not compile — use `Wrapped.Reset(); Wrapped.Append(Plain);` (and the reverse direction for a
+  read: `TConstArrayView<AActor*> PlainView = Wrapped;` does convert, through
+  `TContainerElementTypeCompatibility`).
+- **`auto*` cannot deduce through a `TObjectPtr` element.** In a range-for over `TArray<TObjectPtr<T>>`
+  bind `auto& Element` and use `Element->…` / `Element.Get()`; `IsValid` overloads in the project's
+  utilities already accept `TObjectPtr`, so a validity check needs no `.Get()`.
 
 ---
 

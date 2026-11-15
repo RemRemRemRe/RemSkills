@@ -160,7 +160,7 @@ Full rules and examples: `references/language-features.md`.
 
 ## 6. Const Correctness, `[[nodiscard]]`, `constexpr`
 
-`[[nodiscard]]` on every non-void function. `const` everywhere possible — locals, reference locals, pointer-to-const, member functions, non-mutating by-reference parameters; exceptions: values that will be moved (`const` inhibits the move) and value parameters in declarations.
+`[[nodiscard]]` on every non-void function. `const` everywhere possible — locals, reference locals, pointer-to-const, member functions, non-mutating by-reference parameters; exceptions: values that will be moved (`const` inhibits the move) and value parameters in declarations (the definition too — `references/language-features.md`).
 
 Use the `constexpr` family aggressively for literal types initialized with constant expressions (`constexpr`, not merely `const`); allocating types (`TArray`, `FString`) are not literal and stay `const`. Rider MCP does not return HINT severities — check `const` → `constexpr` opportunities manually.
 
@@ -170,7 +170,7 @@ Examples and the full rule set: `references/language-features.md`.
 
 ## 7. Pointers & References
 
-UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `UObject*` for parameters/returns/locals, `TWeakObjectPtr`/`TSoftObjectPtr`/`TSoftClassPtr` for weak and soft references; a C++-first API takes a raw `I*` interface pointer (never `TScriptInterface`, which is Blueprint-facing).
+UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `UObject*` for parameters/returns/locals, `TWeakObjectPtr`/`TSoftObjectPtr`/`TSoftClassPtr` for weak/soft references; a C++-first API takes a raw `I*` (never `TScriptInterface`). `TObjectPtr` is member-only; signatures stay raw `T*`.
 
 `Rem::TNotNull<T>` expresses non-null semantics: `*NotNull` on `TNotNull<const T*>` yields the **value** reference, no pointer arithmetic (MSVC selects the deleted `operator bool` — convert to a raw pointer first), and it cannot hold `nullptr` (a walk that terminates on null uses a raw pointer). Never `NULL` or `0`.
 
@@ -550,7 +550,7 @@ Before committing any C++ file:
 - [ ] Metadata completeness (§10, `references/type-mapping.md`): numeric values carry `ForceUnits`/`ClampMin`/`ClampMax` as applicable; object refs carry `AddFilterUI`/`AllowedClasses`; class refs carry `MetaClass`; wrapper arrays carry `TitleProperty`; mode-dependent values use `EditCondition`, not a comment
 - [ ] Designer-facing properties that need explanation carry a `ToolTip` or a `/** */` doc comment (§10)
 - [ ] No specifier text or preprocessor line sits in a comment next to a declaration or inside its specifier list (UHT turns it into the tooltip — §4)
-- [ ] `TObjectPtr<T>` (not raw `T*`) for all UPROPERTY UObject members; UPROPERTY types are UPROPERTY-able (`TWeakInterfacePtr` is not — keep it non-UPROPERTY); assertion macros include their header; weak pointers use `.IsValid()` — see `references/pitfalls.md`
+- [ ] `TObjectPtr<T>` (not raw `T*`) for all UPROPERTY UObject members, and never in a function signature, return type or local; UPROPERTY types are UPROPERTY-able (`TWeakInterfacePtr` is not — keep it non-UPROPERTY); assertion macros include their header; weak pointers use `.IsValid()` — see `references/pitfalls.md`
 - [ ] U-object/interface **references** are `TNotNull` — parameter *and* return (`const X&` → `TNotNull<const X*>`, `X&` → `TNotNull<X*>`); only value semantics keep a reference; non-null getters are named `Get*`, nullable ones `TryGet*`, and no `Get*Ref` name survives a conversion
 - [ ] Bitfields only when they actually save memory under alignment rules
 - [ ] Scalar width matches the value's role (§12): no authoritative world position or accumulated world state in an `f` type (`FVector3f`/`FRotator3f`/`FTransform3f`); tuning parameters, angles and dimensionless values may use the `f` variant

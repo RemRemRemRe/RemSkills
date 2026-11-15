@@ -21,9 +21,12 @@ and were caught only by `get_file_problems`.
 
 ### Full-severity sweep: use `lint_files`, not just `get_file_problems`
 
-`get_file_problems` **misses the WEAK WARNING tier entirely** (it returns
-ERROR/WARNING only). `lint_files` returns every severity — including the
-WEAK WARNING class of "can be made" suggestions:
+`get_file_problems` **misses the WEAK WARNING tier entirely**, and in practice the
+WARNING tier too: measured 2026-11, a file whose two WARNINGs `lint_files`
+reported came back as `errors: []` with `--onlyErrors false` as well, so treat
+`get_file_problems` as the ERROR-only probe it behaves like. `lint_files`
+returns WARNING and above — including the WEAK WARNING class of "can be made"
+suggestions:
 
 ```
 Parameter 'X' can be made const
@@ -32,10 +35,13 @@ Variable 'Y' can be made constexpr
 
 Run `lint_files --files '[<paths>]'` (same batch loop) and act on **WEAK
 WARNING and above**; WEAK WARNINGs are the "can be made const / constexpr"
-family and are cheap to fix. HINTs still never arrive through MCP — check
-those manually (§4 member ordering). Verified 2026-08: a `const`-able
-parameter in a test header was invisible to `get_file_problems` (`errors: []`)
-and only `lint_files` reported it.
+family and are cheap to fix. **Its severity arguments are inert**: measured
+2026-11, `--severities '["HINT"]'` and `--minSeverity HINT` were both accepted
+and silently ignored — the same WARNING set came back — so there is no way to
+ask for a narrower or wider band. HINTs never arrive through MCP; check those
+manually (§4 member ordering, declaration/member order, spelling). Verified
+2026-08: a `const`-able parameter in a test header was invisible to
+`get_file_problems` (`errors: []`) and only `lint_files` reported it.
 
 **Detection only — no quick-fix tool.** Rider MCP exposes no intention/quick-fix
 action: `lint_files` detects but cannot fix (`--fix` is ignored), and

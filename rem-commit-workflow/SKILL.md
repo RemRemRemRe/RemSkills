@@ -122,6 +122,34 @@ contracts; the diff carries the *how*.
 - Reshaping the history of un-pushed commits (amend, fixup, squash, reorder,
   drop) belongs to `rem-rewrite-commit-history`.
 
+## Verifying a batch without paying for the working tree
+
+Checking what a commit contains and that a rewrite kept the tree is a plumbing
+question, never a `git status` question:
+
+- `git diff --cached --name-status` reads the index only; `git show --stat <rev>`
+  reads one commit. Neither touches the working tree.
+- **Tree identity is `git rev-parse <rev>^{tree}`, compared between two revisions —
+  never `git diff <a> <b>`.** Hashing two trees is O(1) in repository size; diffing
+  them walks every path (measured 2026-11: a loop over 12 repositories spent 17
+  minutes where the hash comparison takes seconds).
+- **A superproject is never `git status`-ed.** In a repository with submodules,
+  `git status` runs a status query inside every child, which is the most expensive
+  git call there is; for "is the parent untouched" only `git -C <parent> rev-parse
+  HEAD` is needed, and if its state must be read, `git status --short
+  --ignore-submodules=all --untracked-files=no`.
+- One script per batch: `git add -- <exact paths>` then `git commit -F <message
+  file>` per repository, no diagnostic command between the steps, one verification
+  pass at the end (`git log --oneline <base>..HEAD` + the tree hashes).
+- **When a git command jumps from ~0.1 s to tens of seconds, suspect the
+  environment before the repository.** Two causes measured on Windows: a GUI git
+  client polling the same superproject (a `git submodule status` spawned every
+  second or two with no coalescing — 1486 of them were resident at once), and a
+  stale `.git/index.lock`. Kill the pile with one native call (`taskkill /F /IM
+  git.exe`; a per-process `Stop-Process` over a thousand objects is slower and
+  appears hung), then remove the lock — blocked-in-I/O processes die in waves, not
+  at once.
+
 ### Staging part of a file (mixed ownership)
 
 When one file holds both this change and someone else's in-progress work, stage **hunks, not the
@@ -198,6 +226,20 @@ green).
 Use the project's editor development configuration — never build a different
 editor config for this. Exact engine path, target, and config are project
 facts: see the Local overlay section (`local/build-test-and-commit.md`).
+
+**A build result belongs to the tree it read.** Two consequences, both measured
+2026-11 on a multi-round sweep:
+
+- **Freeze the tree while it runs.** Editing a file mid-build produced a build
+  that read a half-written header and reported a phantom `C4430/C2143` against a
+  class the edit never touched; the fix was nothing, and the round was lost. A
+  build whose inputs changed under it is stale evidence even when it passes — say
+  so instead of citing it.
+- **One build at a time.** Two `Build.bat` invocations serialize on UBT's mutex:
+  the second waits (its log's first line is `Build.bat is already running, waiting
+  for existing script to terminate`), so dispatching the next build before the
+  previous one finished costs the sum, not the max - and a queued build may then
+  compile a tree the earlier one already invalidated.
 
 ## The push gate (operator-triggered)
 

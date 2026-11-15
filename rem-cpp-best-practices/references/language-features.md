@@ -268,6 +268,13 @@ void Process(const int32 Value, const FString Name)
 }
 ```
 
+**The analysis pushes back either way, so pick one side and edit both files.**
+Measured 2026-11: dropping `const` from a declaration *and* its definition made
+Rider report `Parameter 'X' can be made const` against the definition, because
+the implementation may keep it. Drop it in the declaration only, and if a
+finding forces the other direction, re-edit the pair together rather than
+flipping them one at a time.
+
 ---
 
 Compile-time type branching uses `if constexpr` chains exclusively. No SFINAE,

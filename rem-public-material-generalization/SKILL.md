@@ -107,6 +107,11 @@ skill's `local/` overlay; a `Rem` prefix is not evidence of ecosystem
 membership. `tools/lint-skills.mjs` enforces the outcome: every Rem-family
 identifier in a skill (`RemXxx` and the type-prefixed `URemXxx`/`ERemXxx`
 forms) must be listed in `tools/public-names.json` with a public source.
+**Never silence that error by adding the name to `public-names.json`** - the file
+records names verified public, and an entry there is a claim of provenance, not a
+suppression switch. The fix is to generalize the example ("a reflected settings
+asset", not its type) or to move the concrete name into the skill's `local/`
+overlay; hit in 2026-11 when a public reference named a project header.
 
 Ownership decides membership, not the name: a Rem-family module whose remote
 sits under a personal account is **private**, and public material may not name

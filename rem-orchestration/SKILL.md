@@ -34,6 +34,12 @@ procedure's restatement of it.
 
 ## Delegation
 
+- **A rule has one home, chosen by who makes the call.** The always-resident policy carries hard rules
+  only - one or two lines each, no procedure - because every session pays for it in context. The
+  procedure lives in the owning skill. A duty **every executor owes** (the report shape, measuring an
+  overrun instead of waiting on it, the write boundary) lives in the run-directory contract
+  (`<cwd>/.agents/runs/README.md`), which every profile already points at - written once, it reaches all
+  of them without spending each profile's prompt budget, and a rule copied into two homes drifts.
 - **Delegate execution, keep decisions.** A unit whose raw output exceeds ~10k tokens, or
   whose process is open-ended (build/fix loops, debugging, batch refactors, repo-wide
   search), belongs to a subagent. Small, high-coupling steps stay in the main session - the
@@ -276,6 +282,34 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   wait on (a file another machine writes, a queue nobody signals). One wait of at most 15 s, repeated
   only as many times as the plan states, and never as a substitute for reading the run directory. An
   unbounded poll loop is a defect, not a habit.
+- **Diagnose the silence before blaming the model.** A stalled model call and a stalled *tool* look
+  identical from the parent - nothing arrives either way. Measured 2026-11: a delegated commit unit
+  was written off as "a 50-minute model stall" and was in fact one `git status` on a superproject
+  starved by 1486 resident `git` processes; the child session's own log showed an immediate tool call
+  and a 50-minute tool *result*. So read the child's run directory and its session log timestamps
+  (creation, first tool call, first tool result) and name the slow step - a tool that hangs, a command
+  that scans a huge tree, or a model that really is slow. Then fix the cause: the shape of the command
+  belongs in the skill that owns that tool, and no brief asks for an expensive verification the parent
+  itself can skip.
+- **The cost usually sits in the tool, not in the delegation.** Measured in the same session: author
+  units that only edit files start, work and report in 2-3 minutes each, while two builds and two
+  superproject status queries ate ~85 minutes. Before splitting or serializing work, price the tool it
+  will call; delegate more freely when the unit is only edits, and keep the expensive steps (builds,
+  git over big trees) on a measured, single path.
+- **Slow operations are analyzed and reported without being asked.** Any step that exceeds its expected
+  budget - a build past a few minutes, a git command past a few seconds, a unit silent past ten -
+  gets one measurement and one report line rather than a quiet wait: what ran, how long, which share
+  of the wall clock, and whether the cause is known. Name it in the session's report and, when it is a
+  recurring shape, fix it in the skill that owns the tool (this is how the build-freeze and git-plumbing
+  rules above were found). A slow step nobody measures reads as "the agent is slow" and nobody can act
+  on it.
+- **An executor's self-report is a claim; re-derive what gates the commit.** The executor verifies what
+  it can see, and its report arrives as fact - two measured misses in one session: "line endings
+  verified unchanged" (four files had flipped to CRLF) and "`lint_files` does not return that class of
+  finding" (it does). Re-check the invariants that actually gate the commit with a script of your own
+  - line endings and BOM against `git show HEAD:<file>`, the shape of a mechanical rewrite, the
+  findings on changed lines - and treat the child's own verification as evidence only after it
+  survives that re-derivation.
 
 ## Artifacts
 

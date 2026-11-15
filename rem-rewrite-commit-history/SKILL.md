@@ -73,6 +73,21 @@ A local commit that is not pushed is **amended to fold in the final state**
 (e.g. a comment-language fix) instead of leaving a follow-up "fix" commit —
 this is the collection's rule, owned here.
 
+**Choose the base by what sits above it, not by reflex.** `<remote>/<branch>` is
+the default base and usually right; it stops being right when the branch already
+carried other people's un-pushed commits before the work you are folding. Then
+the base is **the first commit your own work added** — folding to the remote
+would rewrite commits you do not own (measured 2026-11: six repositories had
+older un-pushed commits between `origin/main` and the session's first commit).
+Read `git log <remote>/<branch>..HEAD` and name the base commit before the first
+rewrite, and record it in the report.
+
+**Fold by intent, not by path.** When one file was touched by several of the
+session's intents (a style sweep, then a lint pass, then an API rule), the
+commits cannot be split by file; keep one commit per intent and fold the churn
+into the intent it belongs to, so the history never shows the same line changed
+back and forth.
+
 ## Workflow
 
 1. **Inspect** — `git log <remote>/<branch>..HEAD`: list the un-pushed commits,

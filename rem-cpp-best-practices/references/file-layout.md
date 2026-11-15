@@ -2,6 +2,14 @@
 
 Detail moved out of `SKILL.md` so the rules stay scannable.
 
+### Encoding and line endings
+
+Source files are **UTF-8 without a BOM**. The BOM is not content: it turns the first line into a
+different line, so a file that gains or loses one shows an unrelated diff, and a tool that re-adds it
+silently rewrites the header line. For the same reason, never let a tool change a file's line endings;
+in a repository with `core.autocrlf` set, that churn is invisible in `git diff` and surfaces later as a
+whole-file rewrite.
+
 ### Header file layout (exact order)
 
 ```cpp

@@ -337,6 +337,13 @@ exit 2 means it checked nothing, so it is never read as clean. It reads
 declaration shapes, not types — the compile stays the authority on whether a
 move is legal, `--self-test` is the checker's own regression net.
 
+**A mechanical reorder is verified by shape, not by eye.** For every touched
+file, the multiset of non-blank lines with the pure access labels removed must be
+identical to `git show HEAD:<file>` — that proves the edit only moved members and
+added/removed labels, and it catches the dropped comment or the quietly edited
+initializer a diff read-through misses (measured 2026-11 on a 54-file sweep: one
+file flagged, and the flag was a label line that had carried a doc comment).
+
 **Definition order follows declaration order** (project rule): an out-of-line
 definition in the `.cpp` appears in the same order as its declaration in the `.h`.
 

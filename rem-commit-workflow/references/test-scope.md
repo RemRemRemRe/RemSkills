@@ -2,27 +2,20 @@
 
 Owned by `rem-commit-workflow`; read when the change set's scope is decided, before the run.
 
-Scope is a two-stage decision, and both stages leave evidence: **enumerate candidates
-from the module graph, then prune by symbol**.
+Scope is a two-stage decision, and both stages leave evidence: **take the candidate prefixes from the
+layer table, then prune by symbol**. The module graph is the fallback, for a changed symbol the table
+does not name.
 
-Stage 1 — candidates, from the module dependency graph (`tools/scope.py`):
+Stage 1 — candidates, from the layer table:
 
-```
-python <skill-dir>/tools/scope.py --root <plugin-root> [--root <source-root>] --diff [REV]
-```
-
-- The graph is the same shape as a plugin-dependency viewer, one level down: the unit is the
-  **module**, an edge is a `Build.cs` dependency, and the leaves are the automation prefixes read
-  out of `DEFINE_SPEC`. Never derive a prefix from a module name — one test module can host several
-  prefixes, and a prefix need not repeat its module's name.
-- Reach follows UBT's own propagation: a module sees the change when it — or a module on its
-  public-dependency path — lists the changed module. Every candidate is printed with the path that
-  reached it, so the reason is auditable instead of assumed.
-- It also prints the prefixes that **cannot** reach the change. That negative half is the point of
-  running it: it is what lets the scope stay narrow without guessing, and it is the evidence a
-  narrowed scope is reviewed against.
-- Exit code 2 means the inventory could not be built (wrong `--root`, no `Build.cs`, no changed
-  file mapped). An empty candidate set is never "nothing to run".
+- The table holds the core prefix string plus every prefix the range touches. Which spec sits in
+  which layer is project data (`rem-orchestration/local/test-layers.md`); how the table is built —
+  specs, counts, one `red` symbol per case, and the generated core prefix string — is
+  `rem-orchestration/references/test-layering.md`.
+- Each case's `red` symbol turns "does this diff touch that case" into a lookup instead of a search:
+  a changed symbol a row names brings that case's prefix into the scope.
+- A changed symbol the table does not name — new code, a rename, a refactor — has no row. It falls to
+  the module-graph fallback, below.
 
 Stage 2 — prune by symbol, then decide:
 
@@ -39,11 +32,8 @@ Stage 2 — prune by symbol, then decide:
   and with it the case that would have covered the change. `tools/scope.py --spec <file>` prints the
   prefix of a given spec file (plus the ready-made filter line), so the mapping is not done by eye.
 - **Record the pruning**: one line per dropped candidate saying why it cannot reach the change. A
-  candidate dropped without a reason is how a scope silently turns too narrow; the graph's
-  unreachable list is the ready-made version of that line.
-- The graph proves reachability, never usage. What it adds over a text search is the consumers a
-  search cannot see: a virtual override, a delegate binding, a template instantiation, a
-  macro-expanded path, or consumption through an intermediate API.
+  candidate dropped without a reason is how a scope silently turns too narrow; when the fallback ran,
+  its unreachable list is the ready-made version of that line.
 - The load-time argument is a **link** argument, not a coverage one. A signature change does not
   widen the scope — every run loads every test module, so a dependent left behind by a
   symbol-mangling change fails loudly at load time whatever the filter is (a stale dependent DLL
@@ -66,3 +56,25 @@ Stage 2 — prune by symbol, then decide:
   Renaming those is a behaviour change - run the scope that can reach them.
 - Why the scope matters: a failure outside the change's blast radius is noise — it can block
   a clean commit and trains the reader to ignore the check.
+
+Fallback — the module graph (`tools/scope.py`), for a changed symbol the table does not name:
+
+```
+python <skill-dir>/tools/scope.py --root <plugin-root> [--root <source-root>] --diff [REV]
+```
+
+- The graph is the same shape as a plugin-dependency viewer, one level down: the unit is the
+  **module**, an edge is a `Build.cs` dependency, and the leaves are the automation prefixes read
+  out of `DEFINE_SPEC`. Never derive a prefix from a module name — one test module can host several
+  prefixes, and a prefix need not repeat its module's name.
+- Reach follows UBT's own propagation: a module sees the change when it — or a module on its
+  public-dependency path — lists the changed module. Every candidate is printed with the path that
+  reached it, so the reason is auditable instead of assumed.
+- It also prints the prefixes that **cannot** reach the change. That negative half is the point of
+  running it: it is what lets the scope stay narrow without guessing, and it is the evidence a
+  narrowed scope is reviewed against.
+- Exit code 2 means the inventory could not be built (wrong `--root`, no `Build.cs`, no changed
+  file mapped). An empty candidate set is never "nothing to run".
+- The graph proves reachability, never usage. What it adds over a text search is the consumers a
+  search cannot see: a virtual override, a delegate binding, a template instantiation, a
+  macro-expanded path, or consumption through an intermediate API.

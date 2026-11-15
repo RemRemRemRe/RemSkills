@@ -267,10 +267,11 @@ combined with the prefixes the range touches.
 
 ### Test scope
 
-Scope is a two-stage decision, and both stages leave evidence: **enumerate candidates from the
-module graph, then prune by symbol**. The procedure - the `tools/scope.py` invocations, the pruning
-rules, the behaviour exemptions and the load-time argument - lives in `references/test-scope.md`;
-read it when the scope is decided and record its evidence next to the run.
+Scope is a two-stage decision, and both stages leave evidence: **take the candidate prefixes from the
+layer table, then prune by symbol**; the module graph supplies a candidate only for a changed symbol
+the table does not name. The procedure - the `tools/scope.py` invocations, the pruning rules, the
+behaviour exemptions and the load-time argument - lives in `references/test-scope.md`; read it when
+the scope is decided and record its evidence next to the run.
 
 **Start from the layer table, not from the graph.** Which cases *must* run is the core prefix string
 plus every prefix the range touches, both in the project's layer table
@@ -278,7 +279,8 @@ plus every prefix the range touches, both in the project's layer table
 turns "does this diff touch that case" into a lookup. The module-graph pass below is the fallback for
 a changed symbol the table does not name - new code, a rename, a refactor.
 
-**Exit criterion:** candidates enumerated from the module graph, every dropped candidate carrying its
+**Exit criterion:** candidates taken from the layer table, the module graph used only for a changed
+symbol the table does not name (new code, a rename, a refactor), every dropped candidate carrying its
 one-line reason, and the prefixes that cannot reach the change recorded; a change that cannot alter
 behaviour needs no test run, with that reasoning stated rather than implied.
 
@@ -354,7 +356,7 @@ Before committing:
 - [ ] Review sub-agent run over the diff; blocking findings fixed and re-verified
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)
-- [ ] (Push gate) Test scope: candidates enumerated from the module graph (`tools/scope.py`), pruned by a search of the changed names, every dropped candidate given a reason
+- [ ] (Push gate) Test scope: candidates taken from the layer table, the module graph (`tools/scope.py`) used only for a changed symbol the table does not name, pruned by a search of the changed names, every dropped candidate given a reason
 - [ ] (Push gate) One build and one run at that scope; red/green judged from the project log, not the console output
 - [ ] Every irreversible act carries its own explicit instruction — push **or upload**, force-push, deleting a branch/tag, pruning (`reflog expire` / `gc --prune`), publishing — never inferred from an approval of the commit work
 - [ ] Before a branch's first push: what else becomes public was stated (a first push publishes the whole history)

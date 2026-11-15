@@ -3,6 +3,7 @@ name: rem-create-new-module
 description: >
   Copy the RemMyBlank template to scaffold a module or plugin by keyword
   substitution. Use when adding a module or starting a plugin.
+disable-model-invocation: true
 metadata:
   category: workflow
   trigger: manual

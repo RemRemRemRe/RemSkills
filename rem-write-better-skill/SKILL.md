@@ -128,7 +128,9 @@ belongs in `references/`, the rules and the checklist stay in `SKILL.md`.
 
 **Always-on budget** (same tool): every `description` is in context on every
 request, so the collection fails any single description above 160 chars and
-budgets their sum (3,500 chars here). Each run prints the running total, and
+budgets their sum (3,500 chars here). A skill whose trigger is rare or a
+one-off task is hidden from automatic selection instead of being deleted, and
+the tool lists those skills separately. Each run prints the running total, and
 `--discovery <root>...` reports it for any skills root, including ones outside
 this repository. §11 governs how to spend it.
 

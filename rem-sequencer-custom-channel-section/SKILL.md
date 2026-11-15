@@ -4,6 +4,7 @@ description: >
   Add a custom FMovieSceneChannel and UMovieSceneSection with per-key struct
   editing in Sequencer. Use when keys hold struct data that must be editable per
   key.
+disable-model-invocation: true
 metadata:
   category: meta
   trigger: manual

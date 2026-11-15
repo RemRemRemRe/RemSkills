@@ -3,6 +3,7 @@ name: rem-ranges-transrangers
 description: >
   Functional pipeline code with Rem::Ranges, transrangers and RemStd::bind_back.
   Use whenever you write or read filter/transform/group pipelines.
+disable-model-invocation: true
 metadata:
   category: meta
   trigger: manual

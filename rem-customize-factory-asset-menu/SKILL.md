@@ -4,6 +4,7 @@ description: >
   Place a custom UFactory in a Content Browser Add/New Asset category or
   sub-menu. Use when a factory misses its menu or GetAssetMenuPathsForCategory
   is ignored.
+disable-model-invocation: true
 metadata:
   category: meta
   trigger: manual

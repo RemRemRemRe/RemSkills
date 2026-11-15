@@ -4,6 +4,7 @@ description: >
   Adapt a UE plugin from upstream latest down to engine 5.3-5.8: branches,
   embedded dependencies, build-fix-commit loop. Use when running cross-version
   builds.
+disable-model-invocation: true
 metadata:
   category: workflow
   trigger: manual

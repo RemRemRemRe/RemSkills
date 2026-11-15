@@ -27,7 +27,8 @@ const AS_JSON = process.argv.includes("--json");
 /** SKILL.md size budget in characters. */
 const SIZE_WARN = 32_000;
 const SIZE_ERROR = 48_000;
-/** Descriptions are in context on every request — a hard cap each, and a budget for the sum. */
+/** A hard cap per description, visible or not; the budget sums the visible ones only, because
+ * `disable-model-invocation: true` keeps a description out of every request. */
 const DESC_MAX = 160;
 const DESC_BUDGET = 3_500;
 /** An always-loaded skill must be tiny — it costs every session. */
@@ -208,7 +209,7 @@ function lintSkill(name, dir) {
   const file = join(dir, "SKILL.md");
   if (!existsSync(file)) {
     fail(issues, "SKILL.md is missing");
-    return { name, size: 0, descChars: 0, issues };
+    return { name, size: 0, descChars: 0, commandOnly: false, issues };
   }
   const source = readText(file);
   const size = source.length;
@@ -283,7 +284,15 @@ function lintSkill(name, dir) {
     : [];
   const refChars = refFiles.reduce((sum, entry) => sum + readText(join(refDir, entry)).length, 0);
 
-  return { name, size, descChars: parsed.data?.description?.length ?? 0, refFiles: refFiles.length, refChars, issues };
+  return {
+    name,
+    size,
+    descChars: parsed.data?.description?.length ?? 0,
+    commandOnly: parsed.data?.["disable-model-invocation"] === "true",
+    refFiles: refFiles.length,
+    refChars,
+    issues,
+  };
 }
 
 /** Leak and unverified-name findings for a set of files, reported against `base`. */
@@ -537,17 +546,27 @@ if (AS_JSON) {
     console.log(`${status} ${result.name} — ${result.size} chars${refs}`);
     for (const issue of [...bad, ...soft]) console.log(`        ${issue.level}: ${issue.message}`);
   }
-  const descChars = results.reduce((sum, result) => sum + (result.descChars ?? 0), 0);
+  // Only visible skills pay context on every request; a command-only skill's
+  // description is read only when `/skill:<name>` is invoked.
+  const skillResults = results.filter((result) => result.name !== "(repository)");
+  const visibleResults = skillResults.filter((result) => !result.commandOnly);
+  const commandOnlyResults = skillResults.filter((result) => result.commandOnly);
+  const descChars = visibleResults.reduce((sum, result) => sum + result.descChars, 0);
   if (descChars > DESC_BUDGET) {
     warnings += 1;
     console.log(
-      `WARN  (always-on) — descriptions total ${descChars} chars (> ${DESC_BUDGET} for ${skills.length} skills at ${DESC_MAX} each), in context on every request; see rem-write-better-skill §11`
+      `WARN  (always-on) — descriptions total ${descChars} chars (> ${DESC_BUDGET} for ${visibleResults.length} visible skills at ${DESC_MAX} each), in context on every request; see rem-write-better-skill §11`
     );
   }
   console.log(`\n${skills.length} skills, ${errors} error(s), ${warnings} warning(s)`);
   console.log(
     `always-on: ${descChars} chars of description (~${Math.round(descChars / 4)} tokens), budget ${DESC_BUDGET}`
   );
+  if (commandOnlyResults.length > 0) {
+    console.log(
+      `command-only (disable-model-invocation): ${commandOnlyResults.length} - ${commandOnlyResults.map((result) => result.name).join(", ")}`
+    );
+  }
   if (errors > 0) process.exitCode = 1;
 }
 }

@@ -27,9 +27,9 @@ const AS_JSON = process.argv.includes("--json");
 /** SKILL.md size budget in characters. */
 const SIZE_WARN = 32_000;
 const SIZE_ERROR = 48_000;
-/** Descriptions are in context on every request — budget the aggregate, warn on outliers. */
-const DESC_WARN = 800;
-const DESC_BUDGET = 10_500;
+/** Descriptions are in context on every request — a hard cap each, and a budget for the sum. */
+const DESC_MAX = 160;
+const DESC_BUDGET = 3_500;
 /** An always-loaded skill must be tiny — it costs every session. */
 const ALWAYS_SIZE_ERROR = 2_000;
 
@@ -163,7 +163,10 @@ function parseFrontmatter(source) {
   for (const line of lines) {
     if (blockMode) {
       if (/^\s+\S/.test(line)) {
-        data[currentKey] = `${data[currentKey]}${blockMode === ">" ? " " : "\n"}${line.trim()}`;
+        // No separator before the first line: a folded block's value starts at its
+        // first character, so the length measured is the text's own length.
+        const joiner = data[currentKey] === "" ? "" : blockMode === ">" ? " " : "\n";
+        data[currentKey] = `${data[currentKey]}${joiner}${line.trim()}`;
         continue;
       }
       blockMode = null;
@@ -222,10 +225,10 @@ function lintSkill(name, dir) {
       if (!TRIGGER_RE.test(data.description)) {
         warn(issues, "description states what but not when to use it (no \"use when ...\" trigger)");
       }
-      if (data.description.length > DESC_WARN) {
-        warn(
+      if (data.description.length > DESC_MAX) {
+        fail(
           issues,
-          `description is ${data.description.length} chars (> ${DESC_WARN}) — it is in context on every request; keep distinct triggers and move detail into the body`
+          `description is ${data.description.length} chars (> ${DESC_MAX}) — the description is in context on every request; keep what + when here and move the detail into the body`
         );
       }
     }
@@ -538,7 +541,7 @@ if (AS_JSON) {
   if (descChars > DESC_BUDGET) {
     warnings += 1;
     console.log(
-      `WARN  (always-on) — descriptions total ${descChars} chars (> ${DESC_BUDGET}), in context on every request; see rem-write-better-skill §11`
+      `WARN  (always-on) — descriptions total ${descChars} chars (> ${DESC_BUDGET} for ${skills.length} skills at ${DESC_MAX} each), in context on every request; see rem-write-better-skill §11`
     );
   }
   console.log(`\n${skills.length} skills, ${errors} error(s), ${warnings} warning(s)`);

@@ -127,10 +127,10 @@ budget — it is the contract and must stay; a `trigger: always` skill fails abo
 belongs in `references/`, the rules and the checklist stay in `SKILL.md`.
 
 **Always-on budget** (same tool): every `description` is in context on every
-request, so the collection budgets their sum (warns above 10,500 chars) and
-warns on a single description above 800 chars. Each run prints the running
-total, and `--discovery <root>...` reports it for any skills root, including
-ones outside this repository. §11 governs how to spend it.
+request, so the collection fails any single description above 160 chars and
+budgets their sum (3,500 chars here). Each run prints the running total, and
+`--discovery <root>...` reports it for any skills root, including ones outside
+this repository. §11 governs how to spend it.
 
 ## 3. Use Generic Placeholder Types
 
@@ -413,11 +413,13 @@ Copying a rule into two skills is the failure mode to avoid — the copies
 silently drift apart and each review finds a different version.
 
 Descriptions pay their cost on **every** request, so the same reasoning applies
-there with one twist: optimize **duplication, not length**. A long description
-that enumerates genuinely distinct triggers earns its keep; a short one that
-restates a sibling's situation does not. The check is mechanical — take each
-situation phrase ("when committing", "when a submodule lags its remote"), count
-how many descriptions claim it, and treat any count above one as the defect.
+there with one twist: optimize **duplication first**, then fit the cap. The lint
+fails any description above 160 chars, so a trigger list that genuinely does not
+fit moves its detail into the body's opening lines - the body is read only once
+the skill is chosen, and the description keeps the triggers that discriminate.
+The duplication check is mechanical — take each situation phrase ("when
+committing", "when a submodule lags its remote"), count how many descriptions
+claim it, and treat any count above one as the defect.
 
 Two corollaries the same measurement makes visible:
 

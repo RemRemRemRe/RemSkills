@@ -36,6 +36,7 @@ skill or any public document.
 | A milestone inside a long session | Quick pass — capture only the strong items |
 | A pitfall / pattern was re-encountered or re-explained | Put it in the candidate list at once — the write still waits for approval |
 | The session corrected an existing skill / doc rule | Fix the target now, then record it in the pass |
+| A skill's **premise moved** (the API, tool or version it describes changed), or it nears its size cap | Run a **fact-only pass** over that skill: re-check each claim against the source, correct or delete what the code contradicts, label what cannot be verified here as a dated single observation. Measured 2026-11: one such pass over 22 skills produced 59 findings, and 11 of them were claims the engine source disproved — a skill left un-audited keeps teaching them |
 
 ## When the session ends by context pressure
 

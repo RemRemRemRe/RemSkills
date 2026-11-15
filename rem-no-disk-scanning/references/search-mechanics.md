@@ -28,3 +28,25 @@ measurement belongs in the skill's `local/` overlay (machine-local values), not 
 
 Exact caps, flag names and path-filter syntax are properties of a particular server build — treat
 them as deployment values, not as tool invariants.
+
+## 4. The tool follows the question
+
+Measured 2026-11 on one IDE build and tree, same queries:
+
+| the question | the tool | the cost |
+|---|---|---|
+| where is this symbol/type/function declared or defined | `search_symbol` | 3-4 s, one hit per file |
+| where does this literal, comment or config key appear | `search_text`, bounded by `--paths` | reached its 10 s timeout and returned a partial result |
+
+A `search_text` that times out is a signal to narrow the paths or to switch to the symbol search,
+never to repeat the same query; and neither replaces a structural query (`lint_files`,
+`get_file_problems`) or a whole-file read.
+
+## 5. Exemptions (moved from SKILL.md to keep the always-loaded card small)
+
+The ban is on unbounded recursive content search, not on reading or filtering: pipe filtering
+(`git show <file> | grep`, `git log --grep=...`), a single named file, a bounded directory, a log tail;
+build or cleanup commands whose paths are explicit. Rider MCP refuses paths outside its solution root,
+so a bounded read there is the documented fallback, not a scanner. Counts and sizes may come from a
+bounded script over an **explicit path list** — never a scan from a drive root or home directory — and
+the substitution used is stated, so the evidence's origin stays visible.

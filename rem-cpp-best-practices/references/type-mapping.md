@@ -65,6 +65,29 @@ written through.
 (or an `auto&&` family) would have to expose `TObjectPtr<T>&` — a storage type in the API. Replace it
 with a value getter returning `.Get()`; a `Get*Ref` name does not survive a `TObjectPtr` conversion.
 
+**The rule is enforced by the header tool — enable it instead of scanning by hand.**
+`TargetRules.NativePointerMemberBehaviorOverride = PointerMemberBehavior.Disallow` in the target files
+makes UHT reject a raw `UObject`-pointer member, and it covers **container element types**: a probe
+declaring both `APawn* Member;` and `TArray<APawn*> Array;` produced two errors of the same shape
+("Native pointer usage in member declaration detected [[[APawn*]]] … consider TObjectPtr as an
+alternative"). UBT forwards the setting as `-ini:Engine:[UnrealHeaderTool]:…NativePointerMemberBehavior=`.
+Measured 2026-11: the same key written only into `DefaultEngine.ini`
+(`NonEngineNativePointerMemberBehavior=Disallow`) had **no effect** — the probe members compiled — so
+the TargetRules override is the switch that works.
+
+The check sees **reflected** members only (`UPROPERTY`), so a non-UPROPERTY UObject member stays invisible
+to UHT (the analysis' garbage-collection warning is the signal there); `TStateTreePropertyRef` bindings
+are not its business. The signature half is already a UHT error for reflected functions ("UFunctions
+cannot take a TObjectPtr as a function parameter or return value", `UhtClassProperty.cs`); a plain C++
+function is not seen.
+
+Epic also ships the **converter**: `UnrealObjectPtrTool` (`Engine/Source/Programs/UnrealObjectPtrTool`)
+reads the UHT log's `Native pointer usage in member declaration detected [[…]]` lines and rewrites the
+declarations — `-n|PREVIEW` to count first, `-r|REVERSE` for the opposite direction, `-SCCCommand=` to
+check files out — defaulting to `Engine/Programs/UnrealHeaderTool/Saved/Logs/UnrealHeaderTool.log`. With
+the check at `Disallow` a violation is an error rather than a log line, so run the tool against a build
+made with `AllowAndLog` when you want it to do the rewriting.
+
 `TObjectPtr` never appears in a function parameter, a return type or a local variable: those
 carry raw `T*` (or `TNotNull` for the non-null contract). The one exception is a parameter that has
 to name a `UPROPERTY` container's element type, where no raw spelling exists:

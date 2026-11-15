@@ -14,16 +14,16 @@ metadata:
 # No Disk Scanning
 
 **Disk-scanning text searchers — `rg`, `grep`, `find`, `fd`, `ripgrep`,
-`findstr`, and any editor "search in files" equivalent — are banned.** They are
-unbounded recursive content searches, removed from the agent toolsets by
-configuration. Never invoke them, through a tool or
-a shell.
+`findstr`, any editor "search in files" — are banned.** They are unbounded recursive content
+searches, removed from the agent toolsets by configuration; never invoke one, through a tool or a shell.
 
 Use **Rider MCP** only: `search_symbol` / find-usages first, then a bounded
 `search_text` / `search_regex` / `search_file` (`maxResults` + a path or glob);
 `get_file_problems` for diagnostics. Empty results, over-escaping and result
 caps are traps — `references/search-mechanics.md`. Command map:
 `ue-code-authoring` ("Tool split" table); degraded-mode notes: `ue-live-debugging`.
+The tool follows the question, and a text search that times out is a signal to narrow, not to retry;
+measured costs and the choice table live in `references/search-mechanics.md` §4.
 
 ## When Rider MCP is unavailable
 
@@ -33,14 +33,5 @@ a scanner.
 
 ## Exemptions
 
-The ban is on unbounded recursive content search, not on reading or filtering:
-pipe filtering (`git show <file> | grep`, `git log --grep=...`), a single named
-file, a bounded directory, a log tail; build or cleanup commands whose paths are
-explicit. Rider MCP refuses paths outside its solution root, so a bounded read
-there is the documented fallback, not a scanner.
-
-## Aggregates (main session)
-
-Counts and sizes may come from a bounded script over an **explicit path list**
-— never a scan from a drive root or home directory. State the substitution used,
-so the evidence's origin is visible.
+Reading or filtering one named file, a bounded directory or a log tail is not a scan, and a count may
+come from a bounded script over an explicit path list — the full list: `references/search-mechanics.md` §5.

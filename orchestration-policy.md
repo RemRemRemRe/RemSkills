@@ -22,7 +22,8 @@ push-gate cadence, run directories, waiting - is the `rem-orchestration` skill.
   in one round means the order was wrong.
 - **One writer per resource**: name each unit's write set and the build/test/git/IDE lease before
   dispatching; overlap serializes, and verification reads a tree nobody writes
-  (`rem-shared-resources`).
+  (`rem-shared-resources`). A shared **file** is not a conflict while the hunks and their meanings are
+  disjoint — then edit only your region and stage by exact path.
 - **Nothing defers as a description**: a behaviour with no case gets one in the round that changes it,
   and what remains lives in the two records (`rem-orchestration`, *Two records*) - an unrun case, a
   manual check. Externally visible behaviour and bug fixes never leave the commit without their case.

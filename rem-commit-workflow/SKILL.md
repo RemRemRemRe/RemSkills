@@ -145,6 +145,12 @@ question, never a `git status` question:
 - One script per batch: `git add -- <exact paths>` then `git commit -F <message
   file>` per repository, no diagnostic command between the steps, one verification
   pass at the end (`git log --oneline <base>..HEAD` + the tree hashes).
+- **A shared file: stage your own hunk, not the whole file.** When another session's uncommitted change
+  sits in the same file, `git add -- <file>` would take it along. Instead take `git diff -- <file>`, keep
+  only the hunks that carry your change (filter on a marker string such as the new type name), write them
+  to a patch and `git apply --cached <patch>`; then `git diff --cached --stat` must show only your lines
+  and the file stays `MM` (index has yours, the worktree still has theirs) - that is the correct hand-off,
+  and their `git status` shows the file as modified when they return.
 - **When a git command jumps from ~0.1 s to tens of seconds, suspect the
   environment before the repository.** Two causes seen on Windows: a GUI git
   client polling the same superproject (a `git submodule status` spawned every

@@ -56,6 +56,11 @@ procedure's restatement of it.
   brief repeats only what this round changes.
 - **Quote the expected working set.** The brief pastes the expected `git status --short`
   output verbatim instead of a counted total: a wrong count forces an avoidable round trip.
+- **Carry the facts the parent already verified.** A source-backed correction goes into the brief with its
+  evidence ("`TRotator{}` does zero-initialize, `Rotator.h:85`"), so the executor applies it instead of
+  re-deriving it, and it cannot re-litigate a decision the parent already took. Measured 2026-11: three
+  cleanup units applied 50+ audit fixes with the verified corrections inline and none regressed; the same
+  session's earlier unit, given a wrong fact, produced a `const_cast` the parent had to undo.
 - **Background by default.** Pass `run_in_background: false` only when the next decision
   needs the result in the same turn and nothing else can run meanwhile. Parallelism comes
   from issuing several Agent calls in one message, not from the background flag.

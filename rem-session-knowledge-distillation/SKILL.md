@@ -92,6 +92,31 @@ matter.
   and read that file before proposing — it outlives the session; a project without the overlay keeps
   the same list in its run directory.
 
+## Running a fact-only pass
+
+When the trigger table says a skill's premise moved, audit that skill (or the whole collection) against
+the fact-only rule (`rem-write-better-skill` §1.5). Measured 2026-11: three parallel read-only units
+over 22 skills + 40 agent files produced 59 findings in one pass, 11 of them claims the engine source
+disproved.
+
+- **Partition by skill, one unit per file group**, each with the library root and an explicit exclusion
+  list; read-only, no edits, no builds.
+- **Five defect classes plus leak**: unverified (a behavioural claim with no source and no date),
+  stale (the current code contradicts it), duplicate (one rule in two homes), narrative (a war story
+  that carries no rule), unsupported ("always/never" with no reason). A public library adds **leak**
+  (a private artefact named) with the action "generalize".
+- **Every finding names `file:line` and a mechanism**, and its action is one of: delete, compress to N
+  lines, label as an observation with a date, point at the owner, verify by a named method.
+- **Demand the "verified false" list**: the claims the auditor checked and found wrong are the pass's
+  most valuable output; without it you cannot tell an audit from an opinion.
+- **A dated operator decision is a fact, not a defect** — an entry that contradicts one is reported as
+  "contradicts the ruling of <date>", never silently "simplified".
+- **Cap each unit at ~25 findings** and ask for the five to fix first; a longer list stops being
+  actionable.
+- **Apply the fixes as their own units**, with the verified correction (source + line) in the brief so
+  the executor does not re-derive it, then re-run the library's own validators (`lint-skills`,
+  `validate-profiles`, an overlay `--check`).
+
 ## The workflow
 
 1. **Harvest** — list the candidate insights as one-line bullets: failures +

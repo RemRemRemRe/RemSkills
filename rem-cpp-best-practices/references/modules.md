@@ -101,6 +101,10 @@ wrappers like `strong_alias`).
 - `PublicDependencyModuleNames` is for dependencies that are themselves part of
   the public contract — e.g. `RemCommon` exposes `RemFmtLib` formatting types,
   so `RemFmtLib` is public there.
+- A module named in **both** lists, or **twice in one list**, is a defect: one entry,
+  in `PrivateDependencyModuleNames`. A duplicate reads as two intents and the next
+  edit tends to delete the wrong one (verified 2026-11: three modules carried a
+  duplicated entry, two of them the same engine module).
 
 ### Empty shell modules
 

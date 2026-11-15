@@ -27,11 +27,10 @@ parent commit body and expect the push to exceed this change set.
 
 ## Non-fast-forward: same-topic commits, different hashes
 
-Two forks in this session were rejected with `[rejected] ... (non-fast-forward)`.
-Both had a history where the same logical changes ("remove EngineVersion",
-"make SetInputDirection public", ...) existed under **different hashes** on
-the local branch and on the remote — the local history had been rebased at
-some point; the remote kept the old hashes.
+A rejected push commonly has a history where the same logical changes
+exist under **different hashes** on the local branch and on the remote —
+the local history was rebased at some point; the remote kept the old
+hashes.
 
 Diagnosis:
 ```
@@ -47,21 +46,22 @@ just older.
 
 ## "Looks identical but isn't": rebase can silently drop content
 
-The most dangerous trap. In this session, the upstream project had just
-merged a fix with the **same subject** as a local commit ("Fixed compilation
-errors with ue5-main"). It looked like a duplicate; it was a different
-implementation:
+The most dangerous trap. A remote commit and a local commit can carry the
+**same subject** and still be different implementations. Before treating one
+as a duplicate, diff them:
 
 ```
-git diff upstream-merge-commit local-commit --stat   # 7 files, 32+/12-
+git diff <remote-commit> <local-commit> --stat    # non-zero = real divergence
 ```
-32 lines of real divergence (a `DetailsView` pin fix, include ordering, a
-`LexFromString` vs `FString::Format` semantic choice).
 
-What happened: `git rebase --onto <upstream> <local-base> <branch>` replayed
-only the incremental diff (`1 file, 2+/1-`), and the base commit carrying
-the other 32 lines was dropped. The result compiled-looking but had silently
-lost the local fix. **The rebase succeeded; no error fired.**
+Any non-zero diff is content the local commit holds and the remote does not
+(a details-viewer fix, include ordering, a `LexFromString` vs
+`FString::Format` semantic choice — none of it visible in the subject line).
+
+Mechanism of the loss: `git rebase --onto <upstream> <local-base> <branch>`
+replays only the incremental diff of the commits in range, so a base commit
+that carried the rest of the divergence is dropped. The result compiles but
+has silently lost the local fix. **The rebase succeeded; no error fired.**
 
 Guard rails:
 1. Before rewriting, diff the local tip against the upstream merge:
@@ -80,9 +80,9 @@ Guard rails:
 
 ## Pushed the mid-rebase state
 
-During a multi-commit rebase, one commit conflicted; the rebase paused. The
-push ran anyway and published the mid-state tip — the pending commit's
-content was silently missing on the remote.
+During a multi-commit rebase a conflict pauses the rebase; pushing that tip
+publishes the mid-state — the pending commits' content is silently missing on
+the remote.
 
 - Symptom: `git status` shows `interactive rebase in progress` / `You are
   currently rebasing branch ... (fix conflicts and then run "git rebase

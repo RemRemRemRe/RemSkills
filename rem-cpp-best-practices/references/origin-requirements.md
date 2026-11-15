@@ -50,7 +50,7 @@ Key formatting settings extracted:
 - Function declaration style: TrailingReturnType
 - Auto common case: WhenTypeIsEvident
 - Uniform initialization in NSDMIs: True
-- Namespace indentation: Inner
+- Namespace indentation: None
 
 ## Build configuration (from `Rem::BuildRule::RemSharedModuleRules`)
 
@@ -83,12 +83,6 @@ Landelare argues that `auto` prevents implicit float→double conversions (prove
 during UE4→UE5 LWC porting) and catches type mismatches. RemCommon code consistently
 uses `auto*` and `auto&` with explicit decoration. The Rider setting `WhenTypeIsEvident`
 confirms this project-level choice.
-
-### Why no `const` on value locals
-
-Landelare: "const locals add noise and prevent move optimization." RemCommon code
-does not use `const` on value-type locals (e.g., `int32 Count`, `auto Result`).
-References and pointers-to-const still use `const`.
 
 ### Why no structured bindings
 
@@ -222,13 +216,6 @@ RemEnsureVariable(check, MoverComp, return;)               // 3 args: macro + va
 - `{}` placeholder syntax (no numbers needed — `fmt` infers argument order)
 - Generic `fmt::formatter` specialization bridges all `CStringable` types through `Rem::ToString`
 - Future-proof: `fmt` is the basis for C++20 `std::format`
-
-### Why `Category = "Rem"` / `"Rem|..."` exclusively
-
-All UPROPERTY/UFUNCTION categories use the `"Rem"` root, optionally with a
-sub-category via `"Rem|SubName"`. Bare categories like `"Component"` are not
-allowed — they scatter editor entries across the Details panel. The root
-ensures all project types group together under one expandable section.
 
 ### Include order rationale
 

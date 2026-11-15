@@ -147,7 +147,7 @@ Instead of writing a predicate that does `IsA<T>()` or `Cast<T>() != nullptr`, u
 
 // Pipeline: replaces filter(IsA<TargetType>) logic
 transrangers::filter(Rem::Fn::IsValid,
-    transrangers::transform(Rem::CastTo<UFoo>, AllSections))
+    transrangers::transform(Rem::Cast<UFoo>, AllSections))
 // → ranger iterates UFoo* (already cast, valid)
 ```
 
@@ -166,7 +166,7 @@ When a **template function has multiple overloads** (e.g., UE's `Cast<T>`), pass
 
 // Rem::Cast<T> is an inline constexpr TCast<T> instance
 // UMovieSceneEventTrack is a UE MovieScene API type (see MovieSceneEventTrack.h)
-transrangers::transform(Rem::CastTo<UMovieSceneEventTrack>, ...);  // ✅
+transrangers::transform(Rem::Cast<UMovieSceneEventTrack>, ...);  // ✅
 
 // Core implementation (in RemCastFn.h):
 template <typename To>
@@ -180,10 +180,10 @@ struct TCast
 };
 
 template <typename To>
-inline constexpr TCast<To> CastTo{};
+inline constexpr TCast<To> Cast{};
 ```
 
-**Why this works**: `Rem::CastTo<UMovieSceneEventTrack>` is a **concrete type** (one instantiation, no overloads). `transrangers::transform` stores a copy. When `(*pf)(*p)` is called, the compiler deduces `From` from `*p`'s type, then instantiates `operator()<From>(From&&)` — at which point `Cast<To>(From&&)` has both template args known and the correct overload is selected.
+**Why this works**: `Rem::Cast<UMovieSceneEventTrack>` is a **concrete type** (one instantiation, no overloads). `transrangers::transform` stores a copy. When `(*pf)(*p)` is called, the compiler deduces `From` from `*p`'s type, then instantiates `operator()<From>(From&&)` — at which point `Cast<To>(From&&)` has both template args known and the correct overload is selected.
 
 **Contrast with single-definition templates** (e.g., `Lib::Fn<T>`, `Rem::Fn::IsValid`): these have exactly one template definition with no overloads, so the compiler can resolve them without argument types. They work directly in `transform`. Overloaded templates (like UE's `Cast<T>` with raw-pointer, `TObjectPtr`, `TWeakObjectPtr` overloads) require the functor struct pattern.
 
@@ -251,7 +251,7 @@ Ranges::ForEach(
             return true;
         },
         transrangers::filter(Rem::Fn::IsValid,       // depth 2
-            transrangers::transform(Rem::CastTo<UFoo>,  // depth 1
+            transrangers::transform(Rem::Cast<UFoo>,  // depth 1
                 AllItems))));
 ```
 

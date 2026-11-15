@@ -175,7 +175,7 @@ unrelated changes untouched.
 
 ## Pitfall catalogue
 
-Expanded failure cases — the PropertyHistory content-loss, the mid-rebase
+Expanded failure cases — the content-loss rebase, the mid-rebase
 push, the stale-gitlink miss, and the false-positive unpushed count — live in
 `references/push-playbook.md`.
 

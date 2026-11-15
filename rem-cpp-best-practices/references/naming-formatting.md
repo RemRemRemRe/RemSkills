@@ -364,20 +364,22 @@ concept CSomeConcept = requires(T Object) { Object.Foo(); };
 ### Rule of Five / Rule of Zero
 
 
-Explicitly declare or delete all five:
+Explicitly declare or delete all five. Two forms, and they are not
+interchangeable:
 
 ```cpp
-// Non-copyable, non-movable container:
+// The non-copyable form — hand-written, because a macro cannot express the intent:
 FMyType()                                    = default;
 FMyType(const FMyType&)                      = delete;
 FMyType(FMyType&&) noexcept                  = delete;
 FMyType& operator=(const FMyType&)           = delete;
 FMyType& operator=(FMyType&&) noexcept       = delete;
 ~FMyType() noexcept                          = default;
-
-// Or use the macro:
-REM_DEFINE_THE_RULE_OF_FIVE(FMyType)
 ```
+
+The copyable form is the macro `REM_DEFINE_THE_RULE_OF_FIVE(FMyType)` — it declares
+all five as `= default`, so it makes a type **copyable**, not non-copyable. What it
+expands to and when to use it: `references/macros-logging.md` §8.
 
 ### Section organization
 

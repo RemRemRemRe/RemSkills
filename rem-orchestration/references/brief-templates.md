@@ -99,8 +99,9 @@ Role clauses:
 - **Commit gate: one build, no suite.** The tree is the one the parent froze; a failure returns the
   work to iteration instead of starting a repair loop inside the gate.
 - **Push gate: one build, one run, at the brief's scope.** The core layer is a generated
-  `+StartsWith:` string from the project's layer table, never a guessed filter (`RunFilter Engine`
-  pulls the engine's own suite; `SmokeFilter` on a spec kills every editor start). Never stack scopes
+  `+StartsWith:` string from the project's layer table, never a guessed filter
+  (`RunFilter Engine` and a spec carrying `SmokeFilter` are both unusable - `rem-commit-workflow`
+  §*The push gate*). Never stack scopes
   - narrow, then module, then full - and a second run needs a stated reason: a changed tree, or a
   scope the first run could not reach. Which cases must run, and how an existing flat suite is brought
   into layers, is `references/test-layering.md` (classify, apply, measure) over the project's table.

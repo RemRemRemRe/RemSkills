@@ -112,6 +112,12 @@ records names verified public, and an entry there is a claim of provenance, not 
 suppression switch. The fix is to generalize the example ("a reflected settings
 asset", not its type) or to move the concrete name into the skill's `local/`
 overlay; hit in 2026-11 when a public reference named a project header.
+**The lint is a net, not a proof.** It matches `Rem*`-family identifiers only, so a
+real fork's licence file name inside a shipped command line, a plugin inventory with
+`.uplugin` ids and branch names, or a third-party path all pass it silently (measured
+2026-11: three such leaks in the public collection while the lint reported `0 error`).
+Read the shipped examples, the command lines and the file inventories by hand; a name
+in a command a reader will copy verbatim is the worst case.
 
 Ownership decides membership, not the name: a Rem-family module whose remote
 sits under a personal account is **private**, and public material may not name

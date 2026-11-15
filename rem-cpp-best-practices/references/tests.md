@@ -191,8 +191,9 @@ Third-party editor plugins that crash under `-nullrhi` may need
   match and matches nothing. Use `StartsWith:Rem` (prefix) —
   `Automation RunTests StartsWith:Rem; Quit` runs the whole suite. `+`
   separates OR-filters: `Rem.Foo+Rem.Bar`.
-- The runner counts **Describe nodes as test entries too** —
-  `Found 725 automation tests` = 687 `It` cases + 38 `Describe` nodes.
+- The runner counts **Describe nodes as test entries too**, so `Found N` is
+  larger than the `It` count whenever a spec has `Describe` nodes — a count that
+  looks high by the number of `Describe`s is not a defect.
 - Negative tests must NOT trigger assertion log events: `RemCheck*`,
   `REM_VIRTUAL_WARN` defaults, and `ensure` failures emit Error log events that
   the automation framework attaches to the current test and marks it failed —

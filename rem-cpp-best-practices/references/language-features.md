@@ -121,38 +121,44 @@ For simple cases, return type on the same line is fine.
 
 Always use uniform initialization `{}` for default member values. Prefer
 zero-initialization — `float Value{};` zeros the memory rather than leaving it
-indeterminate. An empty `{}` on any type ensures zero-fill:
+indeterminate. An empty `{}` zero-fills a type whose default construction is
+trivial (see the exception below):
 
 ```cpp
 float Value{};                      // → 0.0f, zero-initialized
 TObjectPtr<UObject> Owner{};        // → nullptr
 bool bFlag{};                       // → false
 int32 Count{};                      // → 0
-FVector Location{};                 // → (0,0,0)
 uint8 bStopped : 1{};              // → false
 ```
 
 **Why zero-initialization `{}` over default-construction `()`:**
 
 Default-construction (`FVector()`) may leave members uninitialized depending on the
-type's constructor. Zero-initialization `{}` guarantees every byte is zero,
-eliminating uninitialized-read UB and making behavior deterministic across all
-builds (debug, development, shipping). For POD types, `{}` is a compile-time
+type's constructor. Zero-initialization `{}` guarantees every byte of a plain
+aggregate is zero, eliminating uninitialized-read UB and making behavior
+deterministic across all builds (debug, development, shipping). For POD types, `{}` is a compile-time
 zero-fill; for USTRUCTs, `{}` value-initializes which zeroes trivially-constructible
 members.
 
-**Critical exception — Unreal math types:** `FVector{}`, `TVector<T>{}`, `TRotator{}`,
-`FQuat{}`, and similar engine math types do **NOT** zero-initialize by default
-(the engine skips it for performance). Use `ForceInitToZero` to explicitly zero them:
+**Critical exception — `TVector<T>` and its aliases `FVector` / `FVector2D`:**
+those do **NOT** zero-initialize from `{}` (verified 2026-11, UE 5.8.4): the storage
+is an anonymous union (`Vector.h:150`), which has no default member initializer to
+fold, so `{}` leaves the components indeterminate. Zero them explicitly:
 
 ```cpp
 FVector Location{ForceInitToZero};               // zeroed
 TVector<double> Coords{ForceInitToZero};          // zeroed
-TRotator Orientation{ForceInitToZero};            // zeroed
 
 // AVOID — NOT zero-initialized in UE:
 FVector Location{};    // garbage/indeterminate
 ```
+
+**The exception is the union shape, not "engine math types".** `TRotator` and
+`TQuat` are plain members (`Rotator.h:85`, `Quat.h:68`) and `FRotator Value{}` /
+`FQuat Value{}` do zero, as does any `FGameplayTag`-style plain aggregate; an
+`FVector` zeroed with `ForceInitToZero` is the idiom only because that type cannot
+do it itself.
 
 Non-zero defaults are not allowed in C++. Every member initializes to zero:
 
@@ -404,22 +410,12 @@ if constexpr (CHasGetWorld<T>) { ... }
 
 ### UObject pointers
 
-| Context | Type to use |
-|---------|-------------|
-| `UPROPERTY` member | `TObjectPtr<UObject>` |
-| Function parameter | `TNotNull<UObject*>` / `TNotNull<const UObject*>` — null is not allowed by default |
-| Function return | `TNotNull<UObject*>` for the non-null contract; bare `UObject*` only for the nullable half (`TryGet*`) |
-| Local variable | `auto* Ptr = ...` |
-| Weak reference (UPROPERTY) | `TWeakObjectPtr<UObject>` |
-| Soft reference (UPROPERTY) | `TSoftObjectPtr<UObject>` |
-| Soft class reference (UPROPERTY) | `TSoftClassPtr<UObject>` |
-| Interface parameter (C++ API) | `IRemInterface*` (raw pointer) |
-| Interface parameter (Blueprint API) | `TScriptInterface<IRemInterface>` |
+The table by context — `UPROPERTY` member, function parameter, function return,
+local, weak and soft reference — is `references/type-mapping.md` §1.
 
-`TScriptInterface` is the Blueprint-facing wrapper — a C++-only API takes a
-raw `IRemInterface*` (or the concrete `UObject*` that implicitly upcasts); do
-not leak `TScriptInterface` into C++-first signatures. Full examples incl.
-`const` UObject pointers: `references/type-mapping.md`.
+The interface rows worth stating here: `TScriptInterface` is the Blueprint-facing
+wrapper — a C++-only API takes a raw `IRemInterface*` (or the concrete `UObject*`
+that implicitly upcasts); do not leak `TScriptInterface` into C++-first signatures.
 
 ### `TNotNull` for non-null semantics
 

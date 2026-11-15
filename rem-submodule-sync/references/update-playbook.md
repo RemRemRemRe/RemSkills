@@ -28,8 +28,10 @@ git symbolic-ref refs/remotes/<remote>/HEAD        # local resolution
 git ls-remote --symref <remote> HEAD               # authoritative, hits network
 ```
 
-Observed defaults: `5.x` (FlowGraph upstream), `dev` (UEGitPlugin — the
-repo has no `main` at all), `master` (several). A submodule that is
+Default branch names vary per remote and per author — never infer them from
+the directory name, and expect some remotes to have no `main` at all. The
+concrete values for this project's submodules live in
+`local/update-preferences.md` (§2 inventory, §6 default branches). A submodule that is
 "behind 0, ahead N" against the wrong branch tells you nothing.
 
 ### Dual remotes: fork vs upstream
@@ -106,10 +108,12 @@ temporarily enabling it (see below), or explicitly state it was not verified.
 
 ### Plugin ID = `.uplugin` file name
 
-The plugin folder `Plugins/FlowGraph` ships `Flow.uplugin`; the `.uproject`
-must list **`Flow`**, not `FlowGraph`. Wrong name → UBT aborts with
-`Unable to find plugin 'FlowGraph' (referenced via <ProjectName>.uproject)`. When in
-doubt, `ls <plugin-dir>/*.uplugin` is the source of truth.
+A plugin folder name and its plugin ID can differ: `Plugins/<Folder>` may
+ship `<Id>.uplugin`, and the `.uproject` must then list **`<Id>`**, not
+`<Folder>`. Wrong name → UBT aborts with
+`Unable to find plugin '<Folder>' (referenced via <ProjectName>.uproject)`. When in
+both, `ls <plugin-dir>/*.uplugin` is the source of truth (`local/update-preferences.md`
+§4/§6 records this project's folder→id pairs).
 
 ### Duplicate plugin entries in the .uproject
 
@@ -122,8 +126,8 @@ The project may already list a plugin once with `Enabled: false`; adding an
 
 Project plugin module DLLs go to `<plugin-dir>/Binaries/Win64`
 (`UnrealEditor-<Module>.dll`), not the engine's or the parent project's
-`Binaries`. Module name = `*.Build.cs` file prefix — `FlowGraph`'s modules
-are `Flow`, `FlowDebugger`, `FlowEditor`. Look in the plugin directory;
+`Binaries`. Module name = `*.Build.cs` file prefix — a plugin's modules
+need not share its folder name. Look in the plugin directory;
 searching engine Binaries finds nothing.
 
 ### "Target is up to date" when you expected a rebuild

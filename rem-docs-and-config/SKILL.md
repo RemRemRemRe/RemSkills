@@ -89,8 +89,8 @@ same unit; a doc that contradicts the code is a defect, not a backlog item. Code
 - **Prefer a table to a diagram.** A state table or a config table is
   greppable, diffable and reviewable; a diagram is none of those. Use a diagram
   only for topology a table cannot express.
-- **Date the volatile facts.** "Last verified: YYYY-MM" on anything tied to an
-  engine version, an external service or a tool.
+- **Dating a volatile fact** (engine version, external service, tool): ruled by
+  `rem-write-better-skill` §10 — the doc follows that rule, it does not restate it.
 - **No code snapshots.** Show the shape of an API, not a copy of its
   implementation — snapshots rot silently (same reasoning as the placeholder
   rules in `rem-public-material-generalization`).
@@ -145,7 +145,7 @@ Before declaring a documentation/config change (or reviewing one) done:
 - [ ] Working records (decisions, deferred steps) were written when the need appeared
 - [ ] §1 — a fact expressible as tooltip/metadata is on the artifact, not only in prose
 - [ ] §3 — technical docs are per subsystem, lead with the contract, and state the invariants
-- [ ] §3 — volatile facts carry "Last verified: YYYY-MM"
+- [ ] §3 — volatile facts are dated per `rem-write-better-skill` §10
 - [ ] §3 — no code snapshots; the doc describes the API shape, not a copy of it
 - [ ] §3 — mechanism-property claims (copies, boundary crossing, sharing) are backed by a measurement, not by the design's intent
 - [ ] §3 — superseded docs were deleted, not flagged as deprecated

@@ -17,8 +17,9 @@ could have failed: compare like with like, prove the measured code ran, report t
 
 - Run in independent processes; discard warmup, then take `min` (noise-resistant) and
   `mean` (representative) across multiple trials.
-- Same-code run-to-run variance can be **10–30%**, so a cross-config comparison holds only
-  within one round; re-run both sides together before concluding.
+- Same-code run-to-run variance was measured at **10–30%** (single observation, 2026-10, one machine,
+  one project — not a general bound), so a cross-config comparison holds only within one round;
+  re-run both sides together before concluding.
 - Archive raw runs untracked (`rem-temp-files`); the report carries the summary, not the logs.
 
 ## Prove the measured path executed (mutation probe)

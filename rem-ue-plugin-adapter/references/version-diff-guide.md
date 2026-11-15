@@ -32,8 +32,6 @@ Fix: revert + re-fix — use the older equivalent noted in the table
 | Math | `FMath::Modulo(X, Y)` | `FMath::Fmod(X, Y)` for float; `X % Y` for int | Wrap in project namespace or `#if` |
 | Math | `FMath::FMod(X, Y)` (renamed) | `FMath::Fmod` (lowercase 'd') | Use `fmodf()` directly or wrap |
 | Reflection | `GET_MEMBER_NAME_STRING_VIEW_CHECKED(T, F)` | `GET_MEMBER_NAME_STRING_CHECKED(T, F)` | Replace macro |
-| Containers | `MakeArrayView(Ptr, N)` | `TArrayView<T>(Ptr, N)` | Use explicit constructor |
-| Containers | `MakeConstArrayView(Ptr, N)` | `TConstArrayView<T>(Ptr, N)` | Use explicit constructor |
 | Math | `FIntVector2::ZeroValue` | `FIntVector2(0, 0)` | Use literal init |
 | Camera | `UCameraModifier::IsPendingDisable()` | `bPendingDisable` member (protected) | Expose in derived class |
 | Camera | `UCameraModifier::GetAlpha()` | `Alpha` member (protected) | Expose in derived class |
@@ -68,13 +66,11 @@ Fix: revert + re-fix — use the older equivalent noted in the table
 | Struct | `TStructView<T>` / `TConstStructView<T>` templates | only non-template `FStructView` / `FConstStructView` | Backport templates to plugin ThirdParty; they live in **global namespace** (not UE::StructUtils) |
 | Struct | `TInstancedStruct<T>` ctor from `TConstStructView` | not present | Use `InitializeAsScriptStruct(ptr, mem)` instead |
 | Struct | `TInstancedStruct` template `operator=` | compares `this != &InOther` across template types (bug) | Avoid; assign via `InitializeAsScriptStruct` |
-| Build | C# `AddRange([ ... ])` collection expressions | not supported (C# 12) | Use `AddRange(new[] { ... })` |
+| Build | C# `AddRange([ ... ])` collection expressions | not supported (C# 12) — UE 5.5 and older UBT compilers report CS1026/CS0443/CS1002; 5.6+ accept them | Use `AddRange(new[] { ... })` — lowest common denominator, commit as a base-area change |
 | Build | `ModuleRules.Version` property | not present | Use `target.Target.Version.MajorVersion` |
 | Logging | `FMinimalViewInfo::bUseFirstPersonParameters` / `FirstPersonFOV` / `FirstPersonScale` | not present (5.6+) | Comment out the first-person assignment block |
 | fmt | `FMT_APPLY_VARIADIC` macro `(void)unused{0,(expr,0)...}` | fails to parse on MSVC 14.38 | Replace with C++17 fold `(static_cast<void>(expr), ...)` |
 | fmt | `C4459` shadow warnings inside fmt headers | promoted to error when `ShadowVariableWarningLevel=Error` on **any** 5.3–5.8 engine compiled with MSVC 14.38 (Fab/build-farm uses the preferred 14.38 toolchain; local verification may silently use a newer non-preferred compiler and miss it) | Keep `ShadowVariableWarningLevel = Warning` on ALL versions — do not gate by engine version |
-| Build | C# 12 collection expressions `AddRange([ ... ])` in `*.Build.cs` | not supported by UE 5.5 and older UBT C# compilers (CS1026/CS0443/CS1002); 5.6+ accept them | Always write `AddRange(new[] { ... })` in Build.cs — lowest common denominator, commit as a base-area change |
-| fmt | `C4459` shadow warnings inside fmt headers | shadow-warning-as-error promotes to error | Lower `ShadowVariableWarningLevel` to Warning on 5.4, or wrap fmt include |
 | fmt | `THIRD_PARTY_INCLUDES_START/END` around fmt include | caused C2143 on 5.4 | Do NOT wrap fmt with THIRD_PARTY_INCLUDES; rely on shadow level instead |
 | Test | `*.spec.cpp` automation tests using types missing on 5.4 (TSharedStruct etc.) | fail to compile | Disable with `#if 0 && WITH_DEV_AUTOMATION_TESTS` (tests are not shipping code) |
 

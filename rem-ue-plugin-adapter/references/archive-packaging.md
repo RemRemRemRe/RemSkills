@@ -38,12 +38,13 @@ For each target version `X.Y` (e.g. `5.3`, `5.8`), run from the plugin's
 ```bash
 cd {output_path}/{platform}/{version}/{PluginName}
 <7z> a -t7z -mhe=on -p"<PASSWORD>" "{output_path}/{platform}/{PluginName}{X}{Y}.{ArchiveVersion}.7z" \
-    Config Source LICENSE-ALS-Refactored {PluginName}.uplugin
+    Config Source {LicenseFile} {PluginName}.uplugin
 ```
 
 - `-mhe=on` — encrypts the archive header: file/dir names are **not visible
   before decryption** (7z-only feature; zip cannot hide names)
-- Add **only** `Config`, `Source`, `LICENSE-ALS-Refactored`, `{PluginName}.uplugin`
+- Add **only** `Config`, `Source`, `{LicenseFile}`, `{PluginName}.uplugin`
+  (`{LicenseFile}` = the plugin's licence file name in the repo root, e.g. `LICENSE`)
   — never `Binaries`/`Intermediate` (source-only packages are accepted)
 - **Archive naming (by design)**: `{PluginName}{Major}{Minor}.{ArchiveVersion}.7z` —
   the filename version (`ArchiveVersion`) is an **internal round counter for the
@@ -67,7 +68,7 @@ author only** (4.1.0 → 4.1.1 → 4.1.2 … per packaging round). It is intenti
 ```
 
 Check the top-level entries are only `Config`, `Source`,
-`LICENSE-ALS-Refactored`, `{PluginName}.uplugin`, and that no
+`{LicenseFile}`, `{PluginName}.uplugin`, and that no
 `Binaries`/`Intermediate` paths appear anywhere in the listing.
 
 ### 8.5 Quick patching without rebuild (export → modify → import)

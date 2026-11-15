@@ -52,11 +52,12 @@ extended examples live in `references/` — load them when writing that kind of 
 
 ## Local overlay
 
-`local/` holds machine-local values - git-ignored symlinks into a private repository that tracks
-them, never committed here; they win over `references/` and the rules below, and carry values only
-(the model is owned by `rem-public-material-generalization`). Files read when present:
+`local/` holds machine-local values - ignored symlinks into a private repo, never committed here; they
+win over `references/` and carry values only (model: `rem-public-material-generalization`). Files read
+when present:
 
-- `local/project-conventions.md` - project-specific conventions and verified practice
+- `local/project-conventions.md` - conventions and verified project practice
+- `local/exclude-paths.txt` - vendored trees the member-order checker skips
 
 ---
 
@@ -152,7 +153,7 @@ Use `auto` aggressively — readability comes from full-word names, not repeated
 
 Do **not** use `auto` for: lambda parameters in generic positions (the IDE cannot resolve them — write the explicit type), public API return types, integer literals (`auto Index = 0` deduces `int` — write `int32`), or wrapped-pointer returns (`auto*` cannot deduce from `TNotNull`/`TObjectPtr`; use bare `auto`).
 
-`{}` uniform initialization for member defaults (zero-initializing); engine math types (`FVector{}`) do **not** zero — use `ForceInitToZero`; non-zero defaults are not allowed in C++ (configure them in the DataAsset).
+`{}` uniform initialization for member defaults; `FVector{}` does **not** zero (`TVector`'s union) — use `ForceInitToZero`; plain `FRotator{}`/`FQuat{}` do; non-zero defaults are not allowed in C++ (configure them in the DataAsset).
 
 Full rules and examples: `references/language-features.md`.
 
@@ -388,23 +389,20 @@ dangling view overwrites it with garbage.
 
 ### Instanced struct two-arg initialization (verified 2026-08)
 
-`TInstancedStruct` has **no non-template two-argument `InitializeAs`**. The
-template `InitializeAs<T>(TArgs&&...)` forwards its arguments to `T`'s
-constructor (compile error C2661 "no overloaded function takes N arguments"
-when given a script struct + memory pointer). The two-arg initializer that
-copies from an existing struct instance is named differently:
+`TInstancedStruct<T>` has **no non-template two-argument `InitializeAs`**: its
+`InitializeAs<T>(TArgs&&...)` forwards the arguments to `T`'s constructor. The
+non-template form — `InitializeAs(const UScriptStruct*, const uint8* Memory)` —
+exists on the untyped `FInstancedStruct`, so the typed wrapper uses its
+copy-initializer:
 
 ```cpp
-// AVOID — the template treats the args as T's constructor arguments (C2661):
-Foo.InitializeAs(ScriptStruct, Memory);
-
-// PREFER — the non-template copy-initializer:
-Foo.InitializeAsScriptStruct(ScriptStruct, Memory);
+Any.InitializeAs(ScriptStruct, Memory);   // ok on FInstancedStruct (copies the bytes)
+Foo.InitializeAs(ScriptStruct, Memory);   // AVOID on TInstancedStruct<T> — C2661
+Foo.InitializeAsScriptStruct(ScriptStruct, Memory);   // PREFER
 ```
 
-See `CoreUObject/Public/StructUtils/InstancedStruct.h` (`TInstancedStruct`
-provides `InitializeAsScriptStruct`; the template `InitializeAs<T>` is for
-emplace-construction).
+See `StructUtils/InstancedStruct.h` (`FInstancedStruct` declares the non-template
+two-arg `InitializeAs`; `TInstancedStruct<T>` provides `InitializeAsScriptStruct`).
 
 ---
 

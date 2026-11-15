@@ -115,9 +115,9 @@ against the compiler:
   "the string still supports UTF8CHAR strings as arguments, e.g.
   FUtf8String::Printf("Name: %s", Utf8Name)"; `LogMacros.h`: "Prefer UE_LOGF
   because its ASCII or UTF-8 format strings"). Rider does not know the `%s`
-  overload accepts char8_t. Live cases (UE 5.8.3 / Rider 2026.2.2):
-  `RemAlsMacros.cpp:79,84` (`UE_LOGF(..., "%s", *EnsureBuilder)`) and a file in
-  a non-public plugin (`FUtf8String::Printf("%s.Completed",
+  overload accepts char8_t). Live cases (UE 5.8.3 / Rider 2026.2.2):
+  the `UE_LOGF(..., "%s", *EnsureBuilder)` calls in `RemAlsMacros.cpp` and a file
+  in a non-public plugin (`FUtf8String::Printf("%s.Completed",
   *...ToUtf8String())`) — only `lint_files` reports them;
   `get_file_problems` returns clean for both files.
 - Triage rule: an ERROR that looks like a missing include, unresolved alias,

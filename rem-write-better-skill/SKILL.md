@@ -58,6 +58,14 @@ Store what a future session cannot re-derive cheaply:
 - **Non-obvious knowledge** — cross-platform or version compatibility, misleading or silent tool
   behaviour, false positives, and workarounds that outlive the bug.
 
+**Only verified content.** A skill is a knowledge base, not a notebook: it holds verified facts,
+methodology and ways of thinking. A claim is admissible only with its mechanism and a source (a header,
+symbol, test, command, or a "last verified YYYY-MM"), or explicitly labelled a single observation with
+its date — a claim that can be checked cheaply is checked *before* it is written, not defended later.
+Left out: unverified assertions, one run's anecdote written as a rule, and any rule owned by another
+file (point at the owner instead — a second copy drifts). The owning principle for *how* to write is
+this skill; the principle for *whether* something may be written is this paragraph.
+
 **Omit what the tooling reports and fixes on its own**: a compiler/IDE diagnostic with an obvious fix,
 language basics, standard-library rules. The message is in front of the author exactly when it
 matters; repeating it dilutes the skill. When a diagnostic is misleading, record the triage — what it

@@ -147,10 +147,11 @@ back and forth.
    each new commit's message to the reviewed mapping (`git log -1 --format=%B
    <new>` against the mapping file), and state that the mapping was the
    reviewed artifact. Then run the
-   project's build + tests once on the final state (see `rem-commit-workflow`).
-   Intermediate commits need not compile; the final state must. For a
-   multi-repo batch: per-repo tree identity plus one integration test run
-   covers the whole batch — the project's test suite exercises every module.
+   project's build once on the final state (see `rem-commit-workflow`); the suite
+   belongs to the push gate. Intermediate commits need not compile; the final
+   state must. For a multi-repo batch: per-repo tree identity plus one build
+   covers the whole batch. No single run can vouch for every module — a run is a
+   `StartsWith:` prefix scope (`AutomationCommandline.cpp:154`).
    Path-stripping needs a **history-level check** in addition: `git log
    --oneline -- <paths>` must be empty — tree identity alone misses files
    added and removed within the range.
@@ -182,10 +183,10 @@ Before rewriting history:
 - [ ] No pruning ran as part of the rewrite (`reflog expire`, `gc --prune=now`, deleting the last reference to un-pushed work) — the reflog stays the recovery net
 - [ ] Pre-rewrite tip backed up by an explicit `safety/...` ref (mandatory without a reflog); backup refs never pushed, deleted only after verification
 - [ ] Content delta is the one intended: empty for a pure rewrite, exactly the intended change when the rewrite carries edits; per-commit checks done during the rebuild (conflict markers, touched-file diffs)
-- [ ] Build + tests run once on the final state (see `rem-commit-workflow`)
+- [ ] One build run on the final state (see `rem-commit-workflow`); the suite belongs to the push gate
 
 ## Cross-references
 
 - `rem-commit-workflow` — commit-message convention, one-logical-change, split
-  at commit time, build/test validation of the final state
+  at commit time, build validation of the final state
 - `rem-public-material-generalization` — this skill is public; keep it generalized

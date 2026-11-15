@@ -90,7 +90,7 @@ new line every call and stacks until the screen is full.
 | Console command | `FAutoConsoleCommand`, `FAutoConsoleCommandWithWorld`, `FAutoConsoleCommandWithWorldAndArgs` | same |
 | Gameplay debugger category | `FGameplayDebuggerCategory` (`CollectData`, `DrawData`) | `GameplayDebugger/Public/GameplayDebuggerCategory.h` |
 | Visual logger | `UE_VLOG(Owner, CategoryName, Verbosity, Format, ...)`, `UE_VLOG_LOCATION`, `UE_VLOG_SEGMENT` | `Engine/Public/VisualLogger/VisualLogger.h` |
-| Insights trace channel | `UE_TRACE_CHANNEL_DEFINE(Channel)` / `UE_TRACE_CHANNEL(Channel)` | `Core/Public/Trace/Trace.h` (UE 5.0+) |
+| Insights trace channel | `UE_TRACE_CHANNEL_DEFINE(Channel)` / `UE_TRACE_CHANNEL(Channel)` | `TraceLog/Public/Trace/Trace.h` (UE 5.0+) |
 
 Console variable with a help string (the string is the documentation):
 
@@ -119,7 +119,7 @@ public:
 
 ## 4. Profiling
 
-### CPU profiler scopes — `Core/Public/Trace/TraceMacros.h` (CpuProfiler)
+### CPU profiler scopes — `Core/Public/ProfilingDebugging/CpuProfilerTrace.h`
 
 ```cpp
 TRACE_CPUPROFILER_EVENT_SCOPE(Name);                    // static, literal name
@@ -144,7 +144,7 @@ void Update()
 }
 ```
 
-Group declaration — `Core/Public/Stats/Stats2.h`:
+Group declaration — `Core/Public/Stats/Stats.h`:
 
 ```cpp
 DECLARE_STATS_GROUP(TEXT("Foo"), STATGROUP_Foo, STATCAT_Advanced);
@@ -158,7 +158,7 @@ DECLARE_STATS_GROUP_SORTBYNAME(TEXT("Foo"), STATGROUP_Foo, STATCAT_Advanced);
 | `_VERBOSE` | hidden unless verbose stats are enabled — for high-cardinality detail |
 | `_SORTBYNAME` | entries sorted by name instead of by declaration — large groups |
 
-### CSV profiling — `Core/Public/Stats/Stats.h`
+### CSV profiling — `Core/Public/ProfilingDebugging/CsvProfiler.h`
 
 ```cpp
 CSV_DEFINE_CATEGORY(Foo, true);                       // in one .cpp

@@ -20,9 +20,11 @@ sub-query stays well under the limit. The set is complete only when every partit
 
 ## 3. A scripted batch path can return empty where a direct call succeeds
 
-When several queries are issued through one scripted/batched call, an empty result from that path is
-not evidence: the same query issued directly can return results. **Re-run any empty answer from a
-batch path as a direct call** before believing it.
+Single observation, 2026-09, one server build: when several queries are issued through one
+scripted/batched call, an empty result from that path was not evidence — the same query issued
+directly returned results. **Re-run any empty answer from a batch path as a direct call** before
+believing it. Treat it as a suspicion to re-test, not as a tool invariant; this deployment's
+measurement belongs in the skill's `local/` overlay (machine-local values), not here.
 
 Exact caps, flag names and path-filter syntax are properties of a particular server build — treat
 them as deployment values, not as tool invariants.

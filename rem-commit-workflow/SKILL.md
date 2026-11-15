@@ -46,6 +46,9 @@ merges the two lines; after rewording an un-pushed HEAD, confirm `^{tree}` is un
 
 Generated release notes read only the commit **subject** (`%s`, not `%b`), and an
 annotated tag's own message suppresses them — use a lightweight tag to get them.
+*(Unverified observation, 2026-11-15 — neither half has been read in a source; to
+check it, run `--generate-notes` over one range tagged lightly and again over the
+same range with an annotated tag, and compare with the plain `%s` log.)*
 
 **Body discipline (collection rule):** a body carries the *why* and the
 contracts; the diff carries the *how*.
@@ -76,6 +79,7 @@ contracts; the diff carries the *how*.
   filter + module tidy) into one commit per reason-to-change. Intermediate
   commits do not need to compile — but order the split so every intermediate
   staged tree still passes the repository's own checks (lint/size budget), not
+  only the final one.
 - **A cross-repository change is one unit.** When one repository removes an API
   and other repositories migrate its call sites, the halves commit **together**,
   and whatever pins the versions (a submodule pointer, a lock file) moves in the
@@ -142,13 +146,13 @@ question, never a `git status` question:
   file>` per repository, no diagnostic command between the steps, one verification
   pass at the end (`git log --oneline <base>..HEAD` + the tree hashes).
 - **When a git command jumps from ~0.1 s to tens of seconds, suspect the
-  environment before the repository.** Two causes measured on Windows: a GUI git
+  environment before the repository.** Two causes seen on Windows: a GUI git
   client polling the same superproject (a `git submodule status` spawned every
-  second or two with no coalescing — 1486 of them were resident at once), and a
-  stale `.git/index.lock`. Kill the pile with one native call (`taskkill /F /IM
-  git.exe`; a per-process `Stop-Process` over a thousand objects is slower and
-  appears hung), then remove the lock — blocked-in-I/O processes die in waves, not
-  at once.
+  second or two with no coalescing) and a stale `.git/index.lock`. Kill the pile
+  in one native call (on Windows `taskkill /F /IM git.exe`; use the platform's
+  native process killer elsewhere — a per-process loop over the pile is slower and
+  looks hung), then remove the lock: blocked-in-I/O processes die in waves, not at
+  once.
 
 ### Staging part of a file (mixed ownership)
 
@@ -200,9 +204,7 @@ Before building and committing a change set, run the **review sub-agent**
 (`review` type, or the project's review agent) on the changed files. It is a
 mandatory step, not optional — the test check proves behavior, the review check
 catches design defects, lifecycle hazards and vacuous tests that tests alone
-miss (real case 2026-08: a registration-scope clobbering defect and a
-source-lifecycle gap were only found by the review pass; the test suite was
-green).
+miss.
 
 - Run it read-only over the diff/working tree before committing; fix the
   substantive findings, then re-run the build. The suite is not re-run here: it

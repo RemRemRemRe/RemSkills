@@ -157,10 +157,11 @@ case).
   nothing in the code changed - and the fix is always to widen the expectation, which trains everyone
   to loosen assertions. Assert what the case is about (the row was selected, the handler it needs is
   there and configured), and leave counts to the content owner's own check.
-- **A Verbose expectation cannot be pinned with `AddExpectedMessage`** (verified 2026-11, this
-  engine): the matcher counts only Warning/Error records, so an expectation of a Verbose line fails
-  forever while the line is in fact logged. Assert the observable effect instead - the query ran 8
-  times, the counter stayed at 0 - rather than the line that announces it.
+- **A Verbose expectation cannot be pinned with `AddExpectedMessage`** (observed 2026-11-15; the
+  suspected reason - the matcher counts only Warning/Error records - has not been read in the source):
+  an expectation of a Verbose line fails forever while the line is in fact logged. Check it by adding
+  one expected Verbose message to a throwaway case that logs it. Assert the observable effect instead
+  - the query ran 8 times, the counter stayed at 0 - rather than the line that announces it.
 - **An expected-error matcher is a regular expression, and `Occurrences = 0`
   means "at least one"** (verified 2026-10). `AddExpectedError` takes a pattern,
   so a condition text carrying `(` or `&&` never matches — use
@@ -227,8 +228,8 @@ the gate runs - are project data (`rem-orchestration/local/test-layers.md`), nev
 
 **One spec declares one layer.** The automation filter is per spec and the engine asserts exactly one
 filter bit, so a spec that mixes layers is split and a case whose layer changed moves to that layer's
-spec. Never put `EAutomationTestFlags::SmokeFilter` on a spec: the editor runs every smoke test at
-startup, a spec enqueues a latent command, and the framework's assertion kills **every editor start**.
+spec. `EAutomationTestFlags::SmokeFilter` is never usable on a spec - mechanism and symptom:
+`rem-commit-workflow` §*The push gate*.
 Use `EngineFilter` for the core layer and `ProductFilter` for the rest.
 
 ## 4. Skip Conditions, Unrun Cases and Manual Checks

@@ -187,7 +187,9 @@ git commit -m "Changed: embed dependency plugins"
 > **Reference**: Look at the old adapt branch for the equivalent commit to
 > understand the exact .uplugin modifications needed. Also see
 > [references/original-requirements.md](references/original-requirements.md)
-> for the full workflow rationale and design decisions.
+> for the dated design decisions behind this workflow (why it is
+> skill-guided rather than rule-based, and when each open question was
+> settled).
 
 ---
 
@@ -369,14 +371,12 @@ The helper scripts and their arguments (config resolution, per-plugin `local.jso
   (`ModuleRules.CppStandardVersion.EngineDefault` resolves to C++20 across
   all these versions). Do NOT guard for C++23 features — none exist in this range.
 - **Version guard macros**: `ENGINE_MAJOR_VERSION` and `ENGINE_MINOR_VERSION`
-  are defined by UE in `Engine/Source/Runtime/Core/Public/Misc/CoreMiscDefines.h`.
+  are defined by UE in `Engine/Source/Runtime/Launch/Resources/Version.h`.
   Prefer **revert + re-fix** over `#if ENGINE_MAJOR_VERSION` guards — each
   adaptation branch is engine-version-specific; guards create dead code that
   must be maintained across all versions.
 - **Commit message format**: derived from project convention in the build
   repository's adaptation history (see §9 for full specification).
-- **Version guard macros**: `ENGINE_MAJOR_VERSION` and `ENGINE_MINOR_VERSION`
-  are defined by UE in `Engine/Source/Runtime/Core/Public/Misc/CoreMiscDefines.h`
 - **BuildPlugin packaging environment ≠ dev project**: a plugin may compile in
   the developer's project but fail in BuildPlugin's isolated
   `HostProject` context. Always verify with the actual `build_plugin.py`
@@ -447,4 +447,4 @@ After completing all versions:
 | `references/version-diff-guide.md` | Adapting an API that changed between engine versions |
 | `references/tools.md` | Invoking the helper scripts; config resolution |
 | `references/archive-packaging.md` | Performing Step 5 archive packaging |
-| `references/original-requirements.md` | Original requirements behind these rules |
+| `references/original-requirements.md` | Dated design decisions behind these rules (why skill-guided, when each open question was settled) |

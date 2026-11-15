@@ -62,8 +62,8 @@ virtual TConstArrayView<FAssetCategoryPath> GetAssetCategories() const override
 }
 ```
 
-So a factory whose `SupportedClass` is `ULevelSequence` inherits bitmask
-`Basic | Cinematics` — it will **never** be called for "Gameplay".
+So a factory whose `SupportedClass` is `ULevelSequence` inherits both `Basic`
+and `Cinematics` from it — it will **never** be called for "Gameplay".
 
 ### Default behavior of `GetAssetMenuPathsForCategory()`
 
@@ -119,6 +119,8 @@ ContentBrowser Add Menu
 | `Engine/Source/Editor/UnrealEd/Private/Factories/Factory.cpp:298-337` | Default implementations delegating to `IAssetTypeActions` |
 | `Engine/Plugins/Editor/ContentBrowser/ContentBrowserAssetDataSource/Source/.../NewAssetContextMenu.cpp:149-173` | `FindFactoriesInCategory` — bitmask check |
 | `Engine/Plugins/Editor/ContentBrowser/ContentBrowserAssetDataSource/Source/.../NewAssetContextMenu.cpp:424-540` | `CreateNewAssetMenuCategory` — builds sub-menu tree from `FAssetCategoryPath` |
-| `Engine/Source/Developer/AssetTools/Private/AssetTools.cpp:1414` | Standard category registration (Basic, Gameplay, Cinematics, Misc) |
-| `Engine/Source/Developer/AssetTools/Public/AssetTypeCategories.h` | `EAssetCategoryPaths` pre-defined `FText` constants |
+| `Engine/Source/Developer/AssetTools/Private/AssetTools.cpp:1406-1418` | Built-in advanced category registration (name, `EAssetTypeCategories` bit, default label) — Basic is the top-level exception and is not in this list |
+| `Engine/Source/Developer/AssetTools/Public/AssetTypeCategories.h` | `EAssetTypeCategories` bitmask enum — no `Cinematics` member |
+| `Engine/Source/Editor/AssetDefinition/Public/Misc/AssetCategoryPath.h` | `FAssetCategoryPath` / `FCategoryPath` / `ECategoryMenuType` (private `TArray<TPair<FName, FCategoryPath>>`, accessor API) |
+| `Engine/Source/Editor/AssetDefinition/Public/AssetDefinition.h:272` | `EAssetCategoryPaths` — the pre-defined `FAssetCategoryPath` constants (Basic, Animation, Audio, Blueprint, Cinematics, Data, …) |
 | `Engine/Source/Editor/AssetDefinition/Public/AssetDefinition.h` | `UAssetDefinition::GetAssetCategories()` — UE5 category source |

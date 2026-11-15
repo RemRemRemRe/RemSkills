@@ -283,19 +283,15 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   only as many times as the plan states, and never as a substitute for reading the run directory. An
   unbounded poll loop is a defect, not a habit.
 - **Diagnose the silence before blaming the model.** A stalled model call and a stalled *tool* look
-  identical from the parent - nothing arrives either way. Measured 2026-11: a delegated commit unit
-  was written off as "a 50-minute model stall" and was in fact one `git status` on a superproject
-  starved by 1486 resident `git` processes; the child session's own log showed an immediate tool call
-  and a 50-minute tool *result*. So read the child's run directory and its session log timestamps
+  identical from the parent - nothing arrives either way. What reads as a model stall is often a tool
+  call that hung and returned late. So read the child's run directory and its session log timestamps
   (creation, first tool call, first tool result) and name the slow step - a tool that hangs, a command
   that scans a huge tree, or a model that really is slow. Then fix the cause: the shape of the command
   belongs in the skill that owns that tool, and no brief asks for an expensive verification the parent
   itself can skip.
-- **The cost usually sits in the tool, not in the delegation.** Measured in the same session: author
-  units that only edit files start, work and report in 2-3 minutes each, while two builds and two
-  superproject status queries ate ~85 minutes. Before splitting or serializing work, price the tool it
-  will call; delegate more freely when the unit is only edits, and keep the expensive steps (builds,
-  git over big trees) on a measured, single path.
+- **The cost usually sits in the tool, not in the delegation.** Before splitting or serializing work,
+  price the tool it will call: delegate more freely when the unit is only edits, and keep the expensive
+  steps (builds, git over big trees) on a measured, single path.
 - **Slow operations are analyzed and reported without being asked.** Any step that exceeds its expected
   budget - a build past a few minutes, a git command past a few seconds, a unit silent past ten -
   gets one measurement and one report line rather than a quiet wait: what ran, how long, which share
@@ -368,7 +364,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch
 - [ ] A rename, drop or merge of a case produced one row in `case-renames.md`, generated from the before/after case names rather than hand-written
-- [ ] The push gate's run used the generated prefix string - not `RunFilter Engine`, and never a spec carrying `SmokeFilter`
+- [ ] The push gate's run used the generated prefix string, not a filter `rem-commit-workflow` §*The push gate* rules out
 - [ ] Test deliverables got their focused review before the push gate's run
 - [ ] Change sets were sized by verification unit; blocking/major findings fixed in the round, minor/elegance listed for backlog
 - [ ] Submodule commits stayed inside their submodule; a parent gitlink was bumped at the push gate (or with a cross-repository change that needs the new pin), never per iteration round

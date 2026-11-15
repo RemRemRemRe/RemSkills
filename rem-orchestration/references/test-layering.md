@@ -18,18 +18,15 @@ the core prefix string, the run commands - belong to the project's local overlay
 - Expect to correct the first pass. Recurring mistakes:
   - a fixture that builds a world, calls `BeginPlay` or flushes rendering is **cheap** - not
     content, not heavy; only RHI, audio, a local player, a server, a cook or several clients are;
-  - an exported symbol with no caller is **module**;
-  - a tag's *state* is not a contract, its *timing* is;
-  - silence ("nothing is sent") is **core**, because the other party parses the absence too.
+  - every other `module` / `core` verdict gets checked against the layer tie-breaks, which live in
+    `rem-test-completeness` §3c (*Boundaries*) - not restated here.
 
 ## 2. Apply — one writing session
 
 - **Flags:** exactly one filter bit per spec (the engine static-asserts it). Core gets
-  `EngineFilter`, the rest `ProductFilter` with a layer priority. **Never `SmokeFilter`** on a
-  spec: the editor runs every smoke test at each start, a spec enqueues a latent command, and the
-  framework's assertion kills every editor start. `RunFilter Engine` is equally unusable as a
-  selector - it pulls the engine's own suite.
-  Both failures were met in practice; neither is documented by the flag's name.
+  `EngineFilter`, the rest `ProductFilter` with a layer priority. `SmokeFilter` on a spec and
+  `RunFilter Engine` as a selector are both unusable - why, and the symptom each produces, is
+  `rem-commit-workflow` §*The push gate*.
 - **Whole spec or split?** A spec is one layer. When the core cases are the majority, flag the
   whole spec core and let the module minority ride (they are cheap). Split only when the core
   minority is significant, because a split renames every moved case and every rename breaks a

@@ -112,7 +112,7 @@ A plugin folder name and its plugin ID can differ: `Plugins/<Folder>` may
 ship `<Id>.uplugin`, and the `.uproject` must then list **`<Id>`**, not
 `<Folder>`. Wrong name → UBT aborts with
 `Unable to find plugin '<Folder>' (referenced via <ProjectName>.uproject)`. When in
-both, `ls <plugin-dir>/*.uplugin` is the source of truth (`local/update-preferences.md`
+doubt, `ls <plugin-dir>/*.uplugin` is the source of truth (`local/update-preferences.md`
 §4/§6 records this project's folder→id pairs).
 
 ### Duplicate plugin entries in the .uproject

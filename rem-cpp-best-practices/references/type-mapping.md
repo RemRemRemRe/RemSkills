@@ -88,12 +88,23 @@ TObjectPtr<const UObject> ConstObject{};
 
 ### Category convention
 
-Always `"Rem"` or `"Rem|SubCategory"`:
+A reflected member that the editor or Blueprint exposes **carries a Category**; the
+value belongs to the authoring module, not to this skill:
+
+- **No grouping of its own → `"Rem"`** (or `"Rem|SubCategory"` when the module
+  groups its properties under Rem).
+- **A module with its own grouping keeps it.** `"Parameter"`, `"Data"`,
+  `"Projectile"`, `"Event"` are legitimate when that module's details panels are
+  organised that way — do not rewrite them to `Rem|…` in passing. A review
+  finding is a *missing* Category, never a non-`Rem` one (ruled 2026-11).
+- **Not exposed → no Category needed**: `UFUNCTION(Exec)` console commands, a
+  `UPROPERTY()` that exists only for reflection, anything the details panel never
+  shows. On an `Exec` command `Category` is inert metadata (§10).
 
 ```cpp
-Category = "Rem"
-Category = "Rem|Object"
-Category = "Rem|Component"
+Category = "Rem"            // the default when the module has no grouping
+Category = "Rem|Object"     // a module that groups everything under Rem
+Category = "Projectile"     // a module that owns its own grouping
 ```
 
 ### Metadata completeness
@@ -113,7 +124,7 @@ thumb; this is the lookup table):
 | Value valid only in one mode | `EditCondition` — never document the condition in a comment | `meta = (EditCondition = "bUseFoo")` |
 | Edit-time derived data | `EditConditionHides` where it hides, plus a `PostEditChangeProperty` handler — do not leave the rebuild implicit | `meta = (EditConditionHides, EditCondition = "bUseFoo")` |
 | Value needing explanation | `ToolTip`, or a `/** */` doc comment (the editor shows both) | `meta = (ToolTip = "Seconds before the entry expires.")` |
-| Every reflected member | `Category` | `Category = "Rem|Component"` |
+| Every member the editor or Blueprint exposes | `Category` | `Category = "Rem|Component"` |
 
 Unit strings follow the engine's unit identifiers (`s`, `cm`, `kg`, `deg`, `%`, ...).
 A tooltip restates the unit in words when the identifier alone could be

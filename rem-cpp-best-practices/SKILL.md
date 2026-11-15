@@ -89,7 +89,7 @@ public class MyModule : ModuleRules
 What `RemSharedModuleRules.Apply` configures:
 - `CppStandardVersion.EngineDefault` — never override the C++ version
 - `ShadowVariableWarningLevel = WarningLevel.Error` — shader variable bugs are real
-- `bUseUnity = false` — every `.cpp` compiles independently; IWYU is enforced
+- `bUseUnity = false` — every `.cpp` compiles independently; IWYU is the default (the lint outranks it, §2)
 - `bAllowUETypesInNamespaces = true` — enables UE types inside custom namespaces
 - `IncludeOrderVersion.Latest` — latest engine include dependency rules
 - `UnsafeTypeCastWarningLevel = WarningLevel.Warning`
@@ -108,6 +108,8 @@ rule of thumb: `references/modules.md`).
 Header order: copyright → `#pragma once` → base class header → other dependencies → `generated.h` **before any type declaration** → forward declarations. Source order: copyright → own header first → other dependencies → `UE_INLINE_GENERATED_CPP_BY_NAME` → implementation.
 
 Rules: `#pragma once` always; base class first in `.h`; IWYU (include every header used directly, never rely on transitive includes); empty-line groups; heavy templates go in `.inl` and are **never auto-included from the `.h`** (a `.h` never includes an `.inl`); inline definitions that must stay in the header go at the file bottom.
+
+**Lint outranks IWYU.** A header the IDE reports *possibly unused* is dropped even when a declared type only arrives through a transitive include; lint is the authority, IWYU the preference (operator rule, 2026-11), and the build is the only veto.
 
 Layout examples and the full rule table: `references/file-layout.md`.
 
@@ -134,7 +136,7 @@ Namespace layout, extended examples and the full naming tables: `references/nami
 
 Allman braces; 4-space indentation; one statement per line; `Type* Ptr` / `const Type& Ref`; explicit braces on every block; namespace contents not indented; alignment is whatever the Rider `.DotSettings` produces — never hand-align.
 
-**Comments:** `/** */` Doxygen on header declarations, `//` in `.cpp`, never `///`; no `} // namespace` closing comments. Discipline: **the default is no comment** — self-explanatory code is the goal; a fact that needs one usually wants a better name instead, and a comment narrating its own line is deleted. What earns one: **the rule the code must keep** — what stays true, and what breaks when it stops being true — one concept per comment, placed where that rule could be broken; **overview comments** (a file's, type's or section's purpose and reading order) are the exception worth writing. A sentence whose only job is to argue that the current implementation is right answers a review question rather than a reader's: state the rule, so the next change knows what it has to preserve. Use real Doxygen keywords (`@warning`, `@note`, `@param`, `@return`, `@tparam`, `@see`, `@todo`), never plain-text lookalikes. A comment next to a declaration can become its **tooltip**: UHT stores a `/** */` doc comment as `ToolTip` metadata — and equally a bare `//` line or a comment inside the specifier list as `Comment` metadata, which the details panel falls back to when no doc comment exists; never park specifier text (`Transient/*, Meta = (...) */`) or preprocessor lines there (data-side symptoms: `rem-ue-localization` `references/pitfalls.md`).
+**Comments:** `/** */` on header declarations, `//` in `.cpp`, never `///`, no `} // namespace` closers. **The default is no comment** — a fact that needs one usually wants a better name; what earns one is *the rule the code must keep*, placed where that rule could be broken, and an overview comment (a file's or a type's purpose) is the exception worth writing. A sentence whose only job is to argue the current implementation is right answers a reviewer, not a reader: state the rule. A declaration's doc comment becomes its tooltip, and specifier text or preprocessor lines parked there leak into the data. Formats, Doxygen keywords (`@warning`, `@note`, `@param`, `@return`, `@see`), the `meta`-split caveat and the data-side symptoms: `references/naming-formatting.md` §2.
 
 **Member ordering:** data members before function members in every visibility group, each group with its own explicit label; `using` declarations count as data. A data member after any function member (constructors included) is a review rejection.
 
@@ -173,6 +175,10 @@ UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `
 `Rem::TNotNull<T>` expresses non-null semantics: `*NotNull` on `TNotNull<const T*>` yields the **value** reference, no pointer arithmetic (MSVC selects the deleted `operator bool` — convert to a raw pointer first), and it cannot hold `nullptr` (a walk that terminates on null uses a raw pointer). Never `NULL` or `0`.
 
 **Scope — every reference, parameter *or* return.** A `&` to a UObject/interface (or to an object-like container) is a `TNotNull` candidate; the API prefers pointer semantics over reference semantics. Only value semantics keep the reference — a value type passed by reference to avoid a copy (`FVector`, `FGameplayTag`, `TConstArrayView`, enums), and signatures fixed by reflection or the engine (`UFUNCTION`, `BlueprintImplementableEvent`, engine virtual overrides). A non-null getter is named `Get*` and returns `TNotNull`; the nullable half of the pair is `TryGet*` returning a raw pointer; a `Get*Ref` name is the pre-conversion form.
+
+**A legally-absent parameter is a second function, not a nullable one.** `TNotNull` on a parameter is a claim; when absence is a legal state (a controller with no pawn, a team with no leader) the claim is a lie and the wrapper's check fires on a reachable state. Offer an overload that omits it, and keep one implementation in a TU-private helper taking the raw pointer (2026-11).
+
+**Liveness belongs at the dereference, identity comparison in the model.** A find-by-pointer (`IndexOfByKey`) needs no `IsValid` — null-collapsing there also makes two dead elements compare equal; the caller that hands the result to navigation, a delegate or a tick checks. "The container only holds live objects" is true at write time only — between two updates an element can die, so the consumer's check is not dead code (2026-11).
 
 **A weak delegate binding is the liveness guard.** `CreateWeakLambda(Object, …)` already stops the
 callback when `Object` dies, so the body works with the pointer that binding owns and a second
@@ -264,7 +270,11 @@ Definitions and examples: `references/language-features.md`.
 
 ### Key rules
 
-- Always set a `Category` on every reflected member — `"Rem"` or `"Rem|SubCategory"`
+- Set a `Category` on every member the editor or Blueprint exposes. An ungrouped
+  module uses `"Rem"` / `"Rem|SubCategory"`; a module that owns its own grouping
+  keeps its own value, and a non-editor-facing member (an `Exec` command, a
+  reflection-only property) needs none — convention and the reasoning:
+  `references/type-mapping.md`
 - Put `meta = (...)` last in the specifier list
 - `UINTERFACE(MinimalAPI)` for pure interface classes
 - `USTRUCT(BlueprintType)` for structs exposed to Blueprint
@@ -346,28 +356,19 @@ LWC macro hard-codes it); `FVector3f`/`FRotator3f`/... is a deliberate
 narrowing. Ask one question: **does this value describe a place in the world,
 or a property of a thing?**
 
-| Value | Width |
-|---|---|
-| World position; a world-space offset consumed as a position; accumulated world state (position, velocity, force) | `double` — `FVector` |
-| Tuning parameter (speed, acceleration, gravity scale, radius, duration), angle, scale, ratio, alpha, weight, probability, normalized direction | `float` is normal, and matches the engine's own movement components |
-| A configured *shape* — a box half-extent, a damage volume, a spawn region | `FVector3f` for the authored value; widen once where the engine asks for an `FVector` (`FCollisionShape::MakeBox`) |
-| Bulk array of positions | `float` only as a re-based local array with one `double` origin (`references/scalar-width.md` §7) |
+- **A place** — and anything added to one (position, velocity, force) — stays `double`/`FVector`; an
+  authored *shape* is `FVector3f` and widens once where the engine asks for an `FVector`.
+- **A property** — tuning value, angle, scale, ratio, alpha, weight, probability, normalized direction
+  — is `float`, matching the engine's own movement components (`MaxWalkSpeed` is `float`;
+  `LastUpdateLocation` is `FVector`).
+- **Never** store an *authoritative* world position in an `f` type, nor anything that will be added to
+  one: the precision is lost at write time and no consumer-side widening recovers it. Convert once at
+  the boundary that loads config into runtime state, never inside a per-tick path, and name the width
+  there with `RemFloatDoubleConversionMacros.h` rather than an ad-hoc cast.
 
-Never store an **authoritative** world position — or anything that will be added
-to one — in an `f` type: the precision is lost at write time and no
-consumer-side widening recovers it. Re-basing an array into local space is not
-an exception — it stops being a world position. The engine narrows the *tuning
-value*, never the *state* (`MaxWalkSpeed` is `float`; `LastUpdateLocation` is
-`FVector`). A bounded quantity that never enters the world-space arithmetic graph
-— a rate or distance only your own math scales with — is an `f` candidate
-whatever its units; three tests decide (`references/scalar-width.md` §3). Convert
-narrow → wide once, at the boundary that loads config into runtime state, not
-inside a per-tick path. Name the width at the conversion site with the project's
-conversion macros (`RemFloatDoubleConversionMacros.h`) rather than an ad-hoc
-cast.
-
-Precision tables, the size analysis per storage medium, the engine citations and
-the boundary pattern: `references/scalar-width.md`.
+Precision tables, the three tests for a bounded quantity, the size analysis per storage medium, the
+engine citations and the boundary pattern: `references/scalar-width.md` §3 (decision rule) and §7
+(bulk arrays).
 
 ### Struct views — type-only vs instance
 
@@ -451,69 +452,16 @@ examples: `references/macros-logging.md`.
 
 ### 14f. Variable scoped minimization
 
-> **Note:** This rule exists because AI-generated code frequently leaves variables
-> in scope after their last use, enabling accidental misuse.
-
-Declare variables in the narrowest possible scope. Prefer
-initialization-inside-`if`-condition when the variable is only needed within the
-guarded block. This prevents accidental use of stale values, reduces cognitive
-load, and lets the compiler optimize away the variable earlier:
-
-```cpp
-// PREFER — variable scoped to the if-body:
-if (auto* Component = Actor->FindComponentByClass<UMyComponent>())
-{
-    Component->DoWork();   // Component only exists here
-}
-
-// AVOID — variable outlives its useful scope:
-auto* Component = Actor->FindComponentByClass<UMyComponent>();
-if (Component)
-{
-    Component->DoWork();
-}
-// Component still in scope here — can be misused
-```
+Declare a variable in the narrowest possible scope — initialise it inside the `if` condition when it is
+only needed in the guarded block, so a stale value cannot be reused. Worked pair (PREFER/AVOID):
+`references/language-features.md` (*Narrowest scope for a variable*).
 
 ### 14g. Flat execution blocks — avoid rocket code
 
-> **Note:** This rule exists because AI-generated code frequently produces deeply
-> nested `if` chains (the "rocket" anti-pattern) that obscure the main logic.
-
-Deeply nested `if` chains obscure the main logic.
-Use `std::invoke([&]{ ... })` to create a scoped execution block where
-`RemEnsure*`/`RemCheck*` with `return` bail out cleanly. The main logic stays at
-one indentation level:
-
-```cpp
-// Rocket code (AVOID):
-if (auto* A = GetA())
-{
-    if (auto* B = A->GetB())
-    {
-        if (auto* C = B->GetC())
-        {
-            // actual logic  —  4 levels deep
-        }
-    }
-}
-
-// Flat block (PREFER):
-std::invoke([&]
-{
-    auto* A = GetA();
-    RemCheckVariable(A, return;);
-    auto* B = A->GetB();
-    RemCheckVariable(B, return;);
-    auto* C = B->GetC();
-    RemCheckVariable(C, return;);
-    // actual logic  —  flat, no nesting
-});
-```
-
-`std::invoke` immediately executes the lambda. `return` inside the lambda exits
-the lambda, not the enclosing function — use it to bail out on failed
-preconditions. Capture `[&]` for full access to the enclosing scope.
+Deep nesting obscures the main logic: `std::invoke([&]{ ... })` gives a scoped block where
+`RemCheck*`/`RemEnsure*` with `return` bail out and the logic stays at one indentation level. The
+rocket/flat pair and the `return`-exits-the-lambda caveat: `references/design.md` (*Flat execution
+blocks*).
 
 ### 14i. Assertion principles
 
@@ -591,7 +539,7 @@ Before committing any C++ file:
 - [ ] Copyright header present with current year
 - [ ] `#pragma once` right after copyright
 - [ ] Base class header first; generated.h included before any type declarations (not at file bottom)
-- [ ] Includes separated by empty lines in logical groups; IWYU — no transitive dependencies
+- [ ] Includes separated by empty lines in logical groups; IWYU unless the lint reports an include unused (§2)
 - [ ] File-local objects (console variables, helpers, constants) sit in an anonymous namespace at the top of the `.cpp`, not behind `static`
 - [ ] `GENERATED_BODY()` as first member of every UCLASS/USTRUCT
 - [ ] `using ThisClass = ...;` declared for USTRUCTs; `Super`/`ThisClass` as-needed for non-reflected classes

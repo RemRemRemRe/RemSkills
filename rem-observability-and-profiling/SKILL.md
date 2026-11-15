@@ -89,6 +89,7 @@ Rule of thumb: if the message is useful **only while investigating**, it is
 | State transition | previous state, next state, trigger |
 | External input (network, player, config) | source, sanitized value, decision taken |
 | Failure / fallback | what failed, the inputs, and what the code did instead |
+| A configuration value is unset or invalid (a tag, a class, a row key) | the key it was read from and what the code did instead — one `Warning` where the value is first read, not one per use |
 | Recovery | the anomaly, how it recovered, whether state is intact |
 
 Never log secrets, credentials, or full payload dumps. Log identifiers, counts

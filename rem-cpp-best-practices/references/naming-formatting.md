@@ -273,6 +273,13 @@ finding against the code, not a note to keep.
   note. Real case (2026-08): a doc comment opened with `WARNING - ...`;
   it should be `@warning ...`.
 
+### Comment next to a declaration — it becomes the tooltip
+
+UHT stores a `/** */` doc comment as `ToolTip` metadata, and equally a bare `//` line or a comment
+inside the specifier list as `Comment` metadata, which the details panel falls back to when no doc
+comment exists. Never park specifier text (`Transient/*, Meta = (...) */`) or preprocessor lines
+there. Data-side symptoms: `rem-ue-localization` `references/pitfalls.md`.
+
 ### Member ordering
 
 

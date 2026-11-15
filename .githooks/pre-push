@@ -3,8 +3,11 @@
 #   git config core.hooksPath .githooks
 #
 # The lint is the mechanical half of the rem-write-better-skill checklist; it
-# must pass before a skill change leaves this machine. Bypass deliberately with
-# `git push --no-verify` (and say why).
+# must pass before a skill change leaves this machine. The outgoing-range checks
+# are the mechanical half of rem-commit-workflow *Fold first, then tag*: a range
+# that undoes itself, or a commit message that leaks a machine path, is caught
+# here instead of in public. Bypass deliberately with `git push --no-verify`
+# (and say why).
 
 # Resolve the repo root from the hook's own location, not from the caller's
 # working directory: a manual `sh <path>` from another repository would otherwise
@@ -22,3 +25,46 @@ if ! node tools/lint-skills.mjs; then
     echo "pre-push: skill lint failed — fix it before pushing (bypass: git push --no-verify)" >&2
     exit 1
 fi
+
+zero=0000000000000000000000000000000000000000
+status=0
+
+# One line per ref being pushed: <local ref> <local sha> <remote ref> <remote sha>.
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ -n "$local_sha" ] || continue
+    [ "$local_sha" = "$zero" ] && continue
+
+    case "$local_ref" in
+        refs/tags/v*)
+            head_sha=$(git rev-parse HEAD)
+            tag_sha=$(git rev-list -n 1 "$local_ref" 2>/dev/null)
+            if [ "$tag_sha" != "$head_sha" ]; then
+                echo "" >&2
+                echo "pre-push: $local_ref points at $(git rev-parse --short "$tag_sha" 2>/dev/null), not at HEAD" >&2
+                echo "pre-push: a release tag belongs on the folded HEAD" >&2
+            fi
+            ;;
+        refs/heads/*)
+            if [ "$remote_sha" = "$zero" ]; then
+                base=$(git rev-list --max-parents=0 "$local_sha" | tail -n 1)
+            else
+                base=$remote_sha
+            fi
+            if ! node tools/lint-push-range.mjs --repo "$root" --range "$base..$local_sha" --allow-empty </dev/null; then
+                status=1
+            fi
+            if ! node tools/lint-commit-messages.mjs --repo "$root" --range "$base..$local_sha" --allow-empty </dev/null; then
+                status=1
+            fi
+            ;;
+    esac
+done
+
+if [ "$status" -ne 0 ]; then
+    echo "" >&2
+    echo "pre-push: outgoing-range check failed — fold the stack and re-run it," >&2
+    echo "pre-push: or fix the message; bypass deliberately with git push --no-verify" >&2
+    exit 1
+fi
+
+exit 0

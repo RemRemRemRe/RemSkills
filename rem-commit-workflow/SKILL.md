@@ -255,6 +255,18 @@ A session takes one build plus one run at that scope, reported as its evidence.
 needs a stated reason - a changed tree, or a scope the first run could not reach. A red run returns
 cases to the author; it does not start a retry loop inside the session.
 
+**Fold first, then tag.** A push publishes the shape of the range, not only its final state: a commit
+that a later one takes back stays in the log and in the generated release notes. Before the gate's
+run, read `git log --oneline <base>..HEAD` and fold the iterations (`git rebase -i --autosquash
+<base>`), then re-run the repository's checks - the folded tree is a new tree, and evidence taken on
+the unfolded one does not carry over.
+
+The check is mechanical and runs on every push through `.githooks/pre-push`:
+`tools/lint-push-range.mjs` fails when a file's later commit restores what an earlier commit in the
+same range changed, and warns when one file is touched three or more times;
+`tools/lint-commit-messages.mjs` scans the outgoing messages for leaks. The tag lands on the folded
+`HEAD` - a tag on an intermediate commit releases a range the branch tip has already moved past.
+
 **The core layer is a prefix string, not a filter.** `RunFilter Engine` pulls Epic's own engine suite
 and prints no `Found N`; `EAutomationTestFlags::SmokeFilter` on a spec kills every editor start (the
 editor runs smoke tests unconditionally and a spec's latent command trips the framework's assertion).
@@ -326,6 +338,8 @@ rewriting what is already published is a separate, deliberate call).
   for, describe it and ask.
 - **Never delete and re-push a release tag** to retrigger a failed workflow — re-run the
   failed CI run from the Actions page instead.
+- **A release tag lands on the folded HEAD**, after the fold and after the checks re-ran — not on an
+  intermediate commit, whose notes would describe a range the tip has already moved past.
 - **State what will be published before publishing it.** A branch's first push
   publishes its whole history, not only the commits just made: check
   `git ls-remote --heads origin` against `git log origin/<branch> --oneline`
@@ -353,6 +367,9 @@ Before committing:
 - [ ] Docs/config obligations applied per `rem-docs-and-config` §2 (new subsystem, public API, config property, designer-facing behavior)
 - [ ] Build succeeded with the project's editor development configuration (or the change was comment/doc-only with no compiled token, per `Test scope`)
 - [ ] (Push gate) Test scope: candidates taken from the layer table, the module graph (`tools/scope.py`) used only for a changed symbol the table does not name, pruned by a search of the changed names, every dropped candidate given a reason
+- [ ] (Push gate) The range is folded: no commit takes back what an earlier one in the same range
+      added (`tools/lint-push-range.mjs`), the repository's checks re-ran after the fold, and the
+      release tag lands on the folded HEAD
 - [ ] (Push gate) One build and one run at that scope; red/green judged from the project log, not the console output
 - [ ] Every irreversible act carries its own explicit instruction — push **or upload**, force-push, deleting a branch/tag, pruning (`reflog expire` / `gc --prune`), publishing — never inferred from an approval of the commit work
 - [ ] Before a branch's first push: what else becomes public was stated (a first push publishes the whole history)

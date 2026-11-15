@@ -50,6 +50,7 @@
 **主会话编排**
 
 - [`rem-orchestration`](rem-orchestration/SKILL.md) — 主会话的委派机制、迭代 / 冻结 / 推送档的节奏（分层运行、两条小记录）、时间成本控制（找出并削减每轮最慢的步骤）、run 目录与等待纪律
+- [`rem-shared-resources`](rem-shared-resources/SKILL.md) — 在同一个项目目录内协调多个 agent 会话：声明会话要写的文件，为构建 / 测试 / git / IDE 资源加带 TTL 与过期接管的租约，保留各会话的日志，并把构建与测试证据绑定到产出它的那棵树
 
 **环境约束**
 

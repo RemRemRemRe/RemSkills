@@ -52,6 +52,7 @@ both files in the same change.
 **Main-session orchestration**
 
 - [`rem-orchestration`](rem-orchestration/SKILL.md) — delegation mechanics, the writing-code / freeze / push-gate cadence (layered runs, two small records), cycle economy (finding and cutting each round's slowest step), run-directory and waiting discipline for the main session
+- [`rem-shared-resources`](rem-shared-resources/SKILL.md) — coordinate several agent sessions in one project directory: claim the files a session will write, lease the build / test / git / IDE resources with a TTL and stale takeover, keep per-session logs, bind build and test evidence to the tree that produced it
 
 **Environment constraints**
 

@@ -863,17 +863,17 @@ EXCLUDE_FIXTURES = [
     ('exclude: a wildcard file name',
      ['**/*.generated.h'], '/Tree/Plugins/Game/Source/Foo.generated.h', True),
     ('exclude: a directory name covers everything below it',
-     ['ue5coro'], '/Tree/Plugins/ue5coro/Source/Private/UE5Coro.h', True),
+     ['VendorPlugin'], '/Tree/Plugins/VendorPlugin/Source/Private/Vendor.h', True),
     ('exclude: ** crosses several directories',
      ['**/ThirdParty/**'], '/Tree/Plugins/Foo/Source/ThirdParty/Lib/Include/Bar.h', True),
     ('exclude: a case difference still matches',
-     ['ue5coro'], '/Tree/Plugins/UE5Coro/Source/UE5Coro.h', True),
+     ['VendorPlugin'], '/Tree/Plugins/VENDORPLUGIN/Source/Vendor.h', True),
     ('exclude: a shared prefix is not a match',
      ['Game'], '/Tree/Plugins/Gameplay/Source/AGameplay.h', False),
     ('exclude: an unrelated path is not a match',
-     ['ue5coro', 'FlowGraph/**'], '/Tree/Plugins/Game/Source/AGame.h', False),
+     ['VendorPlugin', 'Ext/**'], '/Tree/Plugins/Game/Source/AGame.h', False),
     ('exclude: a path prefix written with a trailing slash',
-     ['FlowGraph/'], '/Tree/Plugins/FlowGraph/Source/AFlow.h', True),
+     ['Ext/'], '/Tree/Plugins/Ext/Source/AExt.h', True),
     ('exclude: a multi-component prefix starts mid-path',
      ['Runtime/ECS'], '/Tree/Plugins/Runtime/ECS/Public/ECS.h', True),
 ]
@@ -896,13 +896,13 @@ def _exclude_file_fixtures():
         with open(list_file, 'w', encoding='utf-8') as handle:
             handle.write('# vendored plugins, one glob per line\n'
                          '\n'
-                         'ue5coro   # the coroutine library\n'
+                         'VendorPlugin   # vendored, never edited here\n'
                          '../Vendored/**\n')
         excluder = Excluder()
         excluder.add_file(list_file)
         return [
             ('exclude: a pattern read from a list file',
-             excluder.matches(['/Tree/Plugins/ue5coro/Source/UE5Coro.h'])),
+             excluder.matches(['/Tree/Plugins/VendorPlugin/Source/Vendor.h'])),
             ('exclude: a list-file pattern relative to the file directory',
              excluder.matches([os.path.join(directory, 'Vendored', 'Lib', 'AVendored.h')])),
             ('exclude: a list file leaves unrelated paths alone',

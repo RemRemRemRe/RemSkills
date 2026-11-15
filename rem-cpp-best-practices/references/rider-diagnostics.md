@@ -40,7 +40,27 @@ and only `lint_files` reported it.
 **Detection only — no quick-fix tool.** Rider MCP exposes no intention/quick-fix
 action: `lint_files` detects but cannot fix (`--fix` is ignored), and
 `reformat_file` is formatting-only — it never adds `virtual`, `const` or an
-access specifier, so those findings stay manual.
+access specifier, so those findings stay manual. Probed 2026-11: no
+`apply_quick_fix` / `quick_fix` / `fix_file_problems` / `apply_intention` /
+`code_cleanup` tool exists either. A fix is therefore always an edit plus a
+re-lint that proves the finding is gone.
+
+The calls a sweep actually uses (paths relative to the workspace root, one batch
+per call): `get_file_problems --filePath <path>`, `lint_files --files '["<path>", ...]'`,
+`reformat_file --files '["<path>"]'`, `search_text --q <regex> --maxResults <n>`.
+Of those four, only `reformat_file` writes — and it writes only formatting (see the
+flush trap below).
+
+**A flush can overwrite a hand edit (verified 2026-11).** `rename_refactoring` and
+`reformat_file` act on the IDE's in-memory copy of a file, and
+`post_edit_quality_check` is what writes that copy back to disk — replacing the
+file whole, including any hunk edited directly after the IDE last read it. Re-apply
+the hand edit, verify it, and never flush after one.
+
+**Some inspections are unreachable — do not chase them.** An "Indent size is
+incorrect, expected N spaces" WARNING survived `reformat_file` (a no-op) on a line
+that already carried exactly N leading spaces. When the reported expectation and
+the file agree, the finding is a tool artifact: record it, allowlist it, move on.
 
 **WARNING-tier visibility issues are also only caught reliably by a sweep of
 files the reformat did not touch.** The reformat pass lints only the files it

@@ -137,3 +137,41 @@ variation actually lives, not which mechanism is most general.
   only when the choice truly lives in data.
 - **A flag that switches behaviour** → usually wrong. Two paths that share almost nothing are two
   types; two paths that share everything are one type, and the flag is data.
+
+### Flat execution blocks — avoid rocket code
+
+> This rule exists because AI-generated code frequently produces deeply nested `if` chains (the
+> "rocket" anti-pattern) that obscure the main logic.
+
+`std::invoke([&]{ ... })` creates a scoped execution block in which `RemEnsure*`/`RemCheck*` with
+`return` bail out cleanly, so the main logic stays at one indentation level.
+
+```cpp
+// Rocket code (AVOID):
+if (auto* A = GetA())
+{
+    if (auto* B = A->GetB())
+    {
+        if (auto* C = B->GetC())
+        {
+            // actual logic  —  4 levels deep
+        }
+    }
+}
+
+// Flat block (PREFER):
+std::invoke([&]
+{
+    auto* A = GetA();
+    RemCheckVariable(A, return;);
+    auto* B = A->GetB();
+    RemCheckVariable(B, return;);
+    auto* C = B->GetC();
+    RemCheckVariable(C, return;);
+    // actual logic  —  flat, no nesting
+});
+```
+
+`std::invoke` immediately executes the lambda. `return` inside the lambda exits the lambda, not the
+enclosing function — use it to bail out on failed preconditions. Capture `[&]` for full access to the
+enclosing scope.

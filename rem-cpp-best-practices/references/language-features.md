@@ -508,3 +508,28 @@ so a substring does not need an `FString` round trip. Name the find mode: the de
 which inserts a name-table entry for any string that is not an existing name - wrong when looking up
 items, rows or tags, and a silent source of name-table growth. `FNAME_Find` returns an invalid name on
 a miss, which is what a lookup wants.
+
+### Narrowest scope for a variable
+
+> This rule exists because AI-generated code frequently leaves variables in scope after their last
+> use, enabling accidental misuse.
+
+Declare a variable in the narrowest possible scope, preferring initialization inside the `if`
+condition when it is only needed in the guarded block. It prevents accidental use of stale values and
+lets the compiler drop the variable earlier.
+
+```cpp
+// PREFER — variable scoped to the if-body:
+if (auto* Component = Actor->FindComponentByClass<UMyComponent>())
+{
+    Component->DoWork();   // Component only exists here
+}
+
+// AVOID — variable outlives its useful scope:
+auto* Component = Actor->FindComponentByClass<UMyComponent>();
+if (Component)
+{
+    Component->DoWork();
+}
+// Component still in scope here — can be misused
+```

@@ -139,7 +139,7 @@ Allman braces; 4-space indentation; one statement per line; `Type* Ptr` / `const
 
 **Comments:** `/** */` on header declarations, `//` in `.cpp`, never `///`, no `} // namespace` closers. **The default is no comment** — a fact that needs one usually wants a better name; what earns one is *the rule the code must keep*, placed where that rule could be broken, and an overview comment (a file's or a type's purpose) is the exception worth writing. A sentence whose only job is to argue the current implementation is right answers a reviewer, not a reader: state the rule. A declaration's doc comment becomes its tooltip, and specifier text or preprocessor lines parked there leak into the data. Formats, Doxygen keywords (`@warning`, `@note`, `@param`, `@return`, `@see`), the `meta`-split caveat and the data-side symptoms: `references/naming-formatting.md` §2.
 
-**Member ordering:** data members before function members in every visibility group, each group with its own explicit label; `using` declarations count as data. A data member after any function member (constructors included) is a review rejection.
+**Member ordering:** data before function members in every visibility group, each labelled except the first when it is the type's default; `using` counts as data. A data member after any function member (constructors included) is a review rejection.
 
 **Rule of Five/Zero:** declare or delete all five (or `REM_DEFINE_THE_RULE_OF_FIVE`). Use `#pragma region` for section organization.
 

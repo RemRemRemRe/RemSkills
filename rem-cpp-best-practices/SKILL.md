@@ -543,7 +543,7 @@ Before committing any C++ file:
 - [ ] File-local objects (console variables, helpers, constants) sit in an anonymous namespace at the top of the `.cpp`, not behind `static`
 - [ ] `GENERATED_BODY()` as first member of every UCLASS/USTRUCT
 - [ ] `using ThisClass = ...;` declared for USTRUCTs; `Super`/`ThisClass` as-needed for non-reflected classes
-- [ ] Data members before function members, each with explicit visibility label
+- [ ] Data members before function members, explicit label on every group except the first when it is the type's default — mechanical check: `tools/check_member_order.py --path <dir>`
 - [ ] Member default values use `{}` uniform init; zero-init where possible (not `= 0`/`= false`/`= nullptr`)
 - [ ] Inline definitions that must stay in header placed at file bottom; all others in `.cpp`
 - [ ] Every `UPROPERTY` and exposed `UFUNCTION` has a `Category`

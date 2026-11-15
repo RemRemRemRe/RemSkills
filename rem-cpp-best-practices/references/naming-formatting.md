@@ -285,14 +285,14 @@ there. Data-side symptoms: `rem-ue-localization` `references/pitfalls.md`.
 
 Within a type declaration, data members come before function members.
 Data is the most critical information for understanding a class's role — it must
-be immediately visible. Each group has its own explicit visibility label:
+be immediately visible. Each group carries its own visibility label, the first
+one only when it is not the type's default:
 
 ```cpp
 struct FExample
 {
     GENERATED_BODY()
 
-public:
     UPROPERTY(EditAnywhere, Category = "Rem")
     float Speed{};
 
@@ -319,8 +319,23 @@ Functions with the same visibility are grouped together after the data members
 of that visibility. Repeat `public:`/`protected:`/`private:` as needed to express
 the grouping.
 
+The first label is written only when it is not the type's default: a
+`struct`/`union` opens directly with its public data group, because a redundant
+`public:` makes Rider report "Access specifier does not change accessibility
+level" in a file that should be warning-free, and every later group states its
+label because it does change accessibility. `GENERATED_BODY()` does not reset
+that: its expansion ends at the type's own default (`UCLASS` at `private:`,
+`USTRUCT` untouched at public), so a leading label that repeats it is redundant
+in a reflected type as well — verified 2026-11 against the generated headers.
+
 **Enforcement:** a data member declared after any function member (constructors
 included) is a review rejection — data first in every visibility group, always.
+`tools/check_member_order.py --path <dir> [--exclude <glob>]` (or `--diff <rev>` for a
+change set) reports the offending data member and the function member before it
+and exits 1;
+exit 2 means it checked nothing, so it is never read as clean. It reads
+declaration shapes, not types — the compile stays the authority on whether a
+move is legal, `--self-test` is the checker's own regression net.
 
 **Definition order follows declaration order** (project rule): an out-of-line
 definition in the `.cpp` appears in the same order as its declaration in the `.h`.

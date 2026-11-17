@@ -30,7 +30,12 @@ push-gate cadence, run directories, waiting - is the `rem-orchestration` skill.
 - **Write for the operator, plain and short**: what changed, why it matters, what it affects, what comes
   next; about a screenful; detail by pointer to the artifact. Delete a line the operator can neither
   learn from nor act on.
-- **Prefer events over polling; `sleep` is capped at 15 s** and never replaces reading the run directory.
-- **A silent unit is checked** about ten minutes in, then every ten minutes: name the slow step from its
+- **The main session waits by ending its turn**: a background unit's report arrives as an event that
+  starts the next turn, so dispatch, do one independent unit, end. A blocking wait (`wait: true`, a
+  foreground call) is only for a turn that cannot proceed without the result, with a minutes-long
+  checkpoint budget - never the unit's duration. `sleep` stays capped at 15 s and never replaces
+  reading the run directory.
+- **A silent unit is checked at ~2x its stated expected duration**, steered at ~3x, abandoned with a
+  report after that; the trigger is measured, never a fixed ten minutes. Name the slow step from its
   run directory and child-session timestamps before blaming the model. Committing, folding un-pushed
   commits and staging by exact path are a script here, not a delegated unit.

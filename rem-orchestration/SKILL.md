@@ -273,15 +273,31 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
 
 ## Waiting
 
-- Prefer events over polling: background subagents wake the session on completion; a long
-  external process is run as a blocking call with a sufficient tool timeout.
-- Do not use `get_subagent_result(wait: true)` as a blocking wait, and do not sleep-poll. If
-  a run looks stuck, read its run directory or child session for a final message before
-  waiting again; report a genuine stall to the user.
+- **The main session waits by ending its turn.** A background unit's report arrives as an event that
+  starts the next turn, so the turn boundary *is* the wait: dispatch, run one independent unit, end.
+  A blocking wait (`get_subagent_result(wait: true)`, a foreground `Agent`) belongs only to the turn
+  that cannot proceed without the result, and its budget is a checkpoint of minutes, never the unit's
+  expected duration. On expiry the child keeps running - the expiry is a status read, not a failure.
+- **A silence check is a read, not a wait.** At a turn boundary - never on a clock - ask
+  `get_subagent_result(wait: false)` and read the run directory: the heartbeat line the child appends
+  to `state.md` per step, and its session log timestamps. Silence is measurable because the child
+  writes progress; it is never inferred from "nothing arrived yet".
+- **The check trigger is the unit's stated expected duration, not a fixed cadence.** The brief states
+  it, from the last measurement in `state.md`; the parent reads once at about twice that, steers once
+  with `steer_subagent` at about three times, and abandons with a report after that. A fixed ten
+  minutes checks a forty-second unit fifteen times too late, and a forty-minute build every time it is
+  still running.
+- **A dispatch with nothing to overlap is a plan defect.** If no independent unit can run while a child
+  works, either the unit is too coarse (split it) or this turn genuinely needs the result - then it
+  runs foreground, with the short budget and a written resumption point. Waiting because the plan left
+  nothing to do is not a wait, it is a stalled round.
 - **`sleep` is a last resort and never exceeds 15 seconds.** Use it only when there is no event to
   wait on (a file another machine writes, a queue nobody signals). One wait of at most 15 s, repeated
   only as many times as the plan states, and never as a substitute for reading the run directory. An
   unbounded poll loop is a defect, not a habit.
+- **A long external process is one blocking call with a sufficient timeout**, not a background process
+  the session polls: the tool's own timeout is the only clock involved and it returns the whole log at
+  once.
 - **Diagnose the silence before blaming the model.** A stalled model call and a stalled *tool* look
   identical from the parent - nothing arrives either way. What reads as a model stall is often a tool
   call that hung and returned late. So read the child's run directory and its session log timestamps
@@ -293,7 +309,8 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   price the tool it will call: delegate more freely when the unit is only edits, and keep the expensive
   steps (builds, git over big trees) on a measured, single path.
 - **Slow operations are analyzed and reported without being asked.** Any step that exceeds its expected
-  budget - a build past a few minutes, a git command past a few seconds, a unit silent past ten -
+  budget - a build past a few minutes, a git command past a few seconds, a unit silent past twice the
+  duration its brief stated -
   gets one measurement and one report line rather than a quiet wait: what ran, how long, which share
   of the wall clock, and whether the cause is known. Name it in the session's report and, when it is a
   recurring shape, fix it in the skill that owns the tool (this is how the build-freeze and git-plumbing
@@ -313,7 +330,8 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   superseded logs stay in a unique temp dir. `<cwd>/.agents/runs/<run-id>/` receives only
   what a later reader needs — `brief.md` (parent), `state.md`, `test-intent.md`, the
   authoritative logs and `report.md` (executor, append-only); the final message stays a
-  bounded summary with pointers.
+  bounded summary with pointers. `state.md` is one line per step (what started, what returned), so
+  its mtime is the parent's heartbeat and its tail answers "where is it stuck" without a message.
 - **One authoritative log per stage.** A superseded run's logs move out of the run directory
   with a "superseded" marker; the run directory holds the logs the report cites.
 - **The parent keeps `plan.md`.** One line per work unit - is the surface settled, has the freeze
@@ -357,7 +375,8 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] A regression case whose red could not be shown without a run was marked `red not proven`, not asserted as proven
 - [ ] A 0-action ("target is up to date") build was not accepted as compile evidence — the evidence names the round that actually compiled the tree, with its artifact hash/mtime as corroboration
 - [ ] A tree change after the freeze's build got a re-run covering the new bytes, or a stated inert-delta exemption backed by the push gate's run covering the changed spec
-- [ ] No polling waits, no `wait: true` blocking; completion judged from the run directory
+- [ ] No polling waits, and no `wait: true` outside a minutes-long checkpoint for a turn that cannot proceed without the result; completion arrived as an event and silence was judged from the run directory's heartbeat mtime, not from a fixed cadence
+- [ ] No dispatch left the main session without an independent unit to run while the child worked
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Each round named its slowest step in `state.md` and merged, cached or deferred it; no expensive step ran twice inside one round
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof

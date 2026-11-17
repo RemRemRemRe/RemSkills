@@ -26,8 +26,13 @@ Fixed in every role template:
   explained the first time it appears). Full detail goes to `<run-dir>/report.md`; the final message
   is a summary plus pointers. A read-only profile has no write tool, so its brief asks for `inline`:
   the final message **is** the report and the parent persists it.
-- **Run directory** — `<cwd>/.agents/runs/<run-id>/`; the executor appends to `state.md` and never
-  creates a new run dir on `resume`.
+- **Expected duration** — the brief states the step's expected wall clock, taken from the last
+  measurement in the run's `state.md`. The parent's silence check, its steer threshold and its report
+  budget read that number: a unit with no stated duration cannot be judged slow, only felt slow.
+- **Run directory and heartbeat** — `<cwd>/.agents/runs/<run-id>/`; the executor appends to
+  `state.md`, one line per step (what started, what returned), so its mtime is the parent's liveness
+  signal and its tail answers "where is it stuck" without a message; it never creates a new run dir on
+  `resume`.
 
 ## Implementer (authoring)
 

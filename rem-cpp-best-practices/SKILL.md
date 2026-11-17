@@ -337,6 +337,11 @@ Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Fiv
 - **Never use**: `NULL`/`0` pointers, `typedef`, C-style varargs, `GENERATED_UCLASS_BODY`/`GENERATED_USTRUCT_BODY`, raw `new`/`delete` (use `FMemory::Malloc`/`Free`)
 - `TArray::Add` for existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - `FUtf8String` is the primary string type; `FString` only when the engine API demands it
+- **A read-only string parameter is `FUtf8StringView`, by value** — `const FString&` builds a temporary at
+  every literal call site; `FUtf8String`/`FString` are for returns, storage and a reflected or engine
+  signature that fixes the type
+- **Pre-size a container you fill** when the count is known or bounded first — `Reserve(Source.Num())`
+  once beats growth, and a growth reallocation invalidates every reference taken into the array
 - No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
 - **Handle/registration tokens that are never a container index** use `unsigned` with `0` = invalid — not `int32` + `INDEX_NONE` (that sentinel belongs to container indices); precedents: `FTargetingRequestHandle`/`FPrimitiveComponentId`/`FDelegateHandle`. Never add unreachable sentinel-skip code.
 - **Tag arrays in authored data** use `FRemGameplayTagArray`; convert to `FGameplayTagContainer` at engine boundaries.
@@ -365,44 +370,21 @@ Precision tables, the three tests for a bounded quantity, the size analysis per 
 engine citations and the boundary pattern: `references/scalar-width.md` §3 (decision rule) and §7
 (bulk arrays).
 
-### Struct views — type-only vs instance
+### StructUtils views and instanced structs
 
-`FConstStructView::Make(T{})` binds to a temporary that dies at the end of the
-full expression, so the returned view is dangling. To express "the type, not an
-instance", construct the view with a null memory pointer:
-
-```cpp
-return FConstStructView{ T::StaticStruct() };   // type-only (null memory)
-// not FConstStructView::Make(T{})              // dangling
-```
-
-`FInstancedStructContainer::InsertAt/Append` default-constructs each new item
-(`InitializeStruct`) and copies from the source view only when its memory is
-non-null. A type-only view yields a properly default-constructed instance; a
-dangling view overwrites it with garbage.
-
-### Instanced struct two-arg initialization (verified 2026-08)
-
-`TInstancedStruct<T>` has **no non-template two-argument `InitializeAs`**: its
-`InitializeAs<T>(TArgs&&...)` forwards the arguments to `T`'s constructor. The
-non-template form — `InitializeAs(const UScriptStruct*, const uint8* Memory)` —
-exists on the untyped `FInstancedStruct`, so the typed wrapper uses its
-copy-initializer:
-
-```cpp
-Any.InitializeAs(ScriptStruct, Memory);   // ok on FInstancedStruct (copies the bytes)
-Foo.InitializeAs(ScriptStruct, Memory);   // AVOID on TInstancedStruct<T> — C2661
-Foo.InitializeAsScriptStruct(ScriptStruct, Memory);   // PREFER
-```
-
-See `StructUtils/InstancedStruct.h` (`FInstancedStruct` declares the non-template
-two-arg `InitializeAs`; `TInstancedStruct<T>` provides `InitializeAsScriptStruct`).
+`FConstStructView::Make(T{})` binds a temporary, and the typed `TInstancedStruct` wrapper has no
+non-template two-argument `InitializeAs` — the type-only view form and the correct copy-initializer are
+in `references/type-mapping.md` (*Struct views*, *Instanced struct two-arg initialization*).
 
 ---
 
 ## 13. SOLID & Zero-Overhead Abstraction
 
-**Single responsibility:** one thing per type and per function. **Respect levels of abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
+**Single responsibility:** one thing per type and per function, and one name per transition — `Bind`
+binds, `Unbind` unbinds, and a function that tears down before it builds has two jobs and no
+postcondition. **Minimal state:** a member is a lifetime, an invalidation path and a validity question —
+re-read what another object owns at the point of use, and cache only what must outlive its source.
+Worked pairs for both: `references/design.md`. **Respect levels of abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
 
 Zero-overhead rules: `references/design.md`.
 
@@ -490,6 +472,16 @@ An accessor pair splits by contract:
 Worked shapes and the `REM_NO_ASSERTION` misuse: `references/macros-logging.md`
 §2b.
 
+### 14k. A configuration error is asserted or validated at load — never branched on at runtime
+
+Deterministic, visible on first use and fixed by editing data, a missing key is
+`RemCheckCondition(Key.IsValid(), return;)` at the point of use, with the owning stage (data validation,
+`PostLoad`, a hard reference) making the state unreachable in Shipping. A runtime
+`if (!Key.IsValid()) { REM_LOG(Warning, ...); }` pays a branch and a message in every build for a state
+that must not exist, then runs on half-configured; data that can genuinely be wrong at runtime
+(player-authored, imported) takes `RemEnsure*` + handling. Shapes and the load-time requirement behind a
+stripped guard: `references/macros-logging.md` §2d.
+
 ---
 
 ## 15. Module & Plugin Conventions
@@ -562,8 +554,12 @@ Before committing any C++ file:
 - [ ] `RemCommon` surveyed first before adding a new helper/enum (bottom-layer reuse module)
 - [ ] `REM_API` export macro on public API types/functions; internals left unexported
 - [ ] RemEnsure* for runtime-possible states; RemCheck* for developer-error guards
+- [ ] Configuration errors are `RemCheck*` at the point of use or validated at load — no runtime `if`/log that carries on half-configured; runtime-reachable bad data uses `RemEnsure*` + handling (§14k)
+- [ ] A function that is named for one transition does not call its inverse — `Bind` does not call `Unbind`; a rebind is written at the transition point, or a `Rebind()` that is exactly those two calls (§13)
+- [ ] No member caches a pointer or value another object owns (a sibling component, a subsystem, a player state behind an ability system) without a stated reason for it to outlive its source (§13)
 - [ ] Variables declared at narrowest scope; if-condition-init where possible
-- [ ] `FUtf8String` for all string returns/params; `FString` only when engine API requires
+- [ ] `FUtf8String` for returns/storage, `FUtf8StringView` **by value** for read-only parameters; `FString` only where a reflected or engine signature fixes it
+- [ ] Text literals are `UTF8TEXTVIEW("...")`/`UTF8TEXT("...")` wherever the receiver is UTF-8 (`FUtf8StringView`, `FUtf8String`, `Rem::Format`); `TEXT("...")` only for a `TCHAR` consumer
 - [ ] Format strings use `{}` (no numbered placeholders); no `FString::Printf`
 - [ ] Build compiles with the module's `CppStandard.EngineDefault` + `ShadowVariableWarningLevel = Error`
 - [ ] Every inline definition in changed headers sits at the file bottom (or in a `.cpp`) — no method/constructor bodies inside class bodies
@@ -575,6 +571,7 @@ Before committing any C++ file:
 - [ ] Lambda parameters in generic contexts (transrangers::transform, Sort) use explicit types, not `auto`
 - [ ] Integer locals/loop counters use explicit `int32` (`auto X = 0` would deduce `int`)
 - [ ] `TArray::Add` for adding existing values; `TArray::Emplace` for in-place construction or explicit ctors
+- [ ] Every container whose element count is known or bounded before the fill is `Reserve`d once
 - [ ] Control-flow macros avoided — repetitive `if/else` written explicitly; code deduplication done via templates in `.inl`
 - [ ] Private member access via the public API when one exists — plain getters are writable through their non-const overload (a setter is preferred for writes); `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` only when no public getter exists (`CONST_ONLY` getters are read-only)
 - [ ] No structured bindings (`auto [a, b]` — use explicit `Pair.Key` / `Pair.Value`)

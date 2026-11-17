@@ -171,6 +171,63 @@ statement vanish together**. Three consequences decide where a guard belongs:
   loop ran over a zero range and every stacking operation silently did nothing. Hoist such a call into
   a named bool first, then guard the bool.
 
+## 2d. Configuration errors — assert at the point of use or validate at load, never branch at runtime
+
+Configuration is authored by a developer or a designer, not by the player, and it is read the same way
+from the first frame of every session. A missing tag, an unset class, an empty key: the fault is
+deterministic, it surfaces the first time the value is used, and it will not fix itself. That makes it an
+**assertion at the point of use**, not a runtime branch:
+
+```cpp
+// AVOID — a branch and a formatted message in every build, for a state that must not exist; and the
+// function then runs half-configured. The log says "broken", the game keeps going wrong.
+const auto& Key = GetConfiguredKey();
+if (!Key.IsValid())
+{
+    REM_LOG_FUNCTION(LogFoo, Warning, "the key is not configured; see the config file");
+}
+
+Register(Key);   // registers nothing, silently
+
+// PREFER — loud in development, absent in Shipping, and no half-configured state survives the call.
+const auto& Key = GetConfiguredKey();
+RemCheckCondition(Key.IsValid(), return;);
+Register(Key);
+```
+
+Three stages, each doing its own job — that division is what makes the runtime guard free:
+
+| Stage | Job | Shape |
+|---|---|---|
+| Authoring / load | reject or report the bad asset or ini line while someone can still fix it | data validation, `PostLoad`, a `check` in the config getter |
+| First use (development) | name the fault at the line that needs the value | `RemCheckCondition(...)` + bail-out |
+| Shipping runtime | the state is already impossible; nothing is paid | the `RemCheck*` line compiles away |
+
+**Why not `RemEnsure*` here?** An ensure keeps reporting a fault someone was supposed to fix, in every
+build, and its handling statement keeps the code alive on a value that cannot work. Correct for a
+reachable state (§2b), wrong for configuration: it turns a data mistake into a permanent runtime caveat.
+The assert is the right shape only because the load stage has already made the state impossible in
+Shipping — the next paragraph states that requirement.
+
+**The exception — data that can genuinely be wrong at runtime.** Player-authored settings, imported user
+content, a downloaded config, a plugin's optional extension point: the invalid state is reachable in
+Shipping, so it must be handled there and the guard must survive:
+
+```cpp
+// Reachable in Shipping: handle it, do not assert it away.
+RemEnsureCondition(REM_NO_ASSERTION, UserConfig.IsValid(), return {});
+```
+
+**The requirement that makes the stripped guard safe.** A `RemCheck*` in runtime code is only correct
+when an earlier stage has already excluded the invalid state in Shipping — cook-time validation, a hard
+reference, a table asserted at load. Without that stage the guard and its `return` disappear together
+(§2c) and the code runs on the invalid value, which is the defect that rule records. No earlier stage →
+`RemEnsure*` with a Shipping-safe handling statement.
+
+**One check, not one per call site.** The same configuration validated in the setter, in `Initialize`, and
+again in a per-tick path is the same branch three times; validate where the value enters the object and
+let the consumers state the invariant.
+
 ## 3. Config macros
 
 | Macro | Effect |

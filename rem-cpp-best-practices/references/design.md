@@ -8,6 +8,110 @@ Each class/struct does one thing. Each function does one thing. If a struct
 has `UPROPERTY` data and logic, the logic is in a separate non-reflected base
 or a free function in `Rem::`.
 
+### Minimal stored state — re-derive instead of caching
+
+A data member costs four things: a lifetime to keep correct, an invalidation path at every writer, a
+validity question at every read, and a line in every constructor and copy. Before adding one, ask
+whether it can be read at the point of use from the object that owns it.
+
+- **Do not cache another object's state.** A sibling component, a subsystem, a controller's pawn, the
+  player state behind an ability system, a configuration object: the owner can be rebuilt, replaced or
+  destroyed between two calls, so the cache is stale exactly where it matters. Reading at use costs one
+  getter; keeping the cache correct costs an update path at every write site, most of which nobody
+  remembers.
+- **A cache is justified by one of three facts, and the fact is stated on the member:** the read is
+  measurably expensive relative to its frequency; the value must be read *after* its source is gone (a
+  registered handle together with the key it has to be unregistered with); or it is the result of work
+  that cannot be repeated (a computed id). "Might be a bit faster" is not one of them — measure first,
+  and a container lookup or a getter almost never shows up.
+- **Scope the cache to the operation, not to the object.** A value one call needs is a local; a value
+  one frame needs is a member cleared at the end of that frame. A member that outlives its use turns
+  into `if (Cached.IsValid())` spread over the whole type — state that exists to answer a question
+  nobody asked.
+
+```cpp
+// Declared elsewhere, so the example is self-contained:
+// UBar* ResolveBar();
+
+// AVOID — the first answer is frozen, and every writer has to invalidate it.
+class FFoo
+{
+public:
+    void Initialize()
+    {
+        Cached = ResolveBar();       // stale after any rebuild or respawn
+    }
+
+    void Act() const
+    {
+        if (auto* Bar = Cached.Get())
+        {
+            Bar->Do();
+        }
+    }
+
+private:
+    TWeakObjectPtr<UBar> Cached{};
+};
+
+// PREFER — resolved where it is used: no lifetime, no writer, no validity question.
+class FFoo
+{
+public:
+    void Act() const
+    {
+        if (auto* Bar = ResolveBar())
+        {
+            Bar->Do();
+        }
+    }
+};
+```
+
+The legitimate cache, from the same family: a delegate handle **and** the key it was registered with.
+The key must be passed back to unregister, the configuration it came from may have changed in between,
+and there is no other source for it — so the pair is stored, with the reason written on the member.
+
+### One transition per name — `Bind` does not call `Unbind`
+
+A function name is a postcondition. `Bind` promises "the bindings this call makes exist"; a `Bind` whose
+first line is `Unbind()` also promises "whatever was there is gone", which is a second job performed
+invisibly:
+
+```cpp
+// AVOID — hidden teardown: the name no longer says whether anything was released.
+void Bind()
+{
+    Unbind();
+    RegisterFirst();
+    RegisterSecond();
+}
+
+// PREFER — the replacement is one visible, ordered statement at the transition point.
+Unbind();
+Bind();
+```
+
+What the hidden version costs:
+
+- **The call site cannot be read.** Setup and replacement look identical, so a reviewer cannot see the
+  release and the person chasing a leaked handle cannot find it.
+- **The functions stop being independently testable.** "Does `Bind` allocate?" now depends on prior
+  state, and a test that binds twice tests something different from one that binds once.
+- **The failure modes merge.** A half-failed previous bind, a guard that skipped the release, or a
+  nested call becomes a double registration or a leak that only the combined entry point can contain —
+  and it cannot, because it does not know which of the two cases it is in.
+- **The teardown is forced on callers that never needed it,** for example an initialize path that has
+  nothing bound yet.
+
+When replacement is genuinely one domain operation, name the operation: `Rebind()` whose whole body is
+`Unbind();` then `Bind();`. When the requirement is instead idempotency — initialize and resume both
+call it — guard on the state (`if (bBound) { return; }`) rather than tearing down and rebuilding.
+
+Exception: an owner whose semantics *are* "regenerate from scratch on every call" (a cache that
+recomputes per generation) keeps the teardown inside, under a name that says so — `Rebuild()` — and
+still as the first statement rather than buried in a helper.
+
 ### Respect levels of abstraction
 
 A function body reads at **one level of abstraction**: high-level statements

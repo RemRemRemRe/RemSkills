@@ -279,6 +279,23 @@ No performance difference. The distinction is semantic:
 Default to `Add` when you have a value; `Emplace` when you have constructor args
 or the target type's constructor is explicit.
 
+### Pre-size a container you fill
+
+`Reserve` once, before the loop, whenever the element count is known or bounded. Growing is
+reallocate-copy-free, and every reallocation invalidates the references and pointers taken into the
+array — an `Element&` held across an `Add` is a latent use-after-free.
+
+| Situation | Shape |
+|---|---|
+| Copying or filtering a source container | `Destination.Reserve(Source.Num());` — the result is at most that many |
+| A small fixed bound (≤4 typical) | `TArray<T, TInlineAllocator<4>>` — no heap at all |
+| Exact count, elements written afterwards | `SetNumUninitialized(N)` (or `SetNumZeroed`), then fill by index |
+| TMap/TSet filled with known entry count | `Map.Reserve(Count)` — rehashes are what it avoids |
+| Count unknown until the loop ends | no `Reserve` — a guessed capacity is worse than growth |
+
+A cached index or reference into a container you then grow is the same bug seen from the other side:
+reserve, or re-resolve after every mutation.
+
 ### String type priority
 
 `FUtf8String` is the **primary** string type for all new code. `FString` (a.k.a.
@@ -287,13 +304,35 @@ is not used in this project.
 
 | String type | When to use |
 |-------------|-------------|
-| `FUtf8String` | Default for all return values, parameters, and storage |
-| `FUtf8StringView` | Pass-by-value; read-only slices without allocation |
+| `FUtf8String` | Default for return values and storage |
+| `FUtf8StringView` | Read-only **parameters**, by value; slices without allocation |
+| `UTF8TEXTVIEW("...")` | A constexpr `FUtf8StringView` from a literal — no allocation |
+| `UTF8TEXT("...")` | A `UTF8CHAR` literal array, when something stores the pointer |
 | `TUtf8StringBuilder<N>` | Build strings incrementally (N=256 for typical messages) |
 | `TStringBuilderBase<UTF8CHAR>&` | Output parameter for builder-based `ToString(Builder, Value)` |
 | `FString` / `FWideString` | Legacy — only when the UE API requires it; convert to `FUtf8String` ASAP |
 | `FStringView` | Legacy — only when the UE API requires it |
 | `FAnsiString` | Not used — prefer `FUtf8String` for ANSI-range content |
+
+**A read-only parameter is a view, passed by value.** `const FUtf8String&` is not a cheaper view: it
+forces the caller to own a string, so every literal call site builds a temporary `FString`, and it
+refuses a slice the caller already has. `TStringView` is a pointer and a length — two registers:
+
+| Declaration | Verdict |
+|---|---|
+| `void Foo(FUtf8StringView Text)` | preferred — reference semantics, no allocation, accepts a literal via `UTF8TEXTVIEW` |
+| `void Foo(const FUtf8String& Text)` | AVOID — allocates at literal call sites, forbids a sub-slice |
+| `void Foo(FUtf8String Text)` | only when the function stores the string or moves from it |
+
+Reflected signatures are the one exception: a `UFUNCTION` / `BlueprintImplementableEvent` parameter or an
+engine virtual override keeps the type reflection or the base declares (`FString`, `FStringView`), and
+converts internally.
+
+Engine APIs still hand out `FString` (`GetName()`, `GetPathName()`, `ExportText`): convert once at that
+boundary and never keep both forms of the same text. `UTF8CHAR` is `char8_t`
+(`Core/Public/GenericPlatform/GenericPlatform.h`), so a plain `"..."` — a `char` array — does not
+convert to `FUtf8StringView`: write `UTF8TEXTVIEW("...")` for a view, `UTF8TEXT("...")` for storage
+(`Core/Public/Containers/StringView.h`, `Core/Public/HAL/Platform.h`; last verified 2026-11, UE 5.8).
 
 All string-building flows go through `Rem::Format` which wraps `fmt::format_to`
 directly into a `TStringBuilderBase<CharType>`. Format strings use `{}`
@@ -322,3 +361,36 @@ float Value = 1.0f;    // NOT 1.0 (would be double)
 double Value = 1.0;    // NOT 1.0f (would be float)
 int32 Value = 1;       // fine
 ```
+
+### Struct views — type-only vs instance
+
+`FConstStructView::Make(T{})` binds to a temporary that dies at the end of the
+full expression, so the returned view is dangling. To express "the type, not an
+instance", construct the view with a null memory pointer:
+
+```cpp
+return FConstStructView{ T::StaticStruct() };   // type-only (null memory)
+// not FConstStructView::Make(T{})              // dangling
+```
+
+`FInstancedStructContainer::InsertAt/Append` default-constructs each new item
+(`InitializeStruct`) and copies from the source view only when its memory is
+non-null. A type-only view yields a properly default-constructed instance; a
+dangling view overwrites it with garbage.
+
+### Instanced struct two-arg initialization (verified 2026-08)
+
+`TInstancedStruct<T>` has **no non-template two-argument `InitializeAs`**: its
+`InitializeAs<T>(TArgs&&...)` forwards the arguments to `T`'s constructor. The
+non-template form — `InitializeAs(const UScriptStruct*, const uint8* Memory)` —
+exists on the untyped `FInstancedStruct`, so the typed wrapper uses its
+copy-initializer:
+
+```cpp
+Any.InitializeAs(ScriptStruct, Memory);   // ok on FInstancedStruct (copies the bytes)
+Foo.InitializeAs(ScriptStruct, Memory);   // AVOID on TInstancedStruct<T> — C2661
+Foo.InitializeAsScriptStruct(ScriptStruct, Memory);   // PREFER
+```
+
+See `StructUtils/InstancedStruct.h` (`FInstancedStruct` declares the non-template
+two-arg `InitializeAs`; `TInstancedStruct<T>` provides `InitializeAsScriptStruct`).

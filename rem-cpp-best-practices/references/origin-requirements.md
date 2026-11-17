@@ -223,6 +223,19 @@ Base class header first (technical requirement), then generated.h last (UHT
 requirement), forward declarations after all #includes. Empty-line separation
 between groups improves readability without adding boilerplate.
 
+### Operator review batch (2026-11) — state, transitions, config, strings, containers
+
+Five rules entered the skill from one component review, stated here as they were raised so a
+regeneration keeps their intent:
+
+| Rule | Origin phrasing | Owner |
+|---|---|---|
+| Minimal stored state | "don't cache it, read it each time — fewest cache members, they bloat the type; cache only when necessary" | §13, `references/design.md` |
+| One transition per name | "`Bind` must not call `Unbind`: a function has one responsibility" | §13, `references/design.md` |
+| Configuration is asserted | "a config error is `RemCheck*`, not a runtime `if`/return — it means nothing; each development stage does its own job, for maximum efficiency" | §14k, `references/macros-logging.md` §2d |
+| Strings as light as possible | "UTF-8 / ASCII, a UTF-8 string-view type; `FString` is obsolete unless unavoidable" | §12, `references/type-mapping.md` |
+| Pre-size containers | "the bindings array has no `Reserve`" | §12, `references/type-mapping.md` |
+
 ## Inspiration sources
 
 - <https://github.com/Jeffallan/claude-skills/tree/main/skills/cpp-pro> — modern C++

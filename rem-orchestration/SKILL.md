@@ -235,6 +235,16 @@ first attempt.
 
 - **Cheap evidence first, expensive evidence last** - a compile before a build, a build before the
   suite; never run the expensive one to answer what the cheap one answers.
+- **Ask the cheap tool before the compiler.** A name that must exist is a symbol lookup, not a build; a
+  formatting, `const` or unused-include slip is the IDE lint, seconds per file; a formatter run on a file
+  the IDE has not indexed yet - any new file - writes back a stale copy, so verify the bytes after every
+  IDE call instead of discovering it in the next build. Measured 2026-11: one unit spent four builds, and
+  three of them were answering those cheap questions.
+- **A header edit is the only change that widens the compile set.** With unity off, every includer
+  compiles separately and every module that includes the header relinks, so a header touched mid-unit
+  multiplies that unit's build and one touched per round multiplies the round. Collect a unit's header
+  edits into the same compile; keep a body-only fix in the `.cpp`. The seconds each shape costs are in
+  the project overlay (`rem-cpp-best-practices`, *Tool costs*).
 - **Batch related work** - one compile per coherent batch, one suite per unchanged tree, one doc
   sweep per unit. A compile per file multiplies the cheapest step; a suite per fix multiplies the
   dearest.
@@ -379,6 +389,7 @@ Two scheduling rules are harness-general and belong here too:
 - [ ] No dispatch left the main session without an independent unit to run while the child worked
 - [ ] Non-compiled documentation ran in parallel with the code work where no file was shared
 - [ ] Each round named its slowest step in `state.md` and merged, cached or deferred it; no expensive step ran twice inside one round
+- [ ] The round's builds answered code questions, not ones the IDE lint or a symbol lookup answers first, and a unit's header edits shared one compile
 - [ ] Mechanical sweeps above ~50 sites used a scripted transform with an inverse-diff proof
 - [ ] Every brief carried only its delta over the standing template and quoted the expected working set verbatim
 - [ ] Each item crossing a module/DLL/lifecycle/build boundary got a one-line feasibility check before dispatch

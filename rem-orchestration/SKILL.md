@@ -130,6 +130,12 @@ measured, not stylistic: a run costs 30-40 s of editor startup before the first 
 176-case core run is ~70 s, half of it startup), so a run inside iteration spends the slowest step of
 the whole loop on every round. The rule is revisited the day that startup comes down to compile time.
 
+A **live loop** is the other side of the same boundary, and it is the cheap way to watch a `.cpp` body:
+with the editor already open, a pure `.cpp` change is patched into the running module without the module
+link - the part that dominates a headless round - and without a restart. It cannot carry a header edit,
+which forces the close-and-rebuild path, so a header edit ends the live loop for that round. A live loop
+is not a round's evidence; the round still ends on a compile. Mechanics: the editor-iteration skill.
+
 The price is stated rather than hidden: a case's capture, its counts and its identifiers are proven
 only by executing, so a case that has never run is recorded in the plugin's *unrun cases* record
 (below), and the first run that covers it owns making it pass.
@@ -240,6 +246,10 @@ first attempt.
   the IDE has not indexed yet - any new file - writes back a stale copy, so verify the bytes after every
   IDE call instead of discovering it in the next build. Measured 2026-11: one unit spent four builds, and
   three of them were answering those cheap questions.
+- **A build charges the target's whole dirty set, not this unit's files.** Two unrelated pending edits in
+  another module turned an 8-action round into 12 (measured 2026-11); a stale generated file does the
+  same. Read the target's dirty entries before judging a build's time, and keep a unit's scratch out of
+  the tree so the number a round records belongs to that round.
 - **A header edit is the only change that widens the compile set.** With unity off, every includer
   compiles separately and every module that includes the header relinks, so a header touched mid-unit
   multiplies that unit's build and one touched per round multiplies the round. Collect a unit's header

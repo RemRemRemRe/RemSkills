@@ -112,6 +112,40 @@ Exception: an owner whose semantics *are* "regenerate from scratch on every call
 recomputes per generation) keeps the teardown inside, under a name that says so — `Rebuild()` — and
 still as the first statement rather than buried in a helper.
 
+### Take the narrowest type the body uses
+
+A parameter typed for the caller's most specific class narrows every future caller and forces a cast
+where a base type already works. Ask what the body actually touches: a helper that only calls
+`GetName()` needs `UObject`, not `APawn`; one that only reads a transform needs `AActor`. Choosing the
+base costs nothing when the use is genuine; choosing the derived one costs a second overload the day
+another type needs it.
+
+Containers are the exception that proves the rule: a view does not widen. `TConstArrayView<APawn*>` is
+not a `TConstArrayView<AActor*>`, and a template parameter cannot be deduced from a `TArray<APawn*>`
+argument into `TConstArrayView<TObject*>` — the conversion is not a deduction context. A general helper
+therefore deduces the range and constrains its element:
+
+```cpp
+template <typename TRange>
+    requires (CUObject<std::remove_pointer_t<TElementType_T<TRange>>>)
+[[nodiscard]] FUtf8String JoinObjectNames(const TRange& Objects);
+```
+
+### Preconditions sit at the top of the function
+
+A null check on an object the function cannot work without is a **precondition**, not a branch: it
+belongs in the first lines, before the body has locals. The shape `if (A) { if (B) { work } }` is two
+unnamed preconditions — the body above it already ran with values it could not use, and the reader
+holds two states at once. Prefer, in this order:
+
+1. a `TNotNull` parameter, when the caller already knows the value is there;
+2. a top-of-function guard (`if (!Object) { return; }`) when the absence is a reachable runtime state;
+3. a `RemEnsure*`/`RemCheck*` with a bail-out, when the absence is a bug rather than a state.
+
+Absence that is *legal* stays a branch where it is decided — a leader that may not exist yet, a
+container that may be empty — but it is decided once, near the top, not re-checked by every helper the
+value passes through.
+
 ### Respect levels of abstraction
 
 A function body reads at **one level of abstraction**: high-level statements

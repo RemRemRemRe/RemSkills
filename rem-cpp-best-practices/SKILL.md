@@ -556,6 +556,8 @@ Before committing any C++ file:
 - [ ] RemEnsure* for runtime-possible states; RemCheck* for developer-error guards
 - [ ] Configuration errors are `RemCheck*` at the point of use or validated at load — no runtime `if`/log that carries on half-configured; runtime-reachable bad data uses `RemEnsure*` + handling (§14k)
 - [ ] A function that is named for one transition does not call its inverse — `Bind` does not call `Unbind`; a rebind is written at the transition point, or a `Rebind()` that is exactly those two calls (§13)
+- [ ] No object precondition is checked in a nested `if` mid-body — it is a top-of-function guard, a `TNotNull` parameter, or a `RemEnsure*` bail-out (§13, `references/design.md`)
+- [ ] A helper's parameter is the narrowest type its body uses; a general helper deduces the range instead of taking a view over the caller's container (§13)
 - [ ] No function bails out on two or more absent inputs — the absence is a second function or the caller's `TNotNull` guard (§13)
 - [ ] A domain helper another file will plausibly reuse sits in the module's `Rem::` statics, not in an anonymous namespace (§13)
 - [ ] A full array replacement is one assignment (or `CopyFrom`), not `Reset()` + `Append()` (§12, `references/type-mapping.md`)

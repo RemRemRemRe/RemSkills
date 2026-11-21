@@ -122,7 +122,11 @@ another type needs it.
 
 Containers are the exception that proves the rule: a view does not widen. `TConstArrayView<APawn*>` is
 not a `TConstArrayView<AActor*>`, and a template parameter cannot be deduced from a `TArray<APawn*>`
-argument into `TConstArrayView<TObject*>` — the conversion is not a deduction context. A general helper
+argument into `TConstArrayView<TObject*>` — the conversion is not a deduction context. The compatibility
+trait says exactly this: `TIsCompatibleElementType_V = std::is_convertible_v<T**, ElementType* const*>`
+(`Core/Public/Containers/ArrayView.h`), which permits adding `const` to the same pointee type, not
+changing the pointee's class. `MakeConstArrayView`/`MakeConstArrayView64` are factories that deduce
+the element from the pointer, so a wrapper changes the size type and nothing else. A general helper
 therefore deduces the range and constrains its element:
 
 ```cpp

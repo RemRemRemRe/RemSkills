@@ -338,10 +338,9 @@ Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Fiv
 - `TArray::Add` for existing values; `TArray::Emplace` for in-place construction or explicit ctors
 - `FUtf8String` is the primary string type; `FString` only when the engine API demands it
 - **A read-only string parameter is `FUtf8StringView`, by value** — `const FString&` builds a temporary at
-  every literal call site; `FUtf8String`/`FString` are for returns, storage and a reflected or engine
-  signature that fixes the type
+  every literal call site; `FString` is for returns, storage and reflected signatures
 - **Pre-size a container you fill** when the count is known or bounded first — `Reserve(Source.Num())`
-  once beats growth, and a growth reallocation invalidates every reference taken into the array
+  beats growth, and growth invalidates every reference into the array
 - No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
 - **Handle/registration tokens that are never a container index** use `unsigned` with `0` = invalid — not `int32` + `INDEX_NONE` (that sentinel belongs to container indices); precedents: `FTargetingRequestHandle`/`FPrimitiveComponentId`/`FDelegateHandle`. Never add unreachable sentinel-skip code.
 - **Tag arrays in authored data** use `FRemGameplayTagArray`; convert to `FGameplayTagContainer` at engine boundaries.
@@ -380,14 +379,15 @@ in `references/type-mapping.md` (*Struct views*, *Instanced struct two-arg initi
 
 ## 13. SOLID & Zero-Overhead Abstraction
 
-**Single responsibility:** one thing per type and per function, and one name per transition — `Bind`
-binds, `Unbind` unbinds, and a function that tears down before it builds has two jobs and no
-postcondition. **Minimal state:** a member is a lifetime, an invalidation path and a validity question —
-re-read what another object owns at the point of use, and cache only what must outlive its source.
-Worked pairs for both: `references/design.md`. **Respect levels of abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
+**Single responsibility:** one thing per type and per function, one name per transition - `Bind` binds,
+`Unbind` unbinds, and tearing down before building is two jobs with no postcondition. **Minimal state:**
+re-read what another object owns; cache only what outlives its source. **Count the
+absent inputs:** bailing out on three missing inputs is several functions, or a `TNotNull` signature with
+the guard at the call site. **A reusable helper is not file-local:** a reusable domain helper belongs to the module's
+`Rem::` statics, a generic one to `RemCommon`. See `references/design.md`. **Respect levels of
+abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
 
 Zero-overhead rules: `references/design.md`.
-
 ### Elegance — objective proxies
 
 "Elegant" is not reviewable as stated; it is checked through proxies, capped at three
@@ -556,6 +556,9 @@ Before committing any C++ file:
 - [ ] RemEnsure* for runtime-possible states; RemCheck* for developer-error guards
 - [ ] Configuration errors are `RemCheck*` at the point of use or validated at load — no runtime `if`/log that carries on half-configured; runtime-reachable bad data uses `RemEnsure*` + handling (§14k)
 - [ ] A function that is named for one transition does not call its inverse — `Bind` does not call `Unbind`; a rebind is written at the transition point, or a `Rebind()` that is exactly those two calls (§13)
+- [ ] No function bails out on two or more absent inputs — the absence is a second function or the caller's `TNotNull` guard (§13)
+- [ ] A domain helper another file will plausibly reuse sits in the module's `Rem::` statics, not in an anonymous namespace (§13)
+- [ ] A full array replacement is one assignment (or `CopyFrom`), not `Reset()` + `Append()` (§12, `references/type-mapping.md`)
 - [ ] No member caches a pointer or value another object owns (a sibling component, a subsystem, a player state behind an ability system) without a stated reason for it to outlive its source (§13)
 - [ ] Variables declared at narrowest scope; if-condition-init where possible
 - [ ] `FUtf8String` for returns/storage, `FUtf8StringView` **by value** for read-only parameters; `FString` only where a reflected or engine signature fixes it

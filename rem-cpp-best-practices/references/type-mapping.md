@@ -334,6 +334,29 @@ boundary and never keep both forms of the same text. `UTF8CHAR` is `char8_t`
 convert to `FUtf8StringView`: write `UTF8TEXTVIEW("...")` for a view, `UTF8TEXT("...")` for storage
 (`Core/Public/Containers/StringView.h`, `Core/Public/HAL/Platform.h`; last verified 2026-11, UE 5.8).
 
+### Replacing a container's contents
+
+`TArray<TObjectPtr<T>>` assigns directly from `TArray<T*>` through the compatible-element
+`operator=` (`Core/Public/Containers/Array.h`, the `TContainerElementTypeCompatibility` overloads), so a
+full replacement is **one statement**:
+
+```cpp
+ControlledUnits.CurrentOrderedControlledUnits = NewCurrent;   // PREFER
+// CurrentOrderedControlledUnits.Reset();
+// CurrentOrderedControlledUnits.Append(NewCurrent);           // AVOID: two steps for one intent
+```
+
+`Reset()` + `Append()` is the workaround for when the element types do not convert, and that is the
+signal to fix the element type instead. The two-step form also reads as "add to" rather than "replace",
+so a reader has to check whether something was kept.
+
+### Appending one character to a builder
+
+`Builder << ','` resolves to `AppendChar` and, for a simply convertible char pair (`ANSICHAR` →
+`UTF8CHAR`), a single store. `Builder << ANSITEXTVIEW(",")` takes the range path — `MakeStringView`,
+`ConvertedLength`, `Convert` — for the same one character. Numerically tiny, but the char form is short
+and says what it does; the view form in a loop reads as string building.
+
 All string-building flows go through `Rem::Format` which wraps `fmt::format_to`
 directly into a `TStringBuilderBase<CharType>`. Format strings use `{}`
 placeholders (no numbers needed — `fmt` infers argument order).

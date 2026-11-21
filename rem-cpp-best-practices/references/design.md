@@ -150,6 +150,28 @@ Absence that is *legal* stays a branch where it is decided — a leader that may
 container that may be empty — but it is decided once, near the top, not re-checked by every helper the
 value passes through.
 
+### Write for the guaranteed order
+
+A later stage that re-does an earlier stage's work "just in case" does not make the system safer: it hides
+the broken caller, doubles the paths that can register, bind or initialise the same thing, and every
+reader has to work out which ordering is real. If the announcement is guaranteed to precede the tags, the
+tag handler needs no fallback bind.
+
+- **Assume the order the design states.** A caller that violated it is a defect; the code that would
+  survive the violation is dead weight in every normal run.
+- **Assert the invariant instead of defending it.** `RemCheckCondition(!bBound, return;)` in `BindUnits`
+  names the rule (one bind, at the announcement); a lazy "bind if not bound yet" inside the reform hides
+  the same rule and makes a second announce silently legal.
+- **What is not the same thing:** a value that can genuinely be absent at runtime (a dying ability system
+  behind a weak pointer, a null entry a Blueprint wrote into a `UPROPERTY` array) is data, not ordering.
+  That check stays — it is the input's shape, not another layer's promise.
+- **What is also not the same thing:** a state machine's own re-entrancy (a follow coroutine answering a
+  tag change while the reform that started it runs). That guard stays and is named for what it is.
+
+The test: delete the fallback and name the caller that would break. If the answer is "none, the order is
+fixed", it was defence against a hypothetical; if it is "the Blueprint that can write this array", it is
+input validation and belongs.
+
 ### Respect levels of abstraction
 
 A function body reads at **one level of abstraction**: high-level statements

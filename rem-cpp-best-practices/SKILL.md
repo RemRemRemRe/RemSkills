@@ -171,9 +171,9 @@ UObject pointer type by context: `TObjectPtr<T>` for a `UPROPERTY` member, raw `
 
 **Scope — every reference, parameter *or* return.** A `&` to a UObject/interface (or to an object-like container) is a `TNotNull` candidate; the API prefers pointer semantics over reference semantics. Only value semantics keep the reference — a value type passed by reference to avoid a copy (`FVector`, `FGameplayTag`, `TConstArrayView`, enums), and signatures fixed by reflection or the engine (`UFUNCTION`, `BlueprintImplementableEvent`, engine virtual overrides). A non-null getter is named `Get*` and returns `TNotNull`; the nullable half of the pair is `TryGet*` returning a raw pointer; a `Get*Ref` name is the pre-conversion form.
 
-**A legally-absent parameter is a second function, not a nullable one.** `TNotNull` on a parameter is a claim; when absence is a legal state (a controller with no pawn, a team with no leader) the claim is a lie and the wrapper's check fires on a reachable state. Offer an overload that omits it, and keep one implementation in a TU-private helper taking the raw pointer (2026-11).
+**A legally-absent parameter is a second function, not a nullable one.** `TNotNull` on a parameter is a claim; when absence is a legal state (a controller with no pawn, a team with no leader) the claim is a lie and the wrapper's check fires on a reachable state. Offer an overload that omits it, and keep one implementation in a TU-private helper taking the raw pointer (2026-11) — under the **same name**, with `TOptional<const T*>` as its parameter, so the internal loop keeps one vocabulary and the optional type says "may be absent" without inventing a second verb.
 
-**Liveness belongs at the dereference, identity comparison in the model.** A find-by-pointer (`IndexOfByKey`) needs no `IsValid` — null-collapsing there also makes two dead elements compare equal; the caller that hands the result to navigation, a delegate or a tick checks. "The container only holds live objects" is true at write time only — between two updates an element can die, so the consumer's check is not dead code (2026-11).
+**Liveness belongs at the dereference, identity comparison in the model.** A find-by-pointer (`IndexOfByKey`) needs no `IsValid` — null-collapsing there also makes two dead elements compare equal; the caller that hands the result to navigation, a delegate or a tick checks. "The container only holds live objects" is true at write time only — between two updates an element can die (2026-11).
 
 **A weak delegate binding is the liveness guard.** `CreateWeakLambda(Object, …)` already stops the
 callback when `Object` dies, so the body works with the pointer that binding owns and a second
@@ -339,8 +339,8 @@ Getter macro signatures, `REM_DEFINE_PRIVATE_MEMBER_ACCESSOR` usage, Rule of Fiv
 - `FUtf8String` is the primary string type; `FString` only when the engine API demands it
 - **A read-only string parameter is `FUtf8StringView`, by value** — `const FString&` builds a temporary at
   every literal call site; `FString` is for returns, storage and reflected signatures
-- **Pre-size a container you fill** when the count is known or bounded first — `Reserve(Source.Num())`
-  beats growth, and growth invalidates every reference into the array
+- **Pre-size a container you fill** when the count is known first — `Reserve(Source.Num())` beats growth,
+  which invalidates references into the array
 - No structured bindings (`auto [a, b]`); float literals stay typed (`1.0f` not `1.0`)
 - **Handle/registration tokens that are never a container index** use `unsigned` with `0` = invalid — not `int32` + `INDEX_NONE` (that sentinel belongs to container indices); precedents: `FTargetingRequestHandle`/`FPrimitiveComponentId`/`FDelegateHandle`. Never add unreachable sentinel-skip code.
 - **Tag arrays in authored data** use `FRemGameplayTagArray`; convert to `FGameplayTagContainer` at engine boundaries.
@@ -371,9 +371,8 @@ engine citations and the boundary pattern: `references/scalar-width.md` §3 (dec
 
 ### StructUtils views and instanced structs
 
-`FConstStructView::Make(T{})` binds a temporary, and the typed `TInstancedStruct` wrapper has no
-non-template two-argument `InitializeAs` — the type-only view form and the correct copy-initializer are
-in `references/type-mapping.md` (*Struct views*, *Instanced struct two-arg initialization*).
+Two pitfalls — `FConstStructView::Make(T{})` binds a temporary, and a typed `TInstancedStruct` has no
+two-argument `InitializeAs`: `references/type-mapping.md` (*Struct views*, *Instanced struct*).
 
 ---
 
@@ -474,9 +473,9 @@ Worked shapes and the `REM_NO_ASSERTION` misuse: `references/macros-logging.md`
 
 ### 14k. A configuration error is asserted or validated at load — never branched on at runtime
 
-Deterministic, visible on first use and fixed by editing data, a missing key is
+Deterministic and fixed by editing data, a missing key is
 `RemCheckCondition(Key.IsValid(), return;)` at the point of use, with the owning stage (data validation,
-`PostLoad`, a hard reference) making the state unreachable in Shipping. A runtime
+`PostLoad`, a hard reference) making it unreachable in Shipping. A runtime
 `if (!Key.IsValid()) { REM_LOG(Warning, ...); }` pays a branch and a message in every build for a state
 that must not exist, then runs on half-configured; data that can genuinely be wrong at runtime
 (player-authored, imported) takes `RemEnsure*` + handling. Shapes and the load-time requirement behind a

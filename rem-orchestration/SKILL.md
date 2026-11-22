@@ -336,6 +336,10 @@ tree mean the loop has stalled - stop and re-plan rather than iterate again.
   recurring shape, fix it in the skill that owns the tool (this is how the build-freeze and git-plumbing
   rules above were found). A slow step nobody measures reads as "the agent is slow" and nobody can act
   on it.
+- **A green probe is evidence only if the probe replaced the code.** A patch that silently did not match
+  (a stale editor buffer, a line-ending difference, a regex that missed) leaves the old function or
+  overload in place, and the build then passes for the wrong reason. Read the changed line in the file, or
+  look for the error the probe was meant to produce, before believing the pass (2026-11).
 - **An executor's self-report is a claim; re-derive what gates the commit.** The executor verifies what
   it can see, and its report arrives as fact - two measured misses in one session: "line endings
   verified unchanged" (four files had flipped to CRLF) and "`lint_files` does not return that class of

@@ -299,6 +299,14 @@ intent.
 Deletion is the preferred fix: a proxy that fails because the code is
 unnecessary is resolved by removing it, not by adding a layer.
 
+**A member function that touches no member is a `static` function.** Being non-static claims a coupling
+the body does not have: a reader assumes it reads or writes the object's state, a test writer hunts for
+the state to set up, and the class looks bigger than it is. The same applies to a helper that only needs
+its parameters — make it `static` (or a free function in `Rem::` when it needs no class at all). The
+IDE's *member can be made static* hint does **not** arrive through the MCP diagnostics interface
+(measured 2026-11: `get_file_problems` and `lint_files` both return nothing for a file the IDE flags),
+so this one is checked by hand or by `rem-cpp-best-practices/tools/check_static_members.py --path <dir>`.
+
 ### Choosing where an extension lives
 
 An extension point should not tax the code that never uses it: "flexible" is a cost every reader and

@@ -80,6 +80,18 @@ Rem-specific entries name Rem APIs as documented in this skill.
 
 ## UE types
 
+### `SetViewTarget` already handles null and an unchanged target (verified 2026-11)
+
+- **Fact** — `APlayerController::SetViewTarget` forwards to `APlayerCameraManager::SetViewTarget`
+  (`PlayerController.cpp:594`), which turns a **null target into the controller itself**
+  (`PlayerCameraManager.cpp:122-125`) and **returns without doing anything when the new target equals
+  the current one** (`:145`); an in-flight transition to that target is not interrupted (`:135`).
+- **Use** — a "camera is on the controller now" latch, a `bViewTargetOnController` flag and its
+  two assignment sites, all re-implement the engine's fallback and idempotence. Pass the wanted target
+  (or `nullptr` for "the controller") on every update and let it decide.
+- **Also** — a null target fails over to `PCOwner`, so a camera that must look at nothing has to point
+  at some actor; "no view target" is not a state the engine keeps.
+
 ### `APlayerState::GetPawn()` already is the controller's pawn (verified 2026-11)
 
 - **Fact** — `PawnPrivate` is written only through `FSetPlayerStatePawn`, whose constructor is

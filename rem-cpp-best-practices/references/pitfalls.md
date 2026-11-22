@@ -80,6 +80,18 @@ Rem-specific entries name Rem APIs as documented in this skill.
 
 ## UE types
 
+### `APlayerState::GetPawn()` already is the controller's pawn (verified 2026-11)
+
+- **Fact** — `PawnPrivate` is written only through `FSetPlayerStatePawn`, whose constructor is
+  `friend APawn` (`Engine/Classes/GameFramework/PlayerState.h`), so the pawn itself sets the player
+  state when it is possessed; `GetPawn()` returns that field.
+- **Use** — a component that lives on the player state reads `PlayerState->GetPawn()`. Re-reading
+  `PlayerController->GetPawn()` and assigning it over the player state's pawn is dead code that reads
+  like a fix, and it hides the real question (who hands the player state its pawn).
+- **Exception** — a controller that has not possessed a pawn yet, or one whose pawn the player state
+  was never told about (a programmatically constructed pair in a test); that is a setup bug, not a
+  reason for the override.
+
 ### Struct copies reset non-reflected members (verified 2026-09)
 
 - **Fact** — `UScriptStruct::CopyScriptStruct` copies through one of three paths:

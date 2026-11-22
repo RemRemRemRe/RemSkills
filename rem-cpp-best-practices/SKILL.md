@@ -380,9 +380,8 @@ two-argument `InitializeAs`: `references/type-mapping.md` (*Struct views*, *Inst
 
 **Single responsibility:** one thing per type and per function, one name per transition - `Bind` binds,
 `Unbind` unbinds, and tearing down before building is two jobs with no postcondition. **Minimal state:**
-re-read what another object owns; cache only what outlives its source. **Count the
-absent inputs:** bailing out on three missing inputs is several functions, or a `TNotNull` signature with
-the guard at the call site. **A reusable helper is not file-local:** a reusable domain helper belongs to the module's
+re-read what another object owns; cache only what outlives its source. **Count the absent inputs** (§7): three missing-input bail-outs is either several functions or one
+`TNotNull` signature. **A reusable helper is not file-local:** a reusable domain helper belongs to the module's
 `Rem::` statics, a generic one to `RemCommon`. See `references/design.md`. **Respect levels of
 abstraction:** a function body reads at one level — mixed-level bodies are the first symptom of a function doing two things. **Interface segregation / dependency inversion:** `UINTERFACE(MinimalAPI)` + `I*` or C++20 concepts (preferred for compile-time dispatch); free functions in `Rem::` where possible.
 
@@ -558,7 +557,7 @@ Before committing any C++ file:
 - [ ] No function re-does an earlier stage's work "just in case" — the ordering the design states is assumed, and the invariant is asserted rather than defended (§13, `references/design.md` *Write for the guaranteed order*)
 - [ ] No object precondition is checked in a nested `if` mid-body — it is a top-of-function guard, a `TNotNull` parameter, or a `RemEnsure*` bail-out (§13, `references/design.md`)
 - [ ] A helper's parameter is the narrowest type its body uses; a general helper deduces the range instead of taking a view over the caller's container (§13)
-- [ ] No function bails out on two or more absent inputs — the absence is a second function or the caller's `TNotNull` guard (§13)
+- [ ] No function bails out on more than one absent input — the absence is a second function or the caller's `TNotNull` guard (§13)
 - [ ] A domain helper another file will plausibly reuse sits in the module's `Rem::` statics, not in an anonymous namespace (§13)
 - [ ] A full array replacement is one assignment (or `CopyFrom`), not `Reset()` + `Append()` (§12, `references/type-mapping.md`)
 - [ ] No member caches a pointer or value another object owns (a sibling component, a subsystem, a player state behind an ability system) without a stated reason for it to outlive its source (§13)

@@ -112,6 +112,12 @@ Exception: an owner whose semantics *are* "regenerate from scratch on every call
 recomputes per generation) keeps the teardown inside, under a name that says so — `Rebuild()` — and
 still as the first statement rather than buried in a helper.
 
+**A rebind that can happen writes both lines; an operation that happens once does not.** The distinction
+is the object's lifetime, not caution: if the unit can be announced twice, `Unbind(); Bind();` sits at
+that transition; if the announcement is once per team and the release belongs to teardown, `Bind`
+appears alone and only `Uninitialize` releases. Adding the leading `Unbind` "just in case" is the
+defensive shape `Write for the guaranteed order` rejects.
+
 ### Take the narrowest type the body uses
 
 A parameter typed for the caller's most specific class narrows every future caller and forces a cast
@@ -171,6 +177,10 @@ tag handler needs no fallback bind.
 The test: delete the fallback and name the caller that would break. If the answer is "none, the order is
 fixed", it was defence against a hypothetical; if it is "the Blueprint that can write this array", it is
 input validation and belongs.
+
+The guarantee may still be a promise a layer above keeps rather than a fact in this tree — assert it
+anyway. A branch added because the guarantee is not enforced yet is the branch that outlives the
+guarantee; `RemCheck*` (development-only, stripped in Shipping) is the shape for it.
 
 ### Respect levels of abstraction
 
@@ -280,6 +290,11 @@ taste, not a defect, and must not be reported.
 | No premature abstraction | A base class / interface / template with exactly one implementation and no planned second; a parameter that only ever takes one value |
 | Symmetry and consistency | Sibling methods with different shapes; one path throwing and another returning a sentinel; a new helper duplicating one that already exists (survey `RemCommon` first — §3) |
 | One reason to change | A header including unrelated subsystems; a function whose name needs "And" |
+
+**A function is named for the value it produces, not for the member it writes.** `ComputePartyCurrent`
+named the field the result was stored in; the value was the chain, so `ComputePartyChain`. A name that
+repeats a member name also reads as "recompute this field", which is the implementation, not the
+intent.
 
 Deletion is the preferred fix: a proxy that fails because the code is
 unnecessary is resolved by removing it, not by adding a layer.

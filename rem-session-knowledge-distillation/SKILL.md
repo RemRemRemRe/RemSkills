@@ -67,6 +67,18 @@ A correlation from one run is a candidate, never a rule.
 Rule of thumb: once, session-specific → skip. The promotion bar for
 recurring knowledge is owned by `rem-write-better-skill` §9.
 
+Three things that look like knowledge and are not, each owned elsewhere:
+
+- **A value** — a path, a command line, a number measured on this machine — is an overlay value, not a
+  rule: it goes to the skill's `local/` file, never into `SKILL.md` (`rem-public-material-generalization`
+  §4). A rule that quotes a value ages the moment the machine changes.
+- **Something the tool reports and fixes itself** (a formatting finding, an obvious diagnostic) is
+  omitted: the message is in front of the author exactly when it matters (`rem-write-better-skill`
+  §1.5). Recording it buys nothing and dilutes the rules that do need memory.
+- **A rule another file already owns** becomes a pointer, not a copy — the copies drift and each review
+  then finds a different version (`rem-write-better-skill` §1.5 and §11). This includes a second copy
+  inside the same skill: the shorter form states the rule once and cross-references the section.
+
 **Wait for the surface to settle.** A design that is still moving yields a candidate, not a rule: hold
 it and write the rule once the surface stops changing (`rem-orchestration` — the freeze premise). A
 rule written too early is documentation churn paid twice.

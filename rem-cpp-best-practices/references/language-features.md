@@ -447,12 +447,17 @@ OwnerInstance->Initialize();
 auto& Ref = *OwnerInstance;
 ```
 
-**`NotNullGet` is the escape hatch, not the access path.** Member access goes through the wrapper
-(`NotNull->Member`); `NotNullGet(NotNull)` is for handing the raw pointer to an API that takes one — a
-container of raw pointers (`Chain.Contains(NotNullGet(Unit))`), an engine setter whose parameter is
-`AActor*`. Writing `NotNullGet(NotNull)->Member` unwraps and immediately re-wraps the meaning: noise that
-reads as if the wrapper could not be dereferenced (`Core/Public/Misc/NotNull.h` — `operator->` at 112/133,
-`NotNullGet` at 295).
+**`TNotNull` converts implicitly to its raw pointer** (`TNotNullBase<T*>::operator T*`,
+`Core/Public/Misc/NotNull.h:119-125`, "for compatibility with non-TNotNull APIs"), so member access,
+`Chain.Contains(Unit)` and an engine setter's `AActor*` parameter all take the wrapper as it is.
+`NotNullGet` is the escape hatch for the case the compiler refuses — an overload set the conversion
+makes ambiguous, a template that must deduce from the raw type, a nested wrapper.
+
+Measured 2026-11: four `NotNullGet` calls in one component — two in front of `->`, one feeding
+`Contains`, one feeding `SetViewTarget` — all four were removable without a single other edit. So the
+discipline is **try without it**: write the call with the wrapper, and keep `NotNullGet` only where the
+build says so. A text checker cannot decide this (it is a conversion question), and the build is the
+cheapest authority — one compile per batch of removals, not an argument per call site.
 
 **Pointer type semantics:** When `T` is itself a pointer type (e.g. `TNotNull<const FMyStruct*>`),
 `operator*()` returns a **reference to the pointed-to value**, not a reference to the stored

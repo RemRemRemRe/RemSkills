@@ -447,6 +447,13 @@ OwnerInstance->Initialize();
 auto& Ref = *OwnerInstance;
 ```
 
+**`NotNullGet` is the escape hatch, not the access path.** Member access goes through the wrapper
+(`NotNull->Member`); `NotNullGet(NotNull)` is for handing the raw pointer to an API that takes one — a
+container of raw pointers (`Chain.Contains(NotNullGet(Unit))`), an engine setter whose parameter is
+`AActor*`. Writing `NotNullGet(NotNull)->Member` unwraps and immediately re-wraps the meaning: noise that
+reads as if the wrapper could not be dereferenced (`Core/Public/Misc/NotNull.h` — `operator->` at 112/133,
+`NotNullGet` at 295).
+
 **Pointer type semantics:** When `T` is itself a pointer type (e.g. `TNotNull<const FMyStruct*>`),
 `operator*()` returns a **reference to the pointed-to value**, not a reference to the stored
 pointer. That is, `*NotNull` on `TNotNull<const FMyStruct*>` yields `const FMyStruct&` — a single
